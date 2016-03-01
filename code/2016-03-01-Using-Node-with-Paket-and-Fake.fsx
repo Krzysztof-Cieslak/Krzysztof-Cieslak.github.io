@@ -45,8 +45,9 @@ Tools executable are respectively `.\packages\Node.js\node.exe` and `.\packages\
 Example `scripts` section of `package.json`:
 ```
 "scripts": {
-"build:js": "packages\\Node.js\\node.exe node_modules/uglifyjs-folder/cli.js web/content/app/ -eo web/content/dist/",
-"build": "packages\\Npm.js\\tools\\npm.cmd run build:js"
+    "build:js": "packages\\Node.js\\node.exe node_modules/uglifyjs-folder/cli.js
+                 web/content/app/ -eo web/content/dist/",
+    "build": "packages\\Npm.js\\tools\\npm.cmd run build:js"
 }
 ```
 
