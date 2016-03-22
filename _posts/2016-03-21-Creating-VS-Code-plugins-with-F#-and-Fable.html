@@ -7,8 +7,8 @@ tags: [F#, Fable, VSCode, VS Code]
 image:
   feature: abstract-4.jpg
 ---
-<p><em>EDIT 22.03.2016</em> Thanks to Alfonso's help I was able to remove postpublid step fixing JS.</p>
 <h1>Introduction</h1>
+<p><em>EDIT 22.03.2016</em> Thanks to Alfonso's help I was able to remove postbuild step fixing JS.</p>
 <p><a href="https://code.visualstudio.com/">VS Code</a> is new text editor (or rather lightweight IDE) created by Microsoft. Because it is product based on <a href="http://electron.atom.io/">Electron</a> - cross platform engine allowing developers to write desktop applications using web technologies - its plugin system supports JavaScript (and TypeScript). Unfortunately both those languages are not nice choice for someone using statically typed functional programming languages like F#. Up to this moment in my VS Code extensions I was using F# library called <a href="http://funscript.info/">FunScript</a> which compiles F# code to JavaScript. Whereas it sounds nice, library has some problems which makes writing code using it not nice experience. Fortunately recently, <a href="https://twitter.com/alfonsogcnunez">Alfonso Garcia-Caro</a>, one of contributors to FunScript, has decided to create new project compiling F# to JS (with <a href="https://babeljs.io/">Babel</a> as middle step) called <a href="https://github.com/fsprojects/Fable">Fable</a> which hopefully will solve some of the FunScript's problems. I have decided to investigate how this new library can be used to create VS Code plugins... using VS Code to code and compile those plugins.</p>
 <h1>Requirements</h1>
 <p>You need to have <a href="http://fsharp.org/">F# 4</a> and <a href="https://nodejs.org/en/">node.js</a> installed. Node has to be included in your <code>$PATH</code>.</p>
