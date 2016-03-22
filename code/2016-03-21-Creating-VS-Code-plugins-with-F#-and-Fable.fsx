@@ -3,12 +3,14 @@
 layout: post
 title: "Creating VS Code plugins with F# and Fable"
 description: "Creating VS Code plugins with F# and Fable"
-modified: 2016-03-01
+modified: 2016-03-21
 tags: [F#, Fable, VSCode, VS Code]
 image:
   feature: abstract-4.jpg
 ---
 (**
+
+*EDIT 22.03.2016* Thanks to Alfonso's help I was able to remove postpublid step fixing JS.
 
 #Introduction
 
@@ -55,21 +57,14 @@ Second, we update `scripts` part - here we define possible build targets which c
 
 ```
 "scripts": {
-    "build": "fable src/extension.fsx --outDir ../out -m --env node",
-    "postbuild": "node src/fix_code.js"
+    "build": "fable src/extension.fsx --outDir ../out -m --env node"
   },
 ```
 
 > For more details about Fabel and compiler options please visit - https://github.com/fsprojects/Fable
 
 `build` target runs fable compiler to generate JS from our F# file. 
-`postbuild` targets runs small node script which performs some additional operations to transform Fable output to required by VS Code form.
 
-`src/fix_code.js` file content:
-
-```
-require("fs").appendFile("out/extension.js", "\nexports.activate = exports.default.activate")
-```
 
 # Writing F# Code
 
@@ -102,6 +97,13 @@ let activate (context : vscode.ExtensionContext) =
 (** 
 
 As we can see we can use both standard F# construct like `printfn` function (which is mapped to JS `console.log`) and functions defined in VS Code bindings. Here we print "Hello world" to console and register command which will display Hello World information in the popup. Now from console, we can run `npm build` and compile our F# script to JavaScript. We shall see result in `out` directory.
+*)
+
+Node.Globals.exports?activate <- activate
+
+(**
+
+Last step is adding `activate` to `exports` object using Fable dynamic operator (`?`)
 
 # Integration with VS Code
 

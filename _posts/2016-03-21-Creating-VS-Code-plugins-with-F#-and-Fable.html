@@ -2,11 +2,12 @@
 layout: post
 title: "Creating VS Code plugins with F# and Fable"
 description: "Creating VS Code plugins with F# and Fable"
-modified: 2016-03-01
+modified: 2016-03-21
 tags: [F#, Fable, VSCode, VS Code]
 image:
   feature: abstract-4.jpg
 ---
+<p><em>EDIT 22.03.2016</em> Thanks to Alfonso's help I was able to remove postpublid step fixing JS.</p>
 <h1>Introduction</h1>
 <p><a href="https://code.visualstudio.com/">VS Code</a> is new text editor (or rather lightweight IDE) created by Microsoft. Because it is product based on <a href="http://electron.atom.io/">Electron</a> - cross platform engine allowing developers to write desktop applications using web technologies - its plugin system supports JavaScript (and TypeScript). Unfortunately both those languages are not nice choice for someone using statically typed functional programming languages like F#. Up to this moment in my VS Code extensions I was using F# library called <a href="http://funscript.info/">FunScript</a> which compiles F# code to JavaScript. Whereas it sounds nice, library has some problems which makes writing code using it not nice experience. Fortunately recently, <a href="https://twitter.com/alfonsogcnunez">Alfonso Garcia-Caro</a>, one of contributors to FunScript, has decided to create new project compiling F# to JS (with <a href="https://babeljs.io/">Babel</a> as middle step) called <a href="https://github.com/fsprojects/Fable">Fable</a> which hopefully will solve some of the FunScript's problems. I have decided to investigate how this new library can be used to create VS Code plugins... using VS Code to code and compile those plugins.</p>
 <h1>Requirements</h1>
@@ -50,11 +51,9 @@ image:
 <table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l">1: </span>
 <span class="l">2: </span>
 <span class="l">3: </span>
-<span class="l">4: </span>
 </pre></td>
 <td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="s">&quot;scripts&quot;</span><span class="o">:</span> {
-    <span class="s">&quot;build&quot;</span><span class="o">:</span> <span class="s">&quot;fable src/extension.fsx --outDir ../out -m --env node&quot;</span>,
-    <span class="s">&quot;postbuild&quot;</span><span class="o">:</span> <span class="s">&quot;node src/fix_code.js&quot;</span>
+    <span class="s">&quot;build&quot;</span><span class="o">:</span> <span class="s">&quot;fable src/extension.fsx --outDir ../out -m --env node&quot;</span>
   },
 </code></pre></td>
 </tr>
@@ -62,15 +61,7 @@ image:
 <blockquote>
 <p>For more details about Fabel and compiler options please visit - <a href="https://github.com/fsprojects/Fable">https://github.com/fsprojects/Fable</a></p>
 </blockquote>
-<p><code>build</code> target runs fable compiler to generate JS from our F# file.
-<code>postbuild</code> targets runs small node script which performs some additional operations to transform Fable output to required by VS Code form.</p>
-<p><code>src/fix_code.js</code> file content:</p>
-<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l">1: </span>
-</pre></td>
-<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="i">require</span>(<span class="s">&quot;fs&quot;</span>)<span class="o">.</span><span class="i">appendFile</span>(<span class="s">&quot;out/extension.js&quot;</span>, <span class="s">&quot;\nexports.activate = exports.default.activate&quot;</span>)
-</code></pre></td>
-</tr>
-</table>
+<p><code>build</code> target runs fable compiler to generate JS from our F# file.</p>
 <h1>Writing F# Code</h1>
 <blockquote>
 <p>For more details about VS Code extension API please visit - <a href="https://code.visualstudio.com/docs/extensions/overview">https://code.visualstudio.com/docs/extensions/overview</a></p>
@@ -114,6 +105,13 @@ image:
 </tr>
 </table>
 <p>As we can see we can use both standard F# construct like <code>printfn</code> function (which is mapped to JS <code>console.log</code>) and functions defined in VS Code bindings. Here we print "Hello world" to console and register command which will display Hello World information in the popup. Now from console, we can run <code>npm build</code> and compile our F# script to JavaScript. We shall see result in <code>out</code> directory.</p>
+<table class="pre"><tr><td class="lines"><pre class="fssnip"><span class="l">1: </span>
+</pre></td>
+<td class="snippet"><pre class="fssnip highlighted"><code lang="fsharp"><span class="i">Node</span><span class="o">.</span><span class="i">Globals</span><span class="o">.</span><span class="i">exports</span><span class="o">?</span><span class="i">activate</span> <span class="o">&lt;-</span> <span class="i">activate</span>
+</code></pre></td>
+</tr>
+</table>
+<p>Last step is adding <code>activate</code> to <code>exports</code> object using Fable dynamic operator (<code>?</code>)</p>
 <h1>Integration with VS Code</h1>
 <p>Now, when we have set up project and can compile it, we need to integrate our solution with VS Code - first we define Task to run our build script from inside editor.
 In <code>.vscode</code> folder we create <code>tasks.json</code> file and put there:</p>
