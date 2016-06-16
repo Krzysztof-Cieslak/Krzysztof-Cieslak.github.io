@@ -5,8 +5,8 @@
         <description>Blog about F# and FP Programming</description>
         <link>http://kcieslak.io/</link>
         <atom:link href="http://kcieslak.io/feed.xml" rel="self" type="application/rss+xml"/>
-        <pubDate>Thu, 16 Jun 2016 22:06:21 +0200</pubDate>
-        <lastBuildDate>Thu, 16 Jun 2016 22:06:21 +0200</lastBuildDate>
+        <pubDate>Thu, 16 Jun 2016 23:48:29 +0200</pubDate>
+        <lastBuildDate>Thu, 16 Jun 2016 23:48:29 +0200</lastBuildDate>
         <generator>Jekyll v3.1.2</generator>
         
             <item>
@@ -22,6 +22,8 @@
 &lt;h3&gt;Requirements&lt;/h3&gt;
 
 &lt;p&gt;Fable requires having both &lt;a href=&quot;http://fsharp.org&quot;&gt;F# 4&lt;/a&gt; and &lt;a href=&quot;https://nodejs.org/en/&quot;&gt;node 4.4&lt;/a&gt; or bigger installed in your computer.&lt;/p&gt;
+
+&lt;!--more--&gt;
 
 &lt;h1&gt;Setting up project&lt;/h1&gt;
 
@@ -252,6 +254,8 @@ We can run those task usign &lt;code&gt;Tasks: Run Task&lt;/code&gt; command (&l
 
 &lt;p&gt;&lt;a href=&quot;https://code.visualstudio.com/&quot;&gt;VS Code&lt;/a&gt; is new text editor (or rather lightweight IDE) created by Microsoft. Because it is product based on &lt;a href=&quot;http://electron.atom.io/&quot;&gt;Electron&lt;/a&gt; - cross platform engine allowing developers to write desktop applications using web technologies - its plugin system supports JavaScript (and TypeScript). Unfortunately both those languages are not nice choice for someone using statically typed functional programming languages like F#. Up to this moment in my VS Code extensions I was using F# library called &lt;a href=&quot;http://funscript.info/&quot;&gt;FunScript&lt;/a&gt; which compiles F# code to JavaScript. Whereas it sounds nice, library has some problems which makes writing code using it not nice experience. Fortunately recently, &lt;a href=&quot;https://twitter.com/alfonsogcnunez&quot;&gt;Alfonso Garcia-Caro&lt;/a&gt;, one of contributors to FunScript, has decided to create new project compiling F# to JS (with &lt;a href=&quot;https://babeljs.io/&quot;&gt;Babel&lt;/a&gt; as middle step) called &lt;a href=&quot;https://github.com/fsprojects/Fable&quot;&gt;Fable&lt;/a&gt; which hopefully will solve some of the FunScript’s problems. I have decided to investigate how this new library can be used to create VS Code plugins… using VS Code to code and compile those plugins.&lt;/p&gt;
 
+&lt;!--more--&gt;
+
 &lt;h1&gt;Requirements&lt;/h1&gt;
 
 &lt;p&gt;You need to have &lt;a href=&quot;http://fsharp.org/&quot;&gt;F# 4&lt;/a&gt; and &lt;a href=&quot;https://nodejs.org/en/&quot;&gt;node.js&lt;/a&gt; installed. Node has to be included in your &lt;code&gt;$PATH&lt;/code&gt;.&lt;/p&gt;
@@ -385,6 +389,8 @@ In &lt;code&gt;.vscode&lt;/code&gt; folder we create &lt;code&gt;tasks.json&lt;/
 &lt;p&gt;Two important tools for front-end JavaScript development are &lt;a href=&quot;https://nodejs.org/en/&quot;&gt;Node.js&lt;/a&gt; (JS backend server, used for running many JS development tools) and &lt;a href=&quot;npmjs.com&quot;&gt;npm&lt;/a&gt; - package manager for Node.js. Those 2 tools are often installed globally on developer PC, are used to define dependencies for front-end application, and define build pipeline for it.&lt;/p&gt;
 
 &lt;p&gt;But, using different build tools for backend and front-end development in one application can get annoying and tiresome for developer, so it would be nice to use one build pipeline for all tasks. And it is possible with Paket and FAKE.&lt;/p&gt;
+
+&lt;!--more--&gt;
 
 &lt;h1&gt;Installing Node and npm using Paket&lt;/h1&gt;
 
