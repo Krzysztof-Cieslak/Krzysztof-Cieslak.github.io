@@ -17,6 +17,8 @@ banner_image: landscape_3.jpg
 
 Fable requires having both [F# 4](http://fsharp.org) and [node 4.4](https://nodejs.org/en/) or bigger installed in your computer.
 
+<!--more-->
+
 # Setting up project
 
 The first thing we need to do is creating new directory and initializing node project:

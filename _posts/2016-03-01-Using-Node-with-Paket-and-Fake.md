@@ -14,6 +14,8 @@ Two important tools for front-end JavaScript development are [Node.js](https://n
 
 But, using different build tools for backend and front-end development in one application can get annoying and tiresome for developer, so it would be nice to use one build pipeline for all tasks. And it is possible with Paket and FAKE.
 
+<!--more-->
+
 # Installing Node and npm using Paket
 
 > In case you haven't heard about Paket - it is alternative dependency management tool built by F# community, supporting NuGet, GitHub and git. For more information please visit : [http://fsprojects.github.io/Paket/](http://fsprojects.github.io/Paket/)
