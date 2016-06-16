@@ -13,10 +13,6 @@ open Fake.Testing
 open System
 open System.IO
 
-let gitOwner = "Krzyszof-Cieslak"
-let gitHome = "https://github.com/" + gitOwner
-let gitName = "Krzysztof-Cieslak.github.io"
-
 // Target "Generate" (fun _ ->
 //     CleanDir "_site"
 //     let res = ProcessHelper.shellExec {Program = "jekyll.bat"; WorkingDirectory = @"C:\Users\Krzysztof\AppData\Local\scoop\apps\ruby\2.2.4\bin\"; CommandLine = "build"; Args = [] }
@@ -27,7 +23,7 @@ let gitName = "Krzysztof-Cieslak.github.io"
 Target "Release" (fun _ ->
     let tempDocsDir = "temp"
     CleanDir tempDocsDir
-    Repository.cloneSingleBranch "" (gitHome + "/" + gitName + ".git") "master" tempDocsDir
+    Repository.cloneSingleBranch "" "https://github.com/Krzysztof-Cieslak/Krzysztof-Cieslak.github.io.git" "master" tempDocsDir
 
     CopyRecursive "_site" tempDocsDir true |> tracefn "%A"
     StageAll tempDocsDir
