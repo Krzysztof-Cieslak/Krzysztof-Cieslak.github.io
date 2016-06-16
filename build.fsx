@@ -35,4 +35,4 @@ Target "Release" (fun _ ->
     Branches.push tempDocsDir
 )
 
-RunTargetOrDefault "Generate"
+RunTargetOrDefault "Release"
