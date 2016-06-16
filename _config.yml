@@ -69,3 +69,5 @@ markdown: kramdown
 kramdown:
     auto_ids: false 
     syntax_highlighter: nil
+
+exclude: ["packages", "build.*", "paket.*"]
