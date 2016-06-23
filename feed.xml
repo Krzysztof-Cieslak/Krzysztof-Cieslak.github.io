@@ -5,9 +5,211 @@
         <description>Blog about F# and FP Programming</description>
         <link>http://kcieslak.io/</link>
         <atom:link href="http://kcieslak.io/feed.xml" rel="self" type="application/rss+xml"/>
-        <pubDate>Thu, 16 Jun 2016 23:48:29 +0200</pubDate>
-        <lastBuildDate>Thu, 16 Jun 2016 23:48:29 +0200</lastBuildDate>
+        <pubDate>Thu, 23 Jun 2016 22:21:14 +0200</pubDate>
+        <lastBuildDate>Thu, 23 Jun 2016 22:21:14 +0200</lastBuildDate>
         <generator>Jekyll v3.1.2</generator>
+        
+            <item>
+                <title>Creating custom project file for F#</title>
+                <description>&lt;h1&gt;Introduction&lt;/h1&gt;
+
+&lt;p&gt;Let’s imagine a world where F# is independent language, with cross-platform tooling making life of every F# developer easier. In this world, after we’ve fixed dependency management problem with Paket, we could go one step further… and fix project file format and building. We would use same principles as Paket - very simple, human readable, file format which can be edited without any other tooling, and command line tool responsible for building such project.&lt;/p&gt;
+
+&lt;p&gt;In such world I’ve decided to create new open-source project called &lt;code&gt;Chris&lt;/code&gt;&lt;/p&gt;
+
+&lt;h1&gt;File format&lt;/h1&gt;
+
+&lt;p&gt;For our hypothetical project file (called &lt;code&gt;project.chris&lt;/code&gt;) I’ve decided to use &lt;code&gt;toml&lt;/code&gt;. In this very simple file we would just specify few properties, files of our project, GAC references and external NuGet packages. It would look like as follows:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-toml&quot;&gt;[Info]
+Name = &quot;Fancy_Test_Project&quot;
+Author = &quot;Lambda Factory&quot;
+Git = &quot;&quot;
+
+[Stuff]
+References = [&quot;mscorlib&quot;, &quot;System&quot;, &quot;System.Core&quot;, &quot;System.Numerics&quot;]
+Files = [&quot;Message.fs&quot;, &quot;Test.fs&quot;]
+Packages = []
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h1&gt;Build&lt;/h1&gt;
+
+&lt;p&gt;Most important feature of every project system is ability to build project to executable version. As I’ve mentioned earlier one of the important points I’d like to address is ability to build project with command line with very simple commands. To build any F# project, in the end - no matter which project system we use, we have to execute F# Compiler with &lt;a href=&quot;https://msdn.microsoft.com/en-us/visualfsharpdocs/conceptual/compiler-options-%5bfsharp%5d&quot;&gt;appropriate arguments&lt;/a&gt; (defining references, different build options, and source files).&lt;/p&gt;
+
+&lt;p&gt;In this case I’ve created really simple console application which user runs in project directory and it builds project, and produce &lt;code&gt;.exe&lt;/code&gt; file. To parse &lt;code&gt;toml&lt;/code&gt; I’ve decided to use &lt;a href=&quot;https://github.com/paiden/Nett&quot;&gt;Nett library&lt;/a&gt;.&lt;/p&gt;
+
+&lt;p&gt;First step is defining model representing our project, what is rather straightforward:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-fsharp&quot;&gt;type Info = {
+    Name : string
+    Author : string
+    Git : string 
+}
+
+type Stuff = {
+    Files : string []
+    References : string []
+    Packages : string []
+}
+
+type Project = {
+    Info : Info
+    Stuff : Stuff
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Next step is creating 2 helper functions - one loading &lt;code&gt;project.chris&lt;/code&gt; and parsing it to our model, second one transforming this model to right F# Compiler arguments. Again, nothing complex.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-fsharp&quot;&gt;let load (path : string) = 
+    let tmp = Toml.ReadFile path
+    let info = tmp.Get&amp;lt;TomlTable&amp;gt; &quot;Info&quot;
+    let stuff = tmp.Get&amp;lt;TomlTable&amp;gt; &quot;Stuff&quot; 
+    {
+        Info = { 
+                Name = info.Get&amp;lt;string&amp;gt;(&quot;Name&quot;)
+                Author = info.Get&amp;lt;string&amp;gt;(&quot;Author&quot;)
+                Git = info.Get&amp;lt;string&amp;gt;(&quot;Git&quot;) }
+        Stuff = {
+                Files = stuff.Get&amp;lt;string []&amp;gt;(&quot;Files&quot;)
+                References = stuff.Get&amp;lt;string []&amp;gt;(&quot;References&quot;)
+                Packages = stuff.Get&amp;lt;string []&amp;gt;(&quot;Packages&quot;) }
+    }, path
+
+let toFSCParams (project, path) =
+    let folder = Path.GetDirectoryName path
+    let output = sprintf &quot;%s.exe&quot; project.Info.Name
+    [| 
+        yield &quot;-out:&quot; + output
+        yield @&quot;-r:C:\Program Files (x86)\Reference Assemblies\Microsoft\FSharp\.NETFramework\v4.0\4.3.1.0\FSharp.Core.dll&quot;
+        for r in project.Stuff.References do
+            yield sprintf @&quot;-r:C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\%s.dll&quot; r
+
+        yield &quot;--noframework&quot;
+        for f in project.Stuff.Files do
+            yield  Path.Combine (folder, f)
+    |]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Last step is creating function which runs F# Compiler. To do so we will use &lt;a href=&quot;https://fsharp.github.io/FSharp.Compiler.Service/&quot;&gt;FSharp.Compiler.Service&lt;/a&gt; - .Net library that exposes functionality for implementing F# language bindings, additional tools based on the compiler or refactoring tools. What’s most important in this case it also let’s &lt;a href=&quot;https://fsharp.github.io/FSharp.Compiler.Service/compiler.html&quot;&gt;host F# compiler inside other application&lt;/a&gt;.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-fsharp&quot;&gt;open Microsoft.FSharp.Compiler
+open Microsoft.FSharp.Compiler.SourceCodeServices
+open Microsoft.FSharp.Compiler.SimpleSourceCodeServices
+
+let build (project,path) = 
+    let scs = SimpleSourceCodeServices()
+    let parm =  (project, path) |&amp;gt; toFSCParams
+    parm |&amp;gt; scs.Compile
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;And at the end we pipe it together:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-fsharp&quot;&gt;[&amp;lt;EntryPoint&amp;gt;]
+let main argv =
+    let errors, exit = 
+        &quot;project.chris&quot;
+        |&amp;gt; Path.GetFullPath
+        |&amp;gt; load 
+        |&amp;gt; build
+    exit // return an integer exit code
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Now we can build our project!&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;images/gifs/chris_build.gif&quot; alt=&quot;Build with Chris&quot; /&gt;&lt;/p&gt;
+
+&lt;h1&gt;Editor support&lt;/h1&gt;
+
+&lt;p&gt;Another important part of project system is providing information for F# Language Services which lets us to create rich editing environment across many different editors. Fortunatly FSharp.Compiler.Service is designed to be totally decoupled from project file format and requires its &lt;a href=&quot;https://fsharp.github.io/FSharp.Compiler.Service/reference/microsoft-fsharp-compiler-sourcecodeservices-fsharpprojectoptions.html&quot;&gt;custom type&lt;/a&gt; to provide all nice &lt;a href=&quot;https://fsharp.github.io/FSharp.Compiler.Service/editor.html&quot;&gt;Language Services features&lt;/a&gt;. Since we already have function loading &lt;code&gt;project.chris&lt;/code&gt; to memory all we need to do is creating function which maps our type to type required by FCS.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-fsharp&quot;&gt;let toFSharpProjectOptions (project, path) =
+    let rsp = (project, path) |&amp;gt; toFSCParams
+    { 
+      ProjectFileName = path
+      ProjectFileNames = [||]
+      OtherOptions = rsp
+      ReferencedProjects = [||]
+      IsIncompleteTypeCheckEnvironment = false
+      UseScriptResolutionRules = false
+      LoadTime = System.DateTime.Now
+      UnresolvedReferences = None;
+    }
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Next step is actually adding support for &lt;code&gt;project.chris&lt;/code&gt; to our editor of choice. It’s pretty easy for all editors and tools using FSharp.Compiler.Service in the background, but for sake of simplicity I’ve chosen &lt;a href=&quot;https://code.visualstudio.com/&quot;&gt;VS Code&lt;/a&gt; with &lt;a href=&quot;https://ionide.io&quot;&gt;Ionide&lt;/a&gt;. As you may know, VS Code is editor created using &lt;a href=&quot;http://electron.atom.io/&quot;&gt;Electron&lt;/a&gt; which is framework for building cross-platform, desktop applications using HTML, JS, and CSS. Such choice has many advantages, but one bug important drawback from F# editor tooling point of view - we can’t directly use .Net libraries in VS Code. To communicate with .Net libraries (and especially with FSharp.Compiler.Service) we are using &lt;a href=&quot;https://github.com/fsharp/FsAutoComplete&quot;&gt;FsAutoComplete&lt;/a&gt; - F# compiler service API exposed via a console application and HTTP server.&lt;/p&gt;
+
+&lt;p&gt;Adding &lt;code&gt;project.chris&lt;/code&gt; support to FsAutoComplete is, again, fairly easy. First step is adding Chris project as reference to FsAutoComplete. Next we create helper function which will be executed if we try to load &lt;code&gt;project.chris&lt;/code&gt; file - it’s basically copy-paste of &lt;a href=&quot;https://github.com/fsharp/FsAutoComplete/blob/master/src/FsAutoComplete.Core/CompilerServiceInterface.fs#L189-L222&quot;&gt;same functions&lt;/a&gt; for &lt;code&gt;.fsproj&lt;/code&gt; and &lt;code&gt;project.json&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-fsharp&quot;&gt;  member x.TryGetChrisProjectOption (file : string) : Result&amp;lt;_&amp;gt; = 
+    if not (File.Exists file) then
+      Failure (sprintf &quot;File &#39;%s&#39; does not exist&quot; file)
+    else
+      try
+        let po = file |&amp;gt; Chris.load |&amp;gt; Chris.toFSharpProjectOptions 
+        let compileFiles = Seq.filter (fun (s:string) -&amp;gt; s.EndsWith(&quot;.fs&quot;)) po.OtherOptions
+        let outputFile = Seq.tryPick (chooseByPrefix &quot;--out:&quot;) po.OtherOptions
+        let references = Seq.choose (chooseByPrefix &quot;-r:&quot;) po.OtherOptions
+        Success (po, Seq.toList compileFiles, outputFile, Seq.toList references, Map&amp;lt;string,string&amp;gt;([||]))   
+      with e -&amp;gt; 
+        Failure e.Message
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Last step is modifying &lt;a href=&quot;https://github.com/fsharp/FsAutoComplete/blob/master/src/FsAutoComplete.Core/FsAutoComplete.Core.fs#L51-L55&quot;&gt;handler for project request&lt;/a&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-fsharp&quot;&gt;let options = 
+    if file.EndsWith &quot;fsproj&quot; then
+        checker.TryGetProjectOptions(file, verbose)
+    elif file.EndsWith &quot;chris&quot; then
+        checker.TryGetChrisProjectOption file 
+    else
+        checker.TryGetCoreProjectOptions file
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Compile FSAC, copy modified version to Iondie plugin folder… and that’s all. Everything is working as always, just with &lt;code&gt;project.chris&lt;/code&gt;. 
+&lt;img src=&quot;images/gifs/chris_editor.gif&quot; alt=&quot;Editor with Chris&quot; /&gt;&lt;/p&gt;
+
+&lt;h1&gt;Frequently Asked Question&lt;/h1&gt;
+
+&lt;p&gt;&lt;em&gt;Q: You haven’t mentioned VS at all, it surely means you hate it and ignore, right?&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;A: No, VS (with VFPT installed) is best F# IDE, but I don’t use it too much. Adding custom project file support to VS is definitely possible, it just requires knowledge I don’t have. Thus, I haven’t mentioned it in post.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Q: What about C# / F# interoperability, compatibility with existing F# projects?&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;A: In worst case scenario - we have compatibility on compiled code / package level ( I can imagine some workflow using Paket which would make it not too problematic). In “best” case - custom MsBuild task, but again, I don’t have enough knowledge to judge how possible it is.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Q: You’re just one of those elitist, arrogant guys thinking they are better because they use this new-overhyped thing - functional programming. You just hate MsBuild because it’s C#!&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;A: Yes, indeed. Move along. Nothing to see here.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Q: What about support for any other F# tooling such as FSharpLint?&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;A: Any tool using FSharp.Compiler.Service should be very easy to port, as presented above on FsAutoComplete example.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Q: Where is code, I want to use it now!&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;A: Code of this experiment is not published anywhere on purpose - I don’t want anyone to use it by any chance. It was just very simple proof of concept. Hopefully, one day F# Community will be ready for new project system.&lt;/p&gt;
+
+&lt;p&gt;&lt;em&gt;Q: I &lt;strong&gt;really&lt;/strong&gt; want to use something like that&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;A: Ask &lt;a href=&quot;https://twitter.com/7sharp9_exhumed&quot;&gt;Dave Thomas&lt;/a&gt; about his Xebec project, and support &lt;a href=&quot;https://twitter.com/7sharp9_exhumed/status/745995222178480128&quot;&gt;fsprojexit&lt;/a&gt;&lt;/p&gt;
+
+&lt;h1&gt;Summary&lt;/h1&gt;
+
+&lt;p&gt;In this post I’ve presented possible ways of expanding F# development environment with new project system. I haven’t shown here any ready solutions for the problem but I hope that this post shows that having new, better project system is possible. We just need as Community to start reasonable discussion about such possibility.&lt;/p&gt;
+</description>
+                <pubDate>Thu, 23 Jun 2016 00:00:00 +0200</pubDate>
+                <link>http://kcieslak.io/Creating-custom-project-file-for-F</link>
+                <guid isPermaLink="true">http://kcieslak.io/Creating-custom-project-file-for-F</guid>
+                
+                <category>F#</category>
+                
+                <category>VSCode</category>
+                
+                <category>Tooling</category>
+                
+                
+            </item>
         
             <item>
                 <title>Getting started with Fable and Webpack</title>
