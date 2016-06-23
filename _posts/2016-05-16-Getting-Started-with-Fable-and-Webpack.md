@@ -3,7 +3,7 @@ layout: post
 title: "Getting started with Fable and Webpack"
 description: "Getting started with Fable (F# to JS compiler), Webpack using Visual Studio Code"
 modified: 2016-05-16
-tags: [F#, Fable, VSCode, Webpack, JS]
+tags: [F#, Fable, VS Code, Webpack, JS]
 banner_image: landscape_3.jpg
 ---
 

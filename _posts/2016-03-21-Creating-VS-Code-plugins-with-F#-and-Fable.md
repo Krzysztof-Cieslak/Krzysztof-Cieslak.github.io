@@ -3,7 +3,7 @@ layout: post
 title: "Creating VS Code plugins with F# and Fable"
 description: "Creating VS Code plugins with F# and Fable"
 modified: 2016-03-21
-tags: [F#, Fable, VSCode, VS Code]
+tags: [F#, Fable, VS Code]
 banner_image: landscape_1.jpg
 ---
 

@@ -3,7 +3,7 @@ layout: post
 title: "Creating custom project file for F#"
 description: "Creating custom project file for F#"
 modified: 2016-05-16
-tags: [F#, VSCode, Tooling]
+tags: [F#, VS Code, Tooling]
 banner_image: landscape_4.jpg
 ---
 
