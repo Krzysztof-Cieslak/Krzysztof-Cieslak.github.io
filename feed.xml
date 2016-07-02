@@ -5,8 +5,8 @@
         <description>Blog about F# and FP Programming</description>
         <link>http://kcieslak.io/</link>
         <atom:link href="http://kcieslak.io/feed.xml" rel="self" type="application/rss+xml"/>
-        <pubDate>Thu, 23 Jun 2016 22:21:14 +0200</pubDate>
-        <lastBuildDate>Thu, 23 Jun 2016 22:21:14 +0200</lastBuildDate>
+        <pubDate>Fri, 01 Jul 2016 22:28:50 -0700</pubDate>
+        <lastBuildDate>Fri, 01 Jul 2016 22:28:50 -0700</lastBuildDate>
         <generator>Jekyll v3.1.2</generator>
         
             <item>
@@ -32,6 +32,8 @@ Files = [&quot;Message.fs&quot;, &quot;Test.fs&quot;]
 Packages = []
 &lt;/code&gt;&lt;/pre&gt;
 
+&lt;!--more--&gt;
+
 &lt;h1&gt;Build&lt;/h1&gt;
 
 &lt;p&gt;Most important feature of every project system is ability to build project to executable version. As I’ve mentioned earlier one of the important points I’d like to address is ability to build project with command line with very simple commands. To build any F# project, in the end - no matter which project system we use, we have to execute F# Compiler with &lt;a href=&quot;https://msdn.microsoft.com/en-us/visualfsharpdocs/conceptual/compiler-options-%5bfsharp%5d&quot;&gt;appropriate arguments&lt;/a&gt; (defining references, different build options, and source files).&lt;/p&gt;
@@ -43,7 +45,7 @@ Packages = []
 &lt;pre&gt;&lt;code class=&quot;language-fsharp&quot;&gt;type Info = {
     Name : string
     Author : string
-    Git : string 
+    Git : string
 }
 
 type Stuff = {
@@ -60,12 +62,12 @@ type Project = {
 
 &lt;p&gt;Next step is creating 2 helper functions - one loading &lt;code&gt;project.chris&lt;/code&gt; and parsing it to our model, second one transforming this model to right F# Compiler arguments. Again, nothing complex.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&quot;language-fsharp&quot;&gt;let load (path : string) = 
+&lt;pre&gt;&lt;code class=&quot;language-fsharp&quot;&gt;let load (path : string) =
     let tmp = Toml.ReadFile path
     let info = tmp.Get&amp;lt;TomlTable&amp;gt; &quot;Info&quot;
-    let stuff = tmp.Get&amp;lt;TomlTable&amp;gt; &quot;Stuff&quot; 
+    let stuff = tmp.Get&amp;lt;TomlTable&amp;gt; &quot;Stuff&quot;
     {
-        Info = { 
+        Info = {
                 Name = info.Get&amp;lt;string&amp;gt;(&quot;Name&quot;)
                 Author = info.Get&amp;lt;string&amp;gt;(&quot;Author&quot;)
                 Git = info.Get&amp;lt;string&amp;gt;(&quot;Git&quot;) }
@@ -78,7 +80,7 @@ type Project = {
 let toFSCParams (project, path) =
     let folder = Path.GetDirectoryName path
     let output = sprintf &quot;%s.exe&quot; project.Info.Name
-    [| 
+    [|
         yield &quot;-out:&quot; + output
         yield @&quot;-r:C:\Program Files (x86)\Reference Assemblies\Microsoft\FSharp\.NETFramework\v4.0\4.3.1.0\FSharp.Core.dll&quot;
         for r in project.Stuff.References do
@@ -96,7 +98,7 @@ let toFSCParams (project, path) =
 open Microsoft.FSharp.Compiler.SourceCodeServices
 open Microsoft.FSharp.Compiler.SimpleSourceCodeServices
 
-let build (project,path) = 
+let build (project,path) =
     let scs = SimpleSourceCodeServices()
     let parm =  (project, path) |&amp;gt; toFSCParams
     parm |&amp;gt; scs.Compile
@@ -106,10 +108,10 @@ let build (project,path) =
 
 &lt;pre&gt;&lt;code class=&quot;language-fsharp&quot;&gt;[&amp;lt;EntryPoint&amp;gt;]
 let main argv =
-    let errors, exit = 
+    let errors, exit =
         &quot;project.chris&quot;
         |&amp;gt; Path.GetFullPath
-        |&amp;gt; load 
+        |&amp;gt; load
         |&amp;gt; build
     exit // return an integer exit code
 &lt;/code&gt;&lt;/pre&gt;
@@ -124,7 +126,7 @@ let main argv =
 
 &lt;pre&gt;&lt;code class=&quot;language-fsharp&quot;&gt;let toFSharpProjectOptions (project, path) =
     let rsp = (project, path) |&amp;gt; toFSCParams
-    { 
+    {
       ProjectFileName = path
       ProjectFileNames = [||]
       OtherOptions = rsp
@@ -140,32 +142,32 @@ let main argv =
 
 &lt;p&gt;Adding &lt;code&gt;project.chris&lt;/code&gt; support to FsAutoComplete is, again, fairly easy. First step is adding Chris project as reference to FsAutoComplete. Next we create helper function which will be executed if we try to load &lt;code&gt;project.chris&lt;/code&gt; file - it’s basically copy-paste of &lt;a href=&quot;https://github.com/fsharp/FsAutoComplete/blob/master/src/FsAutoComplete.Core/CompilerServiceInterface.fs#L189-L222&quot;&gt;same functions&lt;/a&gt; for &lt;code&gt;.fsproj&lt;/code&gt; and &lt;code&gt;project.json&lt;/code&gt;&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&quot;language-fsharp&quot;&gt;  member x.TryGetChrisProjectOption (file : string) : Result&amp;lt;_&amp;gt; = 
+&lt;pre&gt;&lt;code class=&quot;language-fsharp&quot;&gt;  member x.TryGetChrisProjectOption (file : string) : Result&amp;lt;_&amp;gt; =
     if not (File.Exists file) then
       Failure (sprintf &quot;File &#39;%s&#39; does not exist&quot; file)
     else
       try
-        let po = file |&amp;gt; Chris.load |&amp;gt; Chris.toFSharpProjectOptions 
+        let po = file |&amp;gt; Chris.load |&amp;gt; Chris.toFSharpProjectOptions
         let compileFiles = Seq.filter (fun (s:string) -&amp;gt; s.EndsWith(&quot;.fs&quot;)) po.OtherOptions
         let outputFile = Seq.tryPick (chooseByPrefix &quot;--out:&quot;) po.OtherOptions
         let references = Seq.choose (chooseByPrefix &quot;-r:&quot;) po.OtherOptions
-        Success (po, Seq.toList compileFiles, outputFile, Seq.toList references, Map&amp;lt;string,string&amp;gt;([||]))   
-      with e -&amp;gt; 
+        Success (po, Seq.toList compileFiles, outputFile, Seq.toList references, Map&amp;lt;string,string&amp;gt;([||]))
+      with e -&amp;gt;
         Failure e.Message
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;Last step is modifying &lt;a href=&quot;https://github.com/fsharp/FsAutoComplete/blob/master/src/FsAutoComplete.Core/FsAutoComplete.Core.fs#L51-L55&quot;&gt;handler for project request&lt;/a&gt;&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&quot;language-fsharp&quot;&gt;let options = 
+&lt;pre&gt;&lt;code class=&quot;language-fsharp&quot;&gt;let options =
     if file.EndsWith &quot;fsproj&quot; then
         checker.TryGetProjectOptions(file, verbose)
     elif file.EndsWith &quot;chris&quot; then
-        checker.TryGetChrisProjectOption file 
+        checker.TryGetChrisProjectOption file
     else
         checker.TryGetCoreProjectOptions file
 &lt;/code&gt;&lt;/pre&gt;
 
-&lt;p&gt;Compile FSAC, copy modified version to Iondie plugin folder… and that’s all. Everything is working as always, just with &lt;code&gt;project.chris&lt;/code&gt;. 
+&lt;p&gt;Compile FSAC, copy modified version to Iondie plugin folder… and that’s all. Everything is working as always, just with &lt;code&gt;project.chris&lt;/code&gt;.
 &lt;img src=&quot;images/gifs/chris_editor.gif&quot; alt=&quot;Editor with Chris&quot; /&gt;&lt;/p&gt;
 
 &lt;h1&gt;Frequently Asked Question&lt;/h1&gt;
@@ -198,13 +200,13 @@ let main argv =
 
 &lt;p&gt;In this post I’ve presented possible ways of expanding F# development environment with new project system. I haven’t shown here any ready solutions for the problem but I hope that this post shows that having new, better project system is possible. We just need as Community to start reasonable discussion about such possibility.&lt;/p&gt;
 </description>
-                <pubDate>Thu, 23 Jun 2016 00:00:00 +0200</pubDate>
+                <pubDate>Thu, 23 Jun 2016 00:00:00 -0700</pubDate>
                 <link>http://kcieslak.io/Creating-custom-project-file-for-F</link>
                 <guid isPermaLink="true">http://kcieslak.io/Creating-custom-project-file-for-F</guid>
                 
                 <category>F#</category>
                 
-                <category>VSCode</category>
+                <category>VS Code</category>
                 
                 <category>Tooling</category>
                 
@@ -431,7 +433,7 @@ We can run those task usign &lt;code&gt;Tasks: Run Task&lt;/code&gt; command (&l
 
 &lt;p&gt;In this post we have shortly moved all steps necessary to create browser, client-side applications using F#, Fable and Webpack. Whole source code of this sample application is on GitHub - https://github.com/Krzysztof-Cieslak/fable-webpack-demo&lt;/p&gt;
 </description>
-                <pubDate>Mon, 16 May 2016 00:00:00 +0200</pubDate>
+                <pubDate>Mon, 16 May 2016 00:00:00 -0700</pubDate>
                 <link>http://kcieslak.io/Getting-Started-with-Fable-and-Webpack</link>
                 <guid isPermaLink="true">http://kcieslak.io/Getting-Started-with-Fable-and-Webpack</guid>
                 
@@ -439,7 +441,7 @@ We can run those task usign &lt;code&gt;Tasks: Run Task&lt;/code&gt; command (&l
                 
                 <category>Fable</category>
                 
-                <category>VSCode</category>
+                <category>VS Code</category>
                 
                 <category>Webpack</category>
                 
@@ -567,15 +569,13 @@ In &lt;code&gt;.vscode&lt;/code&gt; folder we create &lt;code&gt;tasks.json&lt;/
 
 &lt;p&gt;In this post we have shortly moved all steps necessary to create VS Code extension using F# and Fable. From my short experience with this tool it looks like it is much nicer option than FunScript, hopefully I will be able to port my other extensions to it! Whole source code of this sample application is on &lt;a href=&quot;https://github.com/Krzysztof-Cieslak/vscode-fable-demo&quot;&gt;GitHub&lt;/a&gt;&lt;/p&gt;
 </description>
-                <pubDate>Mon, 21 Mar 2016 00:00:00 +0100</pubDate>
+                <pubDate>Mon, 21 Mar 2016 00:00:00 -0700</pubDate>
                 <link>http://kcieslak.io/Creating-VS-Code-plugins-with-F-and-Fable</link>
                 <guid isPermaLink="true">http://kcieslak.io/Creating-VS-Code-plugins-with-F-and-Fable</guid>
                 
                 <category>F#</category>
                 
                 <category>Fable</category>
-                
-                <category>VSCode</category>
                 
                 <category>VS Code</category>
                 
@@ -666,7 +666,7 @@ In &lt;code&gt;.vscode&lt;/code&gt; folder we create &lt;code&gt;tasks.json&lt;/
 
 &lt;p&gt;In the post we’ve shortly moved through all steps necessery to create build pipeline combingin our known F# tools - Paket and FAKE, with JavaScript tooling used for front-end development - Node and npm. This post was based on FsSnippet web page implementation where this technique is used - for more details, and “real world” usage feel free to check &lt;a href=&quot;https://github.com/fssnippets/fssnip-website&quot;&gt;FsSnippet source code on GitHub&lt;/a&gt;&lt;/p&gt;
 </description>
-                <pubDate>Tue, 01 Mar 2016 00:00:00 +0100</pubDate>
+                <pubDate>Tue, 01 Mar 2016 00:00:00 -0800</pubDate>
                 <link>http://kcieslak.io/Using-Node-with-Paket-and-Fake</link>
                 <guid isPermaLink="true">http://kcieslak.io/Using-Node-with-Paket-and-Fake</guid>
                 

@@ -92,6 +92,8 @@ Files = ["Message.fs", "Test.fs"]
 Packages = []
 </code></pre>
 
+<!--more-->
+
 <h1>Build</h1>
 
 <p>Most important feature of every project system is ability to build project to executable version. As I’ve mentioned earlier one of the important points I’d like to address is ability to build project with command line with very simple commands. To build any F# project, in the end - no matter which project system we use, we have to execute F# Compiler with <a href="https://msdn.microsoft.com/en-us/visualfsharpdocs/conceptual/compiler-options-%5bfsharp%5d">appropriate arguments</a> (defining references, different build options, and source files).</p>
@@ -103,7 +105,7 @@ Packages = []
 <pre><code class="language-fsharp">type Info = {
     Name : string
     Author : string
-    Git : string 
+    Git : string
 }
 
 type Stuff = {
@@ -120,12 +122,12 @@ type Project = {
 
 <p>Next step is creating 2 helper functions - one loading <code>project.chris</code> and parsing it to our model, second one transforming this model to right F# Compiler arguments. Again, nothing complex.</p>
 
-<pre><code class="language-fsharp">let load (path : string) = 
+<pre><code class="language-fsharp">let load (path : string) =
     let tmp = Toml.ReadFile path
     let info = tmp.Get&lt;TomlTable&gt; "Info"
-    let stuff = tmp.Get&lt;TomlTable&gt; "Stuff" 
+    let stuff = tmp.Get&lt;TomlTable&gt; "Stuff"
     {
-        Info = { 
+        Info = {
                 Name = info.Get&lt;string&gt;("Name")
                 Author = info.Get&lt;string&gt;("Author")
                 Git = info.Get&lt;string&gt;("Git") }
@@ -138,7 +140,7 @@ type Project = {
 let toFSCParams (project, path) =
     let folder = Path.GetDirectoryName path
     let output = sprintf "%s.exe" project.Info.Name
-    [| 
+    [|
         yield "-out:" + output
         yield @"-r:C:\Program Files (x86)\Reference Assemblies\Microsoft\FSharp\.NETFramework\v4.0\4.3.1.0\FSharp.Core.dll"
         for r in project.Stuff.References do
@@ -156,7 +158,7 @@ let toFSCParams (project, path) =
 open Microsoft.FSharp.Compiler.SourceCodeServices
 open Microsoft.FSharp.Compiler.SimpleSourceCodeServices
 
-let build (project,path) = 
+let build (project,path) =
     let scs = SimpleSourceCodeServices()
     let parm =  (project, path) |&gt; toFSCParams
     parm |&gt; scs.Compile
@@ -166,10 +168,10 @@ let build (project,path) =
 
 <pre><code class="language-fsharp">[&lt;EntryPoint&gt;]
 let main argv =
-    let errors, exit = 
+    let errors, exit =
         "project.chris"
         |&gt; Path.GetFullPath
-        |&gt; load 
+        |&gt; load
         |&gt; build
     exit // return an integer exit code
 </code></pre>
@@ -184,7 +186,7 @@ let main argv =
 
 <pre><code class="language-fsharp">let toFSharpProjectOptions (project, path) =
     let rsp = (project, path) |&gt; toFSCParams
-    { 
+    {
       ProjectFileName = path
       ProjectFileNames = [||]
       OtherOptions = rsp
@@ -200,32 +202,32 @@ let main argv =
 
 <p>Adding <code>project.chris</code> support to FsAutoComplete is, again, fairly easy. First step is adding Chris project as reference to FsAutoComplete. Next we create helper function which will be executed if we try to load <code>project.chris</code> file - it’s basically copy-paste of <a href="https://github.com/fsharp/FsAutoComplete/blob/master/src/FsAutoComplete.Core/CompilerServiceInterface.fs#L189-L222">same functions</a> for <code>.fsproj</code> and <code>project.json</code></p>
 
-<pre><code class="language-fsharp">  member x.TryGetChrisProjectOption (file : string) : Result&lt;_&gt; = 
+<pre><code class="language-fsharp">  member x.TryGetChrisProjectOption (file : string) : Result&lt;_&gt; =
     if not (File.Exists file) then
       Failure (sprintf "File '%s' does not exist" file)
     else
       try
-        let po = file |&gt; Chris.load |&gt; Chris.toFSharpProjectOptions 
+        let po = file |&gt; Chris.load |&gt; Chris.toFSharpProjectOptions
         let compileFiles = Seq.filter (fun (s:string) -&gt; s.EndsWith(".fs")) po.OtherOptions
         let outputFile = Seq.tryPick (chooseByPrefix "--out:") po.OtherOptions
         let references = Seq.choose (chooseByPrefix "-r:") po.OtherOptions
-        Success (po, Seq.toList compileFiles, outputFile, Seq.toList references, Map&lt;string,string&gt;([||]))   
-      with e -&gt; 
+        Success (po, Seq.toList compileFiles, outputFile, Seq.toList references, Map&lt;string,string&gt;([||]))
+      with e -&gt;
         Failure e.Message
 </code></pre>
 
 <p>Last step is modifying <a href="https://github.com/fsharp/FsAutoComplete/blob/master/src/FsAutoComplete.Core/FsAutoComplete.Core.fs#L51-L55">handler for project request</a></p>
 
-<pre><code class="language-fsharp">let options = 
+<pre><code class="language-fsharp">let options =
     if file.EndsWith "fsproj" then
         checker.TryGetProjectOptions(file, verbose)
     elif file.EndsWith "chris" then
-        checker.TryGetChrisProjectOption file 
+        checker.TryGetChrisProjectOption file
     else
         checker.TryGetCoreProjectOptions file
 </code></pre>
 
-<p>Compile FSAC, copy modified version to Iondie plugin folder… and that’s all. Everything is working as always, just with <code>project.chris</code>. 
+<p>Compile FSAC, copy modified version to Iondie plugin folder… and that’s all. Everything is working as always, just with <code>project.chris</code>.
 <img src="images/gifs/chris_editor.gif" alt="Editor with Chris" /></p>
 
 <h1>Frequently Asked Question</h1>
@@ -268,7 +270,7 @@ let main argv =
                     </div><!-- .share-post -->
                     
                     <div class="tag-links">
-                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#VSCode" title="Pages tagged VSCode" rel="tag">VSCode</a><a href="/tags/index.html#Tooling" title="Pages tagged Tooling" rel="tag">Tooling</a>
+                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#VS+Code" title="Pages tagged VS Code" rel="tag">VS Code</a><a href="/tags/index.html#Tooling" title="Pages tagged Tooling" rel="tag">Tooling</a>
                     </div>
                     
                 </footer><!-- .entry-footer -->
@@ -355,8 +357,6 @@ let main argv =
             <a href="/tags/#Tooling">Tooling</a>
             
             <a href="/tags/#VS+Code">VS Code</a>
-            
-            <a href="/tags/#VSCode">VSCode</a>
             
             <a href="/tags/#Webpack">Webpack</a>
             

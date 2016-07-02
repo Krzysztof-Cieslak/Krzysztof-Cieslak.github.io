@@ -92,171 +92,6 @@ Files = ["Message.fs", "Test.fs"]
 Packages = []
 </code></pre>
 
-<h1>Build</h1>
-
-<p>Most important feature of every project system is ability to build project to executable version. As I’ve mentioned earlier one of the important points I’d like to address is ability to build project with command line with very simple commands. To build any F# project, in the end - no matter which project system we use, we have to execute F# Compiler with <a href="https://msdn.microsoft.com/en-us/visualfsharpdocs/conceptual/compiler-options-%5bfsharp%5d">appropriate arguments</a> (defining references, different build options, and source files).</p>
-
-<p>In this case I’ve created really simple console application which user runs in project directory and it builds project, and produce <code>.exe</code> file. To parse <code>toml</code> I’ve decided to use <a href="https://github.com/paiden/Nett">Nett library</a>.</p>
-
-<p>First step is defining model representing our project, what is rather straightforward:</p>
-
-<pre><code class="language-fsharp">type Info = {
-    Name : string
-    Author : string
-    Git : string 
-}
-
-type Stuff = {
-    Files : string []
-    References : string []
-    Packages : string []
-}
-
-type Project = {
-    Info : Info
-    Stuff : Stuff
-}
-</code></pre>
-
-<p>Next step is creating 2 helper functions - one loading <code>project.chris</code> and parsing it to our model, second one transforming this model to right F# Compiler arguments. Again, nothing complex.</p>
-
-<pre><code class="language-fsharp">let load (path : string) = 
-    let tmp = Toml.ReadFile path
-    let info = tmp.Get&lt;TomlTable&gt; "Info"
-    let stuff = tmp.Get&lt;TomlTable&gt; "Stuff" 
-    {
-        Info = { 
-                Name = info.Get&lt;string&gt;("Name")
-                Author = info.Get&lt;string&gt;("Author")
-                Git = info.Get&lt;string&gt;("Git") }
-        Stuff = {
-                Files = stuff.Get&lt;string []&gt;("Files")
-                References = stuff.Get&lt;string []&gt;("References")
-                Packages = stuff.Get&lt;string []&gt;("Packages") }
-    }, path
-
-let toFSCParams (project, path) =
-    let folder = Path.GetDirectoryName path
-    let output = sprintf "%s.exe" project.Info.Name
-    [| 
-        yield "-out:" + output
-        yield @"-r:C:\Program Files (x86)\Reference Assemblies\Microsoft\FSharp\.NETFramework\v4.0\4.3.1.0\FSharp.Core.dll"
-        for r in project.Stuff.References do
-            yield sprintf @"-r:C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\%s.dll" r
-
-        yield "--noframework"
-        for f in project.Stuff.Files do
-            yield  Path.Combine (folder, f)
-    |]
-</code></pre>
-
-<p>Last step is creating function which runs F# Compiler. To do so we will use <a href="https://fsharp.github.io/FSharp.Compiler.Service/">FSharp.Compiler.Service</a> - .Net library that exposes functionality for implementing F# language bindings, additional tools based on the compiler or refactoring tools. What’s most important in this case it also let’s <a href="https://fsharp.github.io/FSharp.Compiler.Service/compiler.html">host F# compiler inside other application</a>.</p>
-
-<pre><code class="language-fsharp">open Microsoft.FSharp.Compiler
-open Microsoft.FSharp.Compiler.SourceCodeServices
-open Microsoft.FSharp.Compiler.SimpleSourceCodeServices
-
-let build (project,path) = 
-    let scs = SimpleSourceCodeServices()
-    let parm =  (project, path) |&gt; toFSCParams
-    parm |&gt; scs.Compile
-</code></pre>
-
-<p>And at the end we pipe it together:</p>
-
-<pre><code class="language-fsharp">[&lt;EntryPoint&gt;]
-let main argv =
-    let errors, exit = 
-        "project.chris"
-        |&gt; Path.GetFullPath
-        |&gt; load 
-        |&gt; build
-    exit // return an integer exit code
-</code></pre>
-
-<p>Now we can build our project!</p>
-
-<p><img src="images/gifs/chris_build.gif" alt="Build with Chris" /></p>
-
-<h1>Editor support</h1>
-
-<p>Another important part of project system is providing information for F# Language Services which lets us to create rich editing environment across many different editors. Fortunatly FSharp.Compiler.Service is designed to be totally decoupled from project file format and requires its <a href="https://fsharp.github.io/FSharp.Compiler.Service/reference/microsoft-fsharp-compiler-sourcecodeservices-fsharpprojectoptions.html">custom type</a> to provide all nice <a href="https://fsharp.github.io/FSharp.Compiler.Service/editor.html">Language Services features</a>. Since we already have function loading <code>project.chris</code> to memory all we need to do is creating function which maps our type to type required by FCS.</p>
-
-<pre><code class="language-fsharp">let toFSharpProjectOptions (project, path) =
-    let rsp = (project, path) |&gt; toFSCParams
-    { 
-      ProjectFileName = path
-      ProjectFileNames = [||]
-      OtherOptions = rsp
-      ReferencedProjects = [||]
-      IsIncompleteTypeCheckEnvironment = false
-      UseScriptResolutionRules = false
-      LoadTime = System.DateTime.Now
-      UnresolvedReferences = None;
-    }
-</code></pre>
-
-<p>Next step is actually adding support for <code>project.chris</code> to our editor of choice. It’s pretty easy for all editors and tools using FSharp.Compiler.Service in the background, but for sake of simplicity I’ve chosen <a href="https://code.visualstudio.com/">VS Code</a> with <a href="https://ionide.io">Ionide</a>. As you may know, VS Code is editor created using <a href="http://electron.atom.io/">Electron</a> which is framework for building cross-platform, desktop applications using HTML, JS, and CSS. Such choice has many advantages, but one bug important drawback from F# editor tooling point of view - we can’t directly use .Net libraries in VS Code. To communicate with .Net libraries (and especially with FSharp.Compiler.Service) we are using <a href="https://github.com/fsharp/FsAutoComplete">FsAutoComplete</a> - F# compiler service API exposed via a console application and HTTP server.</p>
-
-<p>Adding <code>project.chris</code> support to FsAutoComplete is, again, fairly easy. First step is adding Chris project as reference to FsAutoComplete. Next we create helper function which will be executed if we try to load <code>project.chris</code> file - it’s basically copy-paste of <a href="https://github.com/fsharp/FsAutoComplete/blob/master/src/FsAutoComplete.Core/CompilerServiceInterface.fs#L189-L222">same functions</a> for <code>.fsproj</code> and <code>project.json</code></p>
-
-<pre><code class="language-fsharp">  member x.TryGetChrisProjectOption (file : string) : Result&lt;_&gt; = 
-    if not (File.Exists file) then
-      Failure (sprintf "File '%s' does not exist" file)
-    else
-      try
-        let po = file |&gt; Chris.load |&gt; Chris.toFSharpProjectOptions 
-        let compileFiles = Seq.filter (fun (s:string) -&gt; s.EndsWith(".fs")) po.OtherOptions
-        let outputFile = Seq.tryPick (chooseByPrefix "--out:") po.OtherOptions
-        let references = Seq.choose (chooseByPrefix "-r:") po.OtherOptions
-        Success (po, Seq.toList compileFiles, outputFile, Seq.toList references, Map&lt;string,string&gt;([||]))   
-      with e -&gt; 
-        Failure e.Message
-</code></pre>
-
-<p>Last step is modifying <a href="https://github.com/fsharp/FsAutoComplete/blob/master/src/FsAutoComplete.Core/FsAutoComplete.Core.fs#L51-L55">handler for project request</a></p>
-
-<pre><code class="language-fsharp">let options = 
-    if file.EndsWith "fsproj" then
-        checker.TryGetProjectOptions(file, verbose)
-    elif file.EndsWith "chris" then
-        checker.TryGetChrisProjectOption file 
-    else
-        checker.TryGetCoreProjectOptions file
-</code></pre>
-
-<p>Compile FSAC, copy modified version to Iondie plugin folder… and that’s all. Everything is working as always, just with <code>project.chris</code>. 
-<img src="images/gifs/chris_editor.gif" alt="Editor with Chris" /></p>
-
-<h1>Frequently Asked Question</h1>
-
-<p><em>Q: You haven’t mentioned VS at all, it surely means you hate it and ignore, right?</em></p>
-
-<p>A: No, VS (with VFPT installed) is best F# IDE, but I don’t use it too much. Adding custom project file support to VS is definitely possible, it just requires knowledge I don’t have. Thus, I haven’t mentioned it in post.</p>
-
-<p><em>Q: What about C# / F# interoperability, compatibility with existing F# projects?</em></p>
-
-<p>A: In worst case scenario - we have compatibility on compiled code / package level ( I can imagine some workflow using Paket which would make it not too problematic). In “best” case - custom MsBuild task, but again, I don’t have enough knowledge to judge how possible it is.</p>
-
-<p><em>Q: You’re just one of those elitist, arrogant guys thinking they are better because they use this new-overhyped thing - functional programming. You just hate MsBuild because it’s C#!</em></p>
-
-<p>A: Yes, indeed. Move along. Nothing to see here.</p>
-
-<p><em>Q: What about support for any other F# tooling such as FSharpLint?</em></p>
-
-<p>A: Any tool using FSharp.Compiler.Service should be very easy to port, as presented above on FsAutoComplete example.</p>
-
-<p><em>Q: Where is code, I want to use it now!</em></p>
-
-<p>A: Code of this experiment is not published anywhere on purpose - I don’t want anyone to use it by any chance. It was just very simple proof of concept. Hopefully, one day F# Community will be ready for new project system.</p>
-
-<p><em>Q: I <strong>really</strong> want to use something like that</em></p>
-
-<p>A: Ask <a href="https://twitter.com/7sharp9_exhumed">Dave Thomas</a> about his Xebec project, and support <a href="https://twitter.com/7sharp9_exhumed/status/745995222178480128">fsprojexit</a></p>
-
-<h1>Summary</h1>
-
-<p>In this post I’ve presented possible ways of expanding F# development environment with new project system. I haven’t shown here any ready solutions for the problem but I hope that this post shows that having new, better project system is possible. We just need as Community to start reasonable discussion about such possibility.</p>
 
                     
                     <p class="read-more"><a href="/Creating-custom-project-file-for-F" class="more-link" title="read more">read more</a></p>
@@ -264,7 +99,7 @@ let main argv =
                 
                 <footer class="entry-footer">
                     <div class="tag-links">
-                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#VSCode" title="Pages tagged VSCode" rel="tag">VSCode</a><a href="/tags/index.html#Tooling" title="Pages tagged Tooling" rel="tag">Tooling</a>
+                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#VS+Code" title="Pages tagged VS Code" rel="tag">VS Code</a><a href="/tags/index.html#Tooling" title="Pages tagged Tooling" rel="tag">Tooling</a>
                     </div>
                 </footer><!-- .entry-footer -->
                 
@@ -303,7 +138,7 @@ let main argv =
                 
                 <footer class="entry-footer">
                     <div class="tag-links">
-                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#Fable" title="Pages tagged Fable" rel="tag">Fable</a><a href="/tags/index.html#VSCode" title="Pages tagged VSCode" rel="tag">VSCode</a><a href="/tags/index.html#Webpack" title="Pages tagged Webpack" rel="tag">Webpack</a><a href="/tags/index.html#JS" title="Pages tagged JS" rel="tag">JS</a>
+                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#Fable" title="Pages tagged Fable" rel="tag">Fable</a><a href="/tags/index.html#VS+Code" title="Pages tagged VS Code" rel="tag">VS Code</a><a href="/tags/index.html#Webpack" title="Pages tagged Webpack" rel="tag">Webpack</a><a href="/tags/index.html#JS" title="Pages tagged JS" rel="tag">JS</a>
                     </div>
                 </footer><!-- .entry-footer -->
                 
@@ -336,7 +171,7 @@ let main argv =
                 
                 <footer class="entry-footer">
                     <div class="tag-links">
-                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#Fable" title="Pages tagged Fable" rel="tag">Fable</a><a href="/tags/index.html#VSCode" title="Pages tagged VSCode" rel="tag">VSCode</a><a href="/tags/index.html#VS+Code" title="Pages tagged VS Code" rel="tag">VS Code</a>
+                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#Fable" title="Pages tagged Fable" rel="tag">Fable</a><a href="/tags/index.html#VS+Code" title="Pages tagged VS Code" rel="tag">VS Code</a>
                     </div>
                 </footer><!-- .entry-footer -->
                 
@@ -432,8 +267,6 @@ let main argv =
             <a href="/tags/#Tooling">Tooling</a>
             
             <a href="/tags/#VS+Code">VS Code</a>
-            
-            <a href="/tags/#VSCode">VSCode</a>
             
             <a href="/tags/#Webpack">Webpack</a>
             
