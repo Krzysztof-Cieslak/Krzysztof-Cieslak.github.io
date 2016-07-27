@@ -5,8 +5,8 @@
         <description>Blog about F# and FP Programming</description>
         <link>http://kcieslak.io/</link>
         <atom:link href="http://kcieslak.io/feed.xml" rel="self" type="application/rss+xml"/>
-        <pubDate>Wed, 27 Jul 2016 17:56:22 +0200</pubDate>
-        <lastBuildDate>Wed, 27 Jul 2016 17:56:22 +0200</lastBuildDate>
+        <pubDate>Wed, 27 Jul 2016 18:33:57 +0200</pubDate>
+        <lastBuildDate>Wed, 27 Jul 2016 18:33:57 +0200</lastBuildDate>
         <generator>Jekyll v3.1.2</generator>
         
             <item>
@@ -65,7 +65,7 @@
 
 &lt;p&gt;&lt;code&gt;fsproj&lt;/code&gt; files contain also list of used references. Generally there are 3 types of those - external references from NuGet (this type is handled by Paket), project references and GAC references. To handle 2 later cases Ionide provides two commands.&lt;/p&gt;
 
-&lt;p&gt;&lt;code&gt;F#: Add Project Reference&lt;/code&gt; command will ask you which project you want to edit (there will be list of all projects found in current workspace), and after which project you want to reference. For GAC references Ionide provides &lt;code&gt;F#: Add Reference&lt;/code&gt; command which works in very&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;F#: Add Project Reference&lt;/code&gt; command will ask you which project you want to edit (there will be list of all projects found in current workspace), and after which project you want to reference. For GAC references Ionide provides &lt;code&gt;F#: Add Reference&lt;/code&gt; command which works in very similar way.&lt;/p&gt;
 
 &lt;h1&gt;Solution-wide editor features&lt;/h1&gt;
 
