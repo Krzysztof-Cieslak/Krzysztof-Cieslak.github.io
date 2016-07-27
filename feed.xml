@@ -5,9 +5,93 @@
         <description>Blog about F# and FP Programming</description>
         <link>http://kcieslak.io/</link>
         <atom:link href="http://kcieslak.io/feed.xml" rel="self" type="application/rss+xml"/>
-        <pubDate>Fri, 01 Jul 2016 22:28:50 -0700</pubDate>
-        <lastBuildDate>Fri, 01 Jul 2016 22:28:50 -0700</lastBuildDate>
+        <pubDate>Wed, 27 Jul 2016 17:53:27 +0200</pubDate>
+        <lastBuildDate>Wed, 27 Jul 2016 17:53:27 +0200</lastBuildDate>
         <generator>Jekyll v3.1.2</generator>
+        
+            <item>
+                <title>Working with F# projects in VSCode</title>
+                <description>&lt;h1&gt;Introduction&lt;/h1&gt;
+
+&lt;p&gt;Visual Studio Code is a lightweight but powerful source code editor which runs on your desktop and is available for Windows, OS X and Linux. It comes with built-in support for JavaScript, TypeScript and Node.js and has a rich ecosystem of extensions for other languages (C++, C#, Python, PHP) and runtimes. The F# support for VSCode is provided by [Ionide] (http://ionide.io) - set of extensions adding F# support, as well as Paket and FAKE.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;If you’re new VSCode user installing extensions is pretty easy - press extensions button on left panel, search for Ionide, press install for all Ionide extensions, wait untill all are installed and restart VSCode.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Ionide-FSharp provides wide set of features useful for F# developer - from simple autocomplete and tooltips, through F# Interactive integration, to navigating to symbols or finding all usages of symbol.&lt;/p&gt;
+
+&lt;p&gt;It also comes with decent support for F# projects (defined using &lt;code&gt;.fsproj&lt;/code&gt; file).&lt;/p&gt;
+
+&lt;h1&gt;Working with existing projects&lt;/h1&gt;
+
+&lt;p&gt;Working with existing projects (created using Visual Studio or other IDE) should be pretty straightforward - opening root of your repository / solution will start Ionide. Plugin should find all project files in repository and parse them.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Warning - this process can take some time, especially on huge solutions. You can still edit files without any problem, but it make take a while before are features are started - the priority is put on providing features like tooltips, autocomplete or error highlighting for currently opened files. Solution level features (finding all errors in solution, navigating to any symbol in solution, rename, etc ) take bit longer to start.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h1&gt;Creating new projects&lt;/h1&gt;
+
+&lt;p&gt;Ionide thanks to &lt;a href=&quot;https://github.com/fsprojects/Forge&quot;&gt;Forge&lt;/a&gt; integration provides ability to create new F# projects without using full IDE. Creating new project is as simple as running &lt;code&gt;F#: New Project&lt;/code&gt; command.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;All VSCode commands can be run using command palette, it can be started using &lt;code&gt;Ctrl(Cmd)+Shift+P&lt;/code&gt; keybord shortcut.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Ionide will ask about project name, directory where place new project, and project template. Currently there are about 15 different project templates, hopefully more will come in the future thanks to Community contributions to Forge.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Warning - even if you just create new project, you should have VS Code open in empty directory. It does not create “solution” directory, and assumes that is run from repository root.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Creating new project will also initialize Paket and FAKE, and create sample build script in repository root. This won’t happen if you’re just adding new project to existing solution with Paket and FAKE.&lt;/p&gt;
+
+&lt;h1&gt;Handling files in project&lt;/h1&gt;
+
+&lt;p&gt;As you probably know, &lt;code&gt;fsproj&lt;/code&gt; files contain list of F# (&lt;code&gt;.fs&lt;/code&gt;) files which will be compiled during build process. What’s important is that ordering of those files matters… and it’s huge F# feature. But this topic was already covered in amazing &lt;a href=&quot;https://fsharpforfunandprofit.com/series/dependency-cycles.html&quot;&gt;Scott Wlaschin’s blog&lt;/a&gt;. So, back to the topic.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Warning - Forge tends to do some additional changes to project file, so for first few times (unless you’re already comfortable with usual Forge changes) I recommend doing git commit before running Forge commands - it will make easier for you to check what changes Forge makes.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;There are few commands which makes handling files easier. First of all, you can add or remove currently open file from project using &lt;code&gt;F#: Add Current File To Project&lt;/code&gt; and &lt;code&gt;F#: Remove Current File To Project&lt;/code&gt;. Forge will try to find appropriate project file and add or remove file there.&lt;/p&gt;
+
+&lt;p&gt;Another important operation is file ordering - to control it &lt;code&gt;F#: Move File Up&lt;/code&gt; and &lt;code&gt;F#: Move File Down&lt;/code&gt; commands exist.&lt;/p&gt;
+
+&lt;h1&gt;Handling references&lt;/h1&gt;
+
+&lt;p&gt;&lt;code&gt;fsproj&lt;/code&gt; files contain also list of used references. Generally there are 3 types of those - external references from NuGet (this type is handled by Paket), project references and GAC references. To handle 2 later cases Ionide provides two commands.&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;F#: Add Project Reference&lt;/code&gt; command will ask you which project you want to edit (there will be list of all projects found in current workspace), and after which project you want to reference. For GAC references Ionide provides &lt;code&gt;F#: Add Reference&lt;/code&gt; command which works in very&lt;/p&gt;
+
+&lt;h1&gt;Solution-wide editor features&lt;/h1&gt;
+
+&lt;p&gt;Ionide’s editor features are probably good topic for another post, but let’s quickly go through some features which works on solution level:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;On file save, Ionide parse all projects and find all error in solution. They can be viewed in error panel (&lt;code&gt;Ctrl(Cmd) + Shift + M&lt;/code&gt;).&lt;/li&gt;
+  &lt;li&gt;Go-to-Definition (&lt;code&gt;F12&lt;/code&gt;), Find all references (&lt;code&gt;Shift+F12&lt;/code&gt;), Peek definition (&lt;code&gt;Alt + F12&lt;/code&gt;) works across all projects in solution&lt;/li&gt;
+  &lt;li&gt;Rename (&lt;code&gt;F2&lt;/code&gt;) works across all projects in solution&lt;/li&gt;
+  &lt;li&gt;Same for navigating to symbol (&lt;code&gt;Ctrl(Cmd)+T&lt;/code&gt;)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1&gt;Summary&lt;/h1&gt;
+
+&lt;p&gt;In this post, I’ve presented some Ionide’s features which makes supporting and handling F# projects in Visual Studio Code. There are still not as many project editing features as in Visual Studio or Xamarin Studio, but I belive that it’s good start point, and nice set of features for lightweight editor.&lt;/p&gt;
+</description>
+                <pubDate>Wed, 27 Jul 2016 00:00:00 +0200</pubDate>
+                <link>http://kcieslak.io/Working-with-F-Projects-In-VSCode</link>
+                <guid isPermaLink="true">http://kcieslak.io/Working-with-F-Projects-In-VSCode</guid>
+                
+                <category>F#</category>
+                
+                <category>VS Code</category>
+                
+                <category>Tooling</category>
+                
+                
+            </item>
         
             <item>
                 <title>Creating custom project file for F#</title>
@@ -200,7 +284,7 @@ let main argv =
 
 &lt;p&gt;In this post I’ve presented possible ways of expanding F# development environment with new project system. I haven’t shown here any ready solutions for the problem but I hope that this post shows that having new, better project system is possible. We just need as Community to start reasonable discussion about such possibility.&lt;/p&gt;
 </description>
-                <pubDate>Thu, 23 Jun 2016 00:00:00 -0700</pubDate>
+                <pubDate>Thu, 23 Jun 2016 00:00:00 +0200</pubDate>
                 <link>http://kcieslak.io/Creating-custom-project-file-for-F</link>
                 <guid isPermaLink="true">http://kcieslak.io/Creating-custom-project-file-for-F</guid>
                 
@@ -433,7 +517,7 @@ We can run those task usign &lt;code&gt;Tasks: Run Task&lt;/code&gt; command (&l
 
 &lt;p&gt;In this post we have shortly moved all steps necessary to create browser, client-side applications using F#, Fable and Webpack. Whole source code of this sample application is on GitHub - https://github.com/Krzysztof-Cieslak/fable-webpack-demo&lt;/p&gt;
 </description>
-                <pubDate>Mon, 16 May 2016 00:00:00 -0700</pubDate>
+                <pubDate>Mon, 16 May 2016 00:00:00 +0200</pubDate>
                 <link>http://kcieslak.io/Getting-Started-with-Fable-and-Webpack</link>
                 <guid isPermaLink="true">http://kcieslak.io/Getting-Started-with-Fable-and-Webpack</guid>
                 
@@ -569,7 +653,7 @@ In &lt;code&gt;.vscode&lt;/code&gt; folder we create &lt;code&gt;tasks.json&lt;/
 
 &lt;p&gt;In this post we have shortly moved all steps necessary to create VS Code extension using F# and Fable. From my short experience with this tool it looks like it is much nicer option than FunScript, hopefully I will be able to port my other extensions to it! Whole source code of this sample application is on &lt;a href=&quot;https://github.com/Krzysztof-Cieslak/vscode-fable-demo&quot;&gt;GitHub&lt;/a&gt;&lt;/p&gt;
 </description>
-                <pubDate>Mon, 21 Mar 2016 00:00:00 -0700</pubDate>
+                <pubDate>Mon, 21 Mar 2016 00:00:00 +0100</pubDate>
                 <link>http://kcieslak.io/Creating-VS-Code-plugins-with-F-and-Fable</link>
                 <guid isPermaLink="true">http://kcieslak.io/Creating-VS-Code-plugins-with-F-and-Fable</guid>
                 
@@ -666,7 +750,7 @@ In &lt;code&gt;.vscode&lt;/code&gt; folder we create &lt;code&gt;tasks.json&lt;/
 
 &lt;p&gt;In the post we’ve shortly moved through all steps necessery to create build pipeline combingin our known F# tools - Paket and FAKE, with JavaScript tooling used for front-end development - Node and npm. This post was based on FsSnippet web page implementation where this technique is used - for more details, and “real world” usage feel free to check &lt;a href=&quot;https://github.com/fssnippets/fssnip-website&quot;&gt;FsSnippet source code on GitHub&lt;/a&gt;&lt;/p&gt;
 </description>
-                <pubDate>Tue, 01 Mar 2016 00:00:00 -0800</pubDate>
+                <pubDate>Tue, 01 Mar 2016 00:00:00 +0100</pubDate>
                 <link>http://kcieslak.io/Using-Node-with-Paket-and-Fake</link>
                 <guid isPermaLink="true">http://kcieslak.io/Using-Node-with-Paket-and-Fake</guid>
                 

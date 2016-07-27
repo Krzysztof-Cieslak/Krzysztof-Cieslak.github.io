@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">    
-    <title>F# Reflections</title> 
-    <meta name="description" content="Blog about F# and FP Programming">
+    <title>Working with F# projects in VSCode</title> 
+    <meta name="description" content="Working with F# projects in VSCode using Ionide extension">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">    
     <link rel="shortcut icon" href="/favicon/favicon.ico">
     <link rel="apple-touch-icon-precomposed" href="/favicon/lattice-optic-illusion-152-204321.png" >
@@ -12,7 +12,7 @@
     <link rel="stylesheet" type="text/css"  href="//fonts.googleapis.com/css?family=Lato:400,400italic,700,700italic" />
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/styles/default.min.css">
     <link rel="stylesheet" href="/css/main.css" />
-    <link rel="canonical" href="http://kcieslak.io/">
+    <link rel="canonical" href="http://kcieslak.io/Working-with-F-Projects-In-VSCode">
     <link rel="alternate" type="application/rss+xml" title="F# Reflections Feed" href="http://kcieslak.io/feed.xml">
 </head>
 <body>
@@ -24,8 +24,8 @@
                 
                   
                   
-                  <li class="nav-current">
-                    <a class="nav-current" href="/">Home</a>
+                  <li class="">
+                    <a class="" href="/">Home</a>
                   </li>
                 
                   
@@ -55,23 +55,23 @@
     </header>
     <div class="site-content">
     <div class="inner">
-        <main class="site-main"> 
-            
+        <main class="site-main">
             <article class="post">
                 <header class="entry-header"> 
                     <div class="entry-header-wrap">
                         
-                        <a href="/Working-with-F-Projects-In-VSCode" class="post-thumbnail"><img src="/images/posts/landscape_5.jpg" alt="Working with F# projects in VSCode "></a>
+                        <div class="post-thumbnail">
+                            <img src="/images/posts/landscape_5.jpg" alt="Working with F# projects in VSCode">
+                        </div><!-- .post-thumbnail -->
                         
-                        <h2 class="entry-title"><a href="/Working-with-F-Projects-In-VSCode" rel="bookmark" title="Permanent Link to /Working-with-F-Projects-In-VSCode">Working with F# projects in VSCode</a></h2>
+                        <h1 class="entry-title">Working with F# projects in VSCode</h1>
                     </div><!-- .entry-header-wrap -->
                     <div class="entry-meta">
                         by <span class="post-author">Krzysztof Cieslak</span> on <time class="published" datetime="2016-07-27">July 27, 2016</time>
                     </div><!-- .entry-meta -->
                 </header><!-- .entry-header -->
                 <div class="entry-content">
-                    
-                        <h1>Introduction</h1>
+                    <h1>Introduction</h1>
 
 <p>Visual Studio Code is a lightweight but powerful source code editor which runs on your desktop and is available for Windows, OS X and Linux. It comes with built-in support for JavaScript, TypeScript and Node.js and has a rich ecosystem of extensions for other languages (C++, C#, Python, PHP) and runtimes. The F# support for VSCode is provided by [Ionide] (http://ionide.io) - set of extensions adding F# support, as well as Paket and FAKE.</p>
 
@@ -140,173 +140,48 @@
 
 <p>In this post, I’ve presented some Ionide’s features which makes supporting and handling F# projects in Visual Studio Code. There are still not as many project editing features as in Visual Studio or Xamarin Studio, but I belive that it’s good start point, and nice set of features for lightweight editor.</p>
 
-                    
-                    <p class="read-more"><a href="/Working-with-F-Projects-In-VSCode" class="more-link" title="read more">read more</a></p>
                 </div><!-- .entry-content -->
-                
                 <footer class="entry-footer">
+                    <div class="share-post">
+                        <span>Share</span>
+                        <a class="fa-twitter" target="_blank" href="https://twitter.com/intent/tweet?text=Working%20with%20F%23%20projects%20in%20VSCode&amp;url=http://kcieslak.io/Working-with-F-Projects-In-VSCode"><span class="screen-reader-text">Twitter</span></a>
+                        <a class="fa-facebook" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://kcieslak.io/Working-with-F-Projects-In-VSCode&amp;t=Working%20with%20F%23%20projects%20in%20VSCode"><span class="screen-reader-text">Facebook</span></a>
+                        <a class="fa-google-plus" target="_blank" href="http://plus.google.com/share?url=http://kcieslak.io/Working-with-F-Projects-In-VSCode"><span class="screen-reader-text">Google+</span></a>
+                    </div><!-- .share-post -->
+                    
                     <div class="tag-links">
                         Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#VS+Code" title="Pages tagged VS Code" rel="tag">VS Code</a><a href="/tags/index.html#Tooling" title="Pages tagged Tooling" rel="tag">Tooling</a>
                     </div>
+                    
                 </footer><!-- .entry-footer -->
-                
             </article><!-- .post -->
-            
-            <article class="post">
-                <header class="entry-header"> 
-                    <div class="entry-header-wrap">
-                        
-                        <a href="/Creating-custom-project-file-for-F" class="post-thumbnail"><img src="/images/posts/landscape_4.jpg" alt="Creating custom project file for F# "></a>
-                        
-                        <h2 class="entry-title"><a href="/Creating-custom-project-file-for-F" rel="bookmark" title="Permanent Link to /Creating-custom-project-file-for-F">Creating custom project file for F#</a></h2>
-                    </div><!-- .entry-header-wrap -->
-                    <div class="entry-meta">
-                        by <span class="post-author">Krzysztof Cieslak</span> on <time class="published" datetime="2016-06-23">June 23, 2016</time>
-                    </div><!-- .entry-meta -->
-                </header><!-- .entry-header -->
-                <div class="entry-content">
-                    
-                        <h1>Introduction</h1>
-
-<p>Let’s imagine a world where F# is independent language, with cross-platform tooling making life of every F# developer easier. In this world, after we’ve fixed dependency management problem with Paket, we could go one step further… and fix project file format and building. We would use same principles as Paket - very simple, human readable, file format which can be edited without any other tooling, and command line tool responsible for building such project.</p>
-
-<p>In such world I’ve decided to create new open-source project called <code>Chris</code></p>
-
-<h1>File format</h1>
-
-<p>For our hypothetical project file (called <code>project.chris</code>) I’ve decided to use <code>toml</code>. In this very simple file we would just specify few properties, files of our project, GAC references and external NuGet packages. It would look like as follows:</p>
-
-<pre><code class="language-toml">[Info]
-Name = "Fancy_Test_Project"
-Author = "Lambda Factory"
-Git = ""
-
-[Stuff]
-References = ["mscorlib", "System", "System.Core", "System.Numerics"]
-Files = ["Message.fs", "Test.fs"]
-Packages = []
-</code></pre>
-
-
-                    
-                    <p class="read-more"><a href="/Creating-custom-project-file-for-F" class="more-link" title="read more">read more</a></p>
-                </div><!-- .entry-content -->
+            <div class="author-box">
+                <div class="author-info">
+                    <div class="author-avatar" style="background-image: url(/images/authorimage.jpg)"><span class="screen-reader-text">Krzysztof Cieslak's Picture</span></div>
+                    <div class="author-details">
+                        <h2 class="author-title">About Krzysztof Cieslak</h2>
+                        <p class="author-bio">Krzysztof is a F# developer and consultant, open source contributor, conference speaker</p>
+                        <span class="author-location"><i class="fa-map-marker" aria-hidden="true"></i> Lodz, Poland</span>
+                        <span class="author-website"><i class="fa-chain" aria-hidden="true"></i> <a href="http://kcieslak.io" target="_blank"> http://kcieslak.io</a></span>
+                    </div><!-- .author-details -->
+                </div><!-- .author-info -->
+            </div><!-- .author-box -->
+            <nav class="post-navigation">
+                <h2 class="screen-reader-text">Post navigation</h2>
                 
-                <footer class="entry-footer">
-                    <div class="tag-links">
-                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#VS+Code" title="Pages tagged VS Code" rel="tag">VS Code</a><a href="/tags/index.html#Tooling" title="Pages tagged Tooling" rel="tag">Tooling</a>
-                    </div>
-                </footer><!-- .entry-footer -->
-                
-            </article><!-- .post -->
-            
-            <article class="post">
-                <header class="entry-header"> 
-                    <div class="entry-header-wrap">
+                <div class="nav-previous">
+                    <div class="nav-inside">
                         
-                        <a href="/Getting-Started-with-Fable-and-Webpack" class="post-thumbnail"><img src="/images/posts/landscape_3.jpg" alt="Getting started with Fable and Webpack "></a>
+                        <a href="/Creating-custom-project-file-for-F" class="nav-thumb" style="background-image: url(/images/posts/landscape_4.jpg)"></a>
                         
-                        <h2 class="entry-title"><a href="/Getting-Started-with-Fable-and-Webpack" rel="bookmark" title="Permanent Link to /Getting-Started-with-Fable-and-Webpack">Getting started with Fable and Webpack</a></h2>
-                    </div><!-- .entry-header-wrap -->
-                    <div class="entry-meta">
-                        by <span class="post-author">Krzysztof Cieslak</span> on <time class="published" datetime="2016-05-16">May 16, 2016</time>
-                    </div><!-- .entry-meta -->
-                </header><!-- .entry-header -->
-                <div class="entry-content">
-                    
-                        <h1>Introduction</h1>
-
-<p><a href="https://github.com/fsprojects/Fable">Fable</a> is new F# to JavaScript compiler created by <a href="https://twitter.com/alfonsogcnunez">Alfonso Garcia-Caro</a>. In this post I’ll go, step by step, through process of creating client-side (browser) applications using it.</p>
-
-<blockquote>
-  <p>This post is targeted at F# developers without lot of knowladge about Node.js and JS ecosystem and it should let any F# developer to get started with Fable.</p>
-</blockquote>
-
-<h3>Requirements</h3>
-
-<p>Fable requires having both <a href="http://fsharp.org">F# 4</a> and <a href="https://nodejs.org/en/">node 4.4</a> or bigger installed in your computer.</p>
-
-
-                    
-                    <p class="read-more"><a href="/Getting-Started-with-Fable-and-Webpack" class="more-link" title="read more">read more</a></p>
-                </div><!-- .entry-content -->
+                        <div class="nav-before">Previous</div>
+                        <div class="nav-title"><a href="/Creating-custom-project-file-for-F">Creating custom project file for F#</a></div>
+                        <div class="nav-date">June 23, 2016</div>
+                    </div><!-- .nav-inside -->
+                </div><!-- .nav-previous -->
                 
-                <footer class="entry-footer">
-                    <div class="tag-links">
-                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#Fable" title="Pages tagged Fable" rel="tag">Fable</a><a href="/tags/index.html#VS+Code" title="Pages tagged VS Code" rel="tag">VS Code</a><a href="/tags/index.html#Webpack" title="Pages tagged Webpack" rel="tag">Webpack</a><a href="/tags/index.html#JS" title="Pages tagged JS" rel="tag">JS</a>
-                    </div>
-                </footer><!-- .entry-footer -->
                 
-            </article><!-- .post -->
-            
-            <article class="post">
-                <header class="entry-header"> 
-                    <div class="entry-header-wrap">
-                        
-                        <a href="/Creating-VS-Code-plugins-with-F-and-Fable" class="post-thumbnail"><img src="/images/posts/landscape_1.jpg" alt="Creating VS Code plugins with F# and Fable "></a>
-                        
-                        <h2 class="entry-title"><a href="/Creating-VS-Code-plugins-with-F-and-Fable" rel="bookmark" title="Permanent Link to /Creating-VS-Code-plugins-with-F-and-Fable">Creating VS Code plugins with F# and Fable</a></h2>
-                    </div><!-- .entry-header-wrap -->
-                    <div class="entry-meta">
-                        by <span class="post-author">Krzysztof Cieslak</span> on <time class="published" datetime="2016-03-21">March 21, 2016</time>
-                    </div><!-- .entry-meta -->
-                </header><!-- .entry-header -->
-                <div class="entry-content">
-                    
-                        <h1>Introduction</h1>
-
-<p><em>EDIT 22.03.2016</em> Thanks to Alfonso’s help I was able to remove postbuild step fixing JS.</p>
-
-<p><a href="https://code.visualstudio.com/">VS Code</a> is new text editor (or rather lightweight IDE) created by Microsoft. Because it is product based on <a href="http://electron.atom.io/">Electron</a> - cross platform engine allowing developers to write desktop applications using web technologies - its plugin system supports JavaScript (and TypeScript). Unfortunately both those languages are not nice choice for someone using statically typed functional programming languages like F#. Up to this moment in my VS Code extensions I was using F# library called <a href="http://funscript.info/">FunScript</a> which compiles F# code to JavaScript. Whereas it sounds nice, library has some problems which makes writing code using it not nice experience. Fortunately recently, <a href="https://twitter.com/alfonsogcnunez">Alfonso Garcia-Caro</a>, one of contributors to FunScript, has decided to create new project compiling F# to JS (with <a href="https://babeljs.io/">Babel</a> as middle step) called <a href="https://github.com/fsprojects/Fable">Fable</a> which hopefully will solve some of the FunScript’s problems. I have decided to investigate how this new library can be used to create VS Code plugins… using VS Code to code and compile those plugins.</p>
-
-
-                    
-                    <p class="read-more"><a href="/Creating-VS-Code-plugins-with-F-and-Fable" class="more-link" title="read more">read more</a></p>
-                </div><!-- .entry-content -->
-                
-                <footer class="entry-footer">
-                    <div class="tag-links">
-                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#Fable" title="Pages tagged Fable" rel="tag">Fable</a><a href="/tags/index.html#VS+Code" title="Pages tagged VS Code" rel="tag">VS Code</a>
-                    </div>
-                </footer><!-- .entry-footer -->
-                
-            </article><!-- .post -->
-            
-            <article class="post">
-                <header class="entry-header"> 
-                    <div class="entry-header-wrap">
-                        
-                        <a href="/Using-Node-with-Paket-and-Fake" class="post-thumbnail"><img src="/images/posts/landscape_2.jpg" alt="Using Node.js and NPM with Paket and FAKE "></a>
-                        
-                        <h2 class="entry-title"><a href="/Using-Node-with-Paket-and-Fake" rel="bookmark" title="Permanent Link to /Using-Node-with-Paket-and-Fake">Using Node.js and NPM with Paket and FAKE</a></h2>
-                    </div><!-- .entry-header-wrap -->
-                    <div class="entry-meta">
-                        by <span class="post-author">Krzysztof Cieslak</span> on <time class="published" datetime="2016-03-01">March 1, 2016</time>
-                    </div><!-- .entry-meta -->
-                </header><!-- .entry-header -->
-                <div class="entry-content">
-                    
-                        <h1>Introduction</h1>
-
-<p>Web development is great fit for F# and Functional Programming . Libraries like <a href="http://suave.io">Suave</a> or <a href="http://docs.freya.io/en/latest/">Freya</a> makes it easy to create well-architectures, composable web applications. But that’s backend part of story. Nowadays most web applications are required to have lot of user interactions and logic on the front-end side - in the browser.</p>
-
-<p>Two important tools for front-end JavaScript development are <a href="https://nodejs.org/en/">Node.js</a> (JS backend server, used for running many JS development tools) and <a href="npmjs.com">npm</a> - package manager for Node.js. Those 2 tools are often installed globally on developer PC, are used to define dependencies for front-end application, and define build pipeline for it.</p>
-
-<p>But, using different build tools for backend and front-end development in one application can get annoying and tiresome for developer, so it would be nice to use one build pipeline for all tasks. And it is possible with Paket and FAKE.</p>
-
-
-                    
-                    <p class="read-more"><a href="/Using-Node-with-Paket-and-Fake" class="more-link" title="read more">read more</a></p>
-                </div><!-- .entry-content -->
-                
-                <footer class="entry-footer">
-                    <div class="tag-links">
-                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#Paket" title="Pages tagged Paket" rel="tag">Paket</a><a href="/tags/index.html#FAKE" title="Pages tagged FAKE" rel="tag">FAKE</a>
-                    </div>
-                </footer><!-- .entry-footer -->
-                
-            </article><!-- .post -->
-            
+            </nav><!-- .post-navigation -->
             
         </main><!-- .site-main -->
         <aside class="sidebar">
