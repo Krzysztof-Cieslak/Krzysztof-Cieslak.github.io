@@ -9,13 +9,15 @@ banner_image: landscape_5.jpg
 
 # Introduction
 
-Visual Studio Code is a lightweight but powerful source code editor which runs on your desktop and is available for Windows, OS X and Linux. It comes with built-in support for JavaScript, TypeScript and Node.js and has a rich ecosystem of extensions for other languages (C++, C#, Python, PHP) and runtimes. The F# support for VSCode is provided by [Ionide] (http://ionide.io) - set of extensions adding F# support, as well as Paket and FAKE.
+Visual Studio Code is a lightweight but powerful source code editor which runs on your desktop and is available for Windows, OS X and Linux. It comes with built-in support for JavaScript, TypeScript and Node.js and has a rich ecosystem of extensions for other languages (C++, C#, Python, PHP) and runtimes. The F# support for VSCode is provided by [Ionide](http://ionide.io) - set of extensions adding F# support, as well as Paket and FAKE.
 
 > If you're new VSCode user installing extensions is pretty easy - press extensions button on left panel, search for Ionide, press install for all Ionide extensions, wait untill all are installed and restart VSCode.
 
 Ionide-FSharp provides wide set of features useful for F# developer - from simple autocomplete and tooltips, through F# Interactive integration, to navigating to symbols or finding all usages of symbol.
 
 It also comes with decent support for F# projects (defined using `.fsproj` file).
+
+<!--more-->
 
 # Working with existing projects
 
