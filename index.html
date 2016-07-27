@@ -73,7 +73,7 @@
                     
                         <h1>Introduction</h1>
 
-<p>Visual Studio Code is a lightweight but powerful source code editor which runs on your desktop and is available for Windows, OS X and Linux. It comes with built-in support for JavaScript, TypeScript and Node.js and has a rich ecosystem of extensions for other languages (C++, C#, Python, PHP) and runtimes. The F# support for VSCode is provided by [Ionide] (http://ionide.io) - set of extensions adding F# support, as well as Paket and FAKE.</p>
+<p>Visual Studio Code is a lightweight but powerful source code editor which runs on your desktop and is available for Windows, OS X and Linux. It comes with built-in support for JavaScript, TypeScript and Node.js and has a rich ecosystem of extensions for other languages (C++, C#, Python, PHP) and runtimes. The F# support for VSCode is provided by <a href="http://ionide.io">Ionide</a> - set of extensions adding F# support, as well as Paket and FAKE.</p>
 
 <blockquote>
   <p>If you’re new VSCode user installing extensions is pretty easy - press extensions button on left panel, search for Ionide, press install for all Ionide extensions, wait untill all are installed and restart VSCode.</p>
@@ -83,62 +83,6 @@
 
 <p>It also comes with decent support for F# projects (defined using <code>.fsproj</code> file).</p>
 
-<h1>Working with existing projects</h1>
-
-<p>Working with existing projects (created using Visual Studio or other IDE) should be pretty straightforward - opening root of your repository / solution will start Ionide. Plugin should find all project files in repository and parse them.</p>
-
-<blockquote>
-  <p>Warning - this process can take some time, especially on huge solutions. You can still edit files without any problem, but it make take a while before are features are started - the priority is put on providing features like tooltips, autocomplete or error highlighting for currently opened files. Solution level features (finding all errors in solution, navigating to any symbol in solution, rename, etc ) take bit longer to start.</p>
-</blockquote>
-
-<h1>Creating new projects</h1>
-
-<p>Ionide thanks to <a href="https://github.com/fsprojects/Forge">Forge</a> integration provides ability to create new F# projects without using full IDE. Creating new project is as simple as running <code>F#: New Project</code> command.</p>
-
-<blockquote>
-  <p>All VSCode commands can be run using command palette, it can be started using <code>Ctrl(Cmd)+Shift+P</code> keybord shortcut.</p>
-</blockquote>
-
-<p>Ionide will ask about project name, directory where place new project, and project template. Currently there are about 15 different project templates, hopefully more will come in the future thanks to Community contributions to Forge.</p>
-
-<blockquote>
-  <p>Warning - even if you just create new project, you should have VS Code open in empty directory. It does not create “solution” directory, and assumes that is run from repository root.</p>
-</blockquote>
-
-<p>Creating new project will also initialize Paket and FAKE, and create sample build script in repository root. This won’t happen if you’re just adding new project to existing solution with Paket and FAKE.</p>
-
-<h1>Handling files in project</h1>
-
-<p>As you probably know, <code>fsproj</code> files contain list of F# (<code>.fs</code>) files which will be compiled during build process. What’s important is that ordering of those files matters… and it’s huge F# feature. But this topic was already covered in amazing <a href="https://fsharpforfunandprofit.com/series/dependency-cycles.html">Scott Wlaschin’s blog</a>. So, back to the topic.</p>
-
-<blockquote>
-  <p>Warning - Forge tends to do some additional changes to project file, so for first few times (unless you’re already comfortable with usual Forge changes) I recommend doing git commit before running Forge commands - it will make easier for you to check what changes Forge makes.</p>
-</blockquote>
-
-<p>There are few commands which makes handling files easier. First of all, you can add or remove currently open file from project using <code>F#: Add Current File To Project</code> and <code>F#: Remove Current File To Project</code>. Forge will try to find appropriate project file and add or remove file there.</p>
-
-<p>Another important operation is file ordering - to control it <code>F#: Move File Up</code> and <code>F#: Move File Down</code> commands exist.</p>
-
-<h1>Handling references</h1>
-
-<p><code>fsproj</code> files contain also list of used references. Generally there are 3 types of those - external references from NuGet (this type is handled by Paket), project references and GAC references. To handle 2 later cases Ionide provides two commands.</p>
-
-<p><code>F#: Add Project Reference</code> command will ask you which project you want to edit (there will be list of all projects found in current workspace), and after which project you want to reference. For GAC references Ionide provides <code>F#: Add Reference</code> command which works in very</p>
-
-<h1>Solution-wide editor features</h1>
-
-<p>Ionide’s editor features are probably good topic for another post, but let’s quickly go through some features which works on solution level:</p>
-
-<ul>
-  <li>On file save, Ionide parse all projects and find all error in solution. They can be viewed in error panel (<code>Ctrl(Cmd) + Shift + M</code>).</li>
-  <li>Go-to-Definition (<code>F12</code>), Find all references (<code>Shift+F12</code>), Peek definition (<code>Alt + F12</code>) works across all projects in solution</li>
-  <li>Rename (<code>F2</code>) works across all projects in solution</li>
-  <li>Same for navigating to symbol (<code>Ctrl(Cmd)+T</code>)</li>
-</ul>
-
-<h1>Summary</h1>
-
-<p>In this post, I’ve presented some Ionide’s features which makes supporting and handling F# projects in Visual Studio Code. There are still not as many project editing features as in Visual Studio or Xamarin Studio, but I belive that it’s good start point, and nice set of features for lightweight editor.</p>
 
                     
                     <p class="read-more"><a href="/Working-with-F-Projects-In-VSCode" class="more-link" title="read more">read more</a></p>

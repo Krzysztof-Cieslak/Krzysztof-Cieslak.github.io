@@ -5,15 +5,15 @@
         <description>Blog about F# and FP Programming</description>
         <link>http://kcieslak.io/</link>
         <atom:link href="http://kcieslak.io/feed.xml" rel="self" type="application/rss+xml"/>
-        <pubDate>Wed, 27 Jul 2016 17:53:27 +0200</pubDate>
-        <lastBuildDate>Wed, 27 Jul 2016 17:53:27 +0200</lastBuildDate>
+        <pubDate>Wed, 27 Jul 2016 17:56:22 +0200</pubDate>
+        <lastBuildDate>Wed, 27 Jul 2016 17:56:22 +0200</lastBuildDate>
         <generator>Jekyll v3.1.2</generator>
         
             <item>
                 <title>Working with F# projects in VSCode</title>
                 <description>&lt;h1&gt;Introduction&lt;/h1&gt;
 
-&lt;p&gt;Visual Studio Code is a lightweight but powerful source code editor which runs on your desktop and is available for Windows, OS X and Linux. It comes with built-in support for JavaScript, TypeScript and Node.js and has a rich ecosystem of extensions for other languages (C++, C#, Python, PHP) and runtimes. The F# support for VSCode is provided by [Ionide] (http://ionide.io) - set of extensions adding F# support, as well as Paket and FAKE.&lt;/p&gt;
+&lt;p&gt;Visual Studio Code is a lightweight but powerful source code editor which runs on your desktop and is available for Windows, OS X and Linux. It comes with built-in support for JavaScript, TypeScript and Node.js and has a rich ecosystem of extensions for other languages (C++, C#, Python, PHP) and runtimes. The F# support for VSCode is provided by &lt;a href=&quot;http://ionide.io&quot;&gt;Ionide&lt;/a&gt; - set of extensions adding F# support, as well as Paket and FAKE.&lt;/p&gt;
 
 &lt;blockquote&gt;
   &lt;p&gt;If you’re new VSCode user installing extensions is pretty easy - press extensions button on left panel, search for Ionide, press install for all Ionide extensions, wait untill all are installed and restart VSCode.&lt;/p&gt;
@@ -22,6 +22,8 @@
 &lt;p&gt;Ionide-FSharp provides wide set of features useful for F# developer - from simple autocomplete and tooltips, through F# Interactive integration, to navigating to symbols or finding all usages of symbol.&lt;/p&gt;
 
 &lt;p&gt;It also comes with decent support for F# projects (defined using &lt;code&gt;.fsproj&lt;/code&gt; file).&lt;/p&gt;
+
+&lt;!--more--&gt;
 
 &lt;h1&gt;Working with existing projects&lt;/h1&gt;
 
