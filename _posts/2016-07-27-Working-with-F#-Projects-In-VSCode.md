@@ -51,7 +51,7 @@ Another important operation is file ordering - to control it `F#: Move File Up` 
 
 `fsproj` files contain also list of used references. Generally there are 3 types of those - external references from NuGet (this type is handled by Paket), project references and GAC references. To handle 2 later cases Ionide provides two commands.
 
-`F#: Add Project Reference` command will ask you which project you want to edit (there will be list of all projects found in current workspace), and after which project you want to reference. For GAC references Ionide provides `F#: Add Reference` command which works in very
+`F#: Add Project Reference` command will ask you which project you want to edit (there will be list of all projects found in current workspace), and after which project you want to reference. For GAC references Ionide provides `F#: Add Reference` command which works in very similar way.
 
 # Solution-wide editor features
 
