@@ -48,7 +48,7 @@ banner_image: images/banner.png
 
 # Sidebar newsletter widget - add your form action url for MailChimp signup form here
 # "//justgoodthemes.us3.list-manage.com/subscribe/post?u=78f1bab16028354caeb23aecd&amp;id=4a7330d117"
-# mailchimp_url: 
+# mailchimp_url:
 
 # Analytics and webmaster tools stuff goes here
 google_analytics: UA-74514389-1
@@ -56,6 +56,7 @@ google_analytics: UA-74514389-1
 # Social links in the site footer
 twitter_username: "k_cieslak"
 github_username: "Krzysztof-Cieslak"
+gitlab_username: "Krzysztof-Cieslak"
 email: krzysztof_cieslak@windowslive.com
 
 
@@ -67,7 +68,7 @@ gems: [jekyll-paginate]
 permalink: /:title
 markdown: kramdown
 kramdown:
-    auto_ids: false 
+    auto_ids: false
     syntax_highlighter: nil
 
 exclude: ["packages", "build.*", "paket.*", "temp"]

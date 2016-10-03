@@ -4,10 +4,10 @@
     <section class="widget widget-text">
         <h2 class="widget-title">About {{ site.author_name }}</h2>
         <p>{{ site.author_bio }}</p>
-        
+
     </section><!-- .widget-text -->
     {% endif %}
-    
+
     {% if site.mailchimp_url %}
     <section class="widget widget-newsletter">
         <h2 class="widget-title">{{ site.title}} Newsletter</h2>
@@ -66,6 +66,9 @@
         {% if site.github_username %}
         <a href="https://github.com/{{ site.github_username }}" class="fa-github-alt square fill-horizontal"><span class="screen-reader-text">GitHub</span></a>
         {% endif %}
+        {% if site.gitlab_username %}
+        <a href="https://gitlab.com/{{ site.gitlab_username }}" class="fa-gitlab square fill-horizontal"><span class="screen-reader-text">GitHub</span></a>
+        {% endif %}
         {% if site.codepen_username %}
         <a href="http://codepen.io/{{ site.codepen_username }}" class="fa-codepen square fill-horizontal"><span class="screen-reader-text">CodePen</span></a>
         {% endif %}
@@ -87,7 +90,7 @@
         {% if site.email %}
         <a href="mailto:{{ site.email }}" class="fa-envelope square fill-horizontal"><span class="screen-reader-text">E-Mail</span></a>
         {% endif %}
-    </section><!-- .widget-text -->             
+    </section><!-- .widget-text -->
 
 
 </aside><!-- .sidebar -->
