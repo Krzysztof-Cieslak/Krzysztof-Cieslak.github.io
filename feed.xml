@@ -5,9 +5,188 @@
         <description>Blog about F# and FP Programming</description>
         <link>http://kcieslak.io/</link>
         <atom:link href="http://kcieslak.io/feed.xml" rel="self" type="application/rss+xml"/>
-        <pubDate>Wed, 27 Jul 2016 18:33:57 +0200</pubDate>
-        <lastBuildDate>Wed, 27 Jul 2016 18:33:57 +0200</lastBuildDate>
+        <pubDate>Mon, 03 Oct 2016 20:55:41 +0200</pubDate>
+        <lastBuildDate>Mon, 03 Oct 2016 20:55:41 +0200</lastBuildDate>
         <generator>Jekyll v3.1.2</generator>
+        
+            <item>
+                <title>Dynamically extending F# applications</title>
+                <description>&lt;h1&gt;Introduction&lt;/h1&gt;
+
+&lt;p&gt;Changing requirements, introducing different data format, extending applications with new features. All those things requires us (developers) to go to code, do changes, add API versioning system (to be backward compatible), add configuration for turning on/off new features, compile application, and at the end release new application (what itself may be complex process). It’s often lot of work required for every, even very small, change.&lt;/p&gt;
+
+&lt;p&gt;In this post I’ll present way to add new features to our F# application - dynamically, on runtime, without any recompiling and redeployment of application. What’s more extensions will be also defined using F#… in fact they will be simple F# script files.&lt;/p&gt;
+
+&lt;!--more--&gt;
+
+&lt;h1&gt;Sample application&lt;/h1&gt;
+
+&lt;p&gt;Our sample application for this blog post will be rather simple - it will be F# console application, taking user input as string, performing set of transformations on this input and just printing out result. Transformation for our input will be dynamically loaded on runtime - initially, before user add any plugins, application just returns same value as user typed in.&lt;/p&gt;
+
+&lt;p&gt;We can simply define our transformation as &lt;code&gt;type Transformation = string -&amp;gt; string&lt;/code&gt; and operation we perform on input as &lt;code&gt;let output = lstOfTransformations |&amp;gt; List.fold (fun state transform -&amp;gt; transform state ) input&lt;/code&gt;.&lt;/p&gt;
+
+&lt;h1&gt;Evaluating plugins files&lt;/h1&gt;
+
+&lt;p&gt;As I’ve mentioned our aim is to define extensions as simple F# script files. But while we can easily read text put in &lt;code&gt;.fsx&lt;/code&gt; file, F# doesn’t have anything like JavaScript’s &lt;code&gt;eval()&lt;/code&gt; function built-in, no way to take text containing code and evaluating its value. But this is a moment where &lt;code&gt;FSharp.Compiler.Services&lt;/code&gt; enters the scene. FCS (not to confuse with FSC which is F# compiler) is fork of F# compiler that exposes additional functionality for implementing F# editor features, and additional tools based on the compiler. It also includes F# interactive service that can be used for embedding F# scripting into your applications.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;If you want learn more about &lt;code&gt;FSharp.Compiler.Services&lt;/code&gt; visit &lt;a href=&quot;https://fsharp.github.io/FSharp.Compiler.Service/&quot;&gt;FCS webpage&lt;/a&gt; to see documentation of available features, APIs, and list of projects using FCS.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;For our purpose we need two things - first we’ll create embedded in our application F# Interactive session, and then we will use it to load file with plugin and evaluate it.&lt;/p&gt;
+
+&lt;p&gt;Creating FSI session is pretty straightforward:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-fsharp&quot;&gt;open Microsoft.FSharp.Compiler.Interactive.Shell
+
+let sbOut = StringBuilder()
+let sbErr = StringBuilder()
+
+let fsi =
+    let inStream = new StringReader(&quot;&quot;)
+    let outStream = new StringWriter(sbOut)
+    let errStream = new StringWriter(sbErr)
+    let fsiConfig = FsiEvaluationSession.GetDefaultConfiguration()
+    let argv = [| &quot;/temo/fsi.exe&quot;; |]
+    FsiEvaluationSession.Create(fsiConfig, argv, inStream, outStream, errStream)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Next we can use FSI session to load file with extension and evaluate it’s content.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-fsharp&quot;&gt; let evaluate path =
+    let mdl = getOpen path
+    let load = getLoad path
+
+    fsi.EvalInteractionNonThrowing(sprintf &quot;#load \&quot;%s\&quot;;;&quot; load)
+    fsi.EvalInteractionNonThrowing(sprintf &quot;open %s;;&quot; mdl)
+    fsi.EvalExpressionNonThrowing &quot;map&quot;
+
+    match res with
+    | Choice1Of2 (Some f) -&amp;gt;
+        f.ReflectionValue :?&amp;gt; Transformation |&amp;gt; Some
+    | _ -&amp;gt; None
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;First we find full path to file we want to load, and name of default module for this file (it’s name of the file with first character uppercase).&lt;/p&gt;
+
+&lt;p&gt;We execute in FSI &lt;code&gt;#load&lt;/code&gt; statement to load content of extension file, and then we open default module. Last operation is executing &lt;code&gt;map&lt;/code&gt; in FSI which will return value of this expression (so function).&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;For sake of simplicity in sample, we make several assumptions about extensions files - we don’t define modules inside of &lt;code&gt;.fsx&lt;/code&gt; files and they contain only single function  &lt;code&gt;map : string -&amp;gt; string&lt;/code&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;If everything is working we can now load F# script file and get from it normal F# function which we can execute somewhere else in our code!&lt;/p&gt;
+
+&lt;h1&gt;Loading plugins on runtime&lt;/h1&gt;
+
+&lt;p&gt;Next important feature of our application is dynamically loading (and unloading) scripts when users creates (or removes) them. For this we will use built-in .Net FileSystemWatcher class which let developer to perform operations whenever new file is created, file is removed etc. in given directory.&lt;/p&gt;
+
+&lt;p&gt;We just create really simple functions which takes 2 functions (one executed when file is added, second one when file is removed) and directory to watch for changes:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-fsharp&quot;&gt;let create addCb rmCb dir =
+    if Directory.Exists dir |&amp;gt; not then Directory.CreateDirectory dir |&amp;gt; ignore
+
+    let watcher = new FileSystemWatcher()
+    watcher.Filter &amp;lt;- &quot;*.fsx&quot;
+    watcher.Path &amp;lt;- dir
+    watcher.Created.Add (fun n -&amp;gt; n.FullPath |&amp;gt; addCb)
+    watcher.Deleted.Add (fun n -&amp;gt; n.FullPath |&amp;gt; rmCb)
+    watcher.Renamed.Add (fun n -&amp;gt; n.OldFullPath |&amp;gt; rmCb; n.FullPath |&amp;gt; addCb)
+    watcher.Changed.Add (fun n -&amp;gt; n.FullPath |&amp;gt; rmCb; n.FullPath |&amp;gt; addCb)
+    watcher.SynchronizingObject &amp;lt;- null
+    watcher.EnableRaisingEvents &amp;lt;- true
+
+    watcher
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h1&gt;Plugins register&lt;/h1&gt;
+
+&lt;p&gt;The last important part is storing list of the transformations in memory when application is running. Since FileWatcher is running asynchronously in background of our applications we are afraid of any potential race conditions so we won’t use any global mutable state to do so. Instead we will encapsulate state of our application in agent.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;To learn more about F# Agents visit Scott Wlaschin’s &lt;a href=&quot;https://fsharpforfunandprofit.com/posts/concurrency-actor-model/&quot;&gt;post about them&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-fsharp&quot;&gt;type private Msg =
+    | Add of string * Transformation
+    | Remove of string
+    | Get of AsyncReplyChannel&amp;lt;Transformation list&amp;gt;
+
+let private register =
+    MailboxProcessor.Start (fun inbox -&amp;gt;
+        let rec loop lst = async {
+            let! msg = inbox.Receive()
+            match msg with
+            | Add (n,f) -&amp;gt;
+                return! loop ((n,f)::lst)
+            | Remove n -&amp;gt;
+                return! loop (lst |&amp;gt; List.filter(fun (f,_) -&amp;gt; f &amp;lt;&amp;gt; n))
+            | Get rc -&amp;gt;
+                let l = lst |&amp;gt; List.map snd
+                rc.Reply l
+                return! loop lst
+        }
+        loop [] )
+
+let add name fnc =
+    (name, fnc) |&amp;gt; Add |&amp;gt; register.Post
+
+let remove name =
+    name |&amp;gt; Remove |&amp;gt; register.Post
+
+let get () =
+    register.PostAndReply Get
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Our agent can perform 3 operations - add transformation, remove it, or return list of all transformations.&lt;/p&gt;
+
+&lt;h1&gt;Putting things together&lt;/h1&gt;
+
+&lt;p&gt;The last step is putting whole application together:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;[&amp;lt;EntryPoint&amp;gt;]
+let main argv =
+    let remove path =
+        let fn = Path.GetFileNameWithoutExtension path
+        Register.remove fn
+
+    let add path =
+        let fn = Path.GetFileNameWithoutExtension path
+        match Evaluator.evaluate path |&amp;gt; Option.map (fun ev -&amp;gt; Register.add fn ev ) with
+        | Some _ -&amp;gt; ()
+        | None -&amp;gt; printfn &quot;File `%s` couldn&#39;t be parsed&quot; path
+
+    let watcher = Watcher.create add remove &quot;scripts&quot;
+
+    while true do
+        let input = System.Console.ReadLine ()
+        let lst = Register.get ()
+        let res = lst |&amp;gt; List.fold (fun s e -&amp;gt; e s ) input
+        printfn &quot;Result: %s&quot; res
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;First we define callbacks for file watcher - on file remove we just send message to extensions register to remove it, when file is added we try to evaluate it and if it was successful we send message to agent to add it to list.&lt;/p&gt;
+
+&lt;p&gt;Then we create watcher using those 2 functions watching &lt;code&gt;scripts&lt;/code&gt; directory.&lt;/p&gt;
+
+&lt;p&gt;Last step is loop which waits for user input, gets all transformations, apply them to input, and print out result at the end. Here is small demo:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;images/gifs/FunctionLoader.gif&quot; alt=&quot;Function Loader demo&quot; /&gt;&lt;/p&gt;
+
+&lt;h1&gt;Summary&lt;/h1&gt;
+
+&lt;p&gt;In this post I’ve shown how to use &lt;code&gt;FSharp.Compiler.Services&lt;/code&gt; to add dynamic extensibility mechanism to F# applications. Sample presented in this blog post was really simple, but I belive that this technique can be also used for more complex, real world applications (hopefully, I’ll be able to create some more complex project using this method soon ;) ). Full code for sample application can be found on &lt;a href=&quot;https://gitlab.com/Krzysztof-Cieslak/FunctionLoader&quot;&gt;GitLab (!)&lt;/a&gt;&lt;/p&gt;
+</description>
+                <pubDate>Mon, 03 Oct 2016 00:00:00 +0200</pubDate>
+                <link>http://kcieslak.io/Dynamically-extending-F-applications</link>
+                <guid isPermaLink="true">http://kcieslak.io/Dynamically-extending-F-applications</guid>
+                
+                <category>F#</category>
+                
+                <category>FSharp.Compiler.Services</category>
+                
+                
+            </item>
         
             <item>
                 <title>Working with F# projects in VSCode</title>

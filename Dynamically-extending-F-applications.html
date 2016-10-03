@@ -1,0 +1,422 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">    
+    <title>Dynamically extending F# applications</title> 
+    <meta name="description" content="Creating F# application which can be dynamically extended on runtime">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">    
+    <link rel="shortcut icon" href="/favicon/favicon.ico">
+    <link rel="apple-touch-icon-precomposed" href="/favicon/lattice-optic-illusion-152-204321.png" >
+    <meta name="msapplication-TileColor" content="#ffffff" />
+    <meta name="msapplication-TileImage" content="/favicon/lattice-optic-illusion-144-204321.png">  
+    <link rel="stylesheet" type="text/css"  href="//fonts.googleapis.com/css?family=Lato:400,400italic,700,700italic" />
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/styles/default.min.css">
+    <link rel="stylesheet" href="/css/main.css" />
+    <link rel="canonical" href="http://kcieslak.io/Dynamically-extending-F-applications">
+    <link rel="alternate" type="application/rss+xml" title="F# Reflections Feed" href="http://kcieslak.io/feed.xml">
+</head>
+<body>
+    <nav id="top" class="site-navigation">
+        <div class="inner">
+            <button id="menu-toggle" aria-expanded="false">Menu</button>
+            <div class="nav-menu">
+                <ul class="menu">
+                
+                  
+                  
+                  <li class="">
+                    <a class="" href="/">Home</a>
+                  </li>
+                
+                  
+                  
+                  <li class="">
+                    <a class="" href="/about">About</a>
+                  </li>
+                
+                  
+                  
+                  <li class="">
+                    <a class="" href="/tags/">Archives</a>
+                  </li>
+                
+                </ul>        
+            </div><!-- .nav-menu -->
+            <div class="subscribe-button">
+                <a class="fa-feed square fill-horizontal" href="/feed.xml"><span class="screen-reader-text">RSS</span></a>
+            </div><!-- .social-links -->
+        </div><!-- .inner -->
+    </nav><!-- .site-navigation -->
+    <header class="site-header">
+        <div class="inner">
+            <h1 class="site-title"><a class="logo-text" href="/">F# Reflections</a></h1>
+            <p class="site-description">Thoughts, stories and ideas.</p>
+        </div><!-- .inner -->
+    </header>
+    <div class="site-content">
+    <div class="inner">
+        <main class="site-main">
+            <article class="post">
+                <header class="entry-header"> 
+                    <div class="entry-header-wrap">
+                        
+                        <div class="post-thumbnail">
+                            <img src="/images/posts/landscape_6.jpg" alt="Dynamically extending F# applications">
+                        </div><!-- .post-thumbnail -->
+                        
+                        <h1 class="entry-title">Dynamically extending F# applications</h1>
+                    </div><!-- .entry-header-wrap -->
+                    <div class="entry-meta">
+                        by <span class="post-author">Krzysztof Cieslak</span> on <time class="published" datetime="2016-10-03">October 3, 2016</time>
+                    </div><!-- .entry-meta -->
+                </header><!-- .entry-header -->
+                <div class="entry-content">
+                    <h1>Introduction</h1>
+
+<p>Changing requirements, introducing different data format, extending applications with new features. All those things requires us (developers) to go to code, do changes, add API versioning system (to be backward compatible), add configuration for turning on/off new features, compile application, and at the end release new application (what itself may be complex process). It’s often lot of work required for every, even very small, change.</p>
+
+<p>In this post I’ll present way to add new features to our F# application - dynamically, on runtime, without any recompiling and redeployment of application. What’s more extensions will be also defined using F#… in fact they will be simple F# script files.</p>
+
+<!--more-->
+
+<h1>Sample application</h1>
+
+<p>Our sample application for this blog post will be rather simple - it will be F# console application, taking user input as string, performing set of transformations on this input and just printing out result. Transformation for our input will be dynamically loaded on runtime - initially, before user add any plugins, application just returns same value as user typed in.</p>
+
+<p>We can simply define our transformation as <code>type Transformation = string -&gt; string</code> and operation we perform on input as <code>let output = lstOfTransformations |&gt; List.fold (fun state transform -&gt; transform state ) input</code>.</p>
+
+<h1>Evaluating plugins files</h1>
+
+<p>As I’ve mentioned our aim is to define extensions as simple F# script files. But while we can easily read text put in <code>.fsx</code> file, F# doesn’t have anything like JavaScript’s <code>eval()</code> function built-in, no way to take text containing code and evaluating its value. But this is a moment where <code>FSharp.Compiler.Services</code> enters the scene. FCS (not to confuse with FSC which is F# compiler) is fork of F# compiler that exposes additional functionality for implementing F# editor features, and additional tools based on the compiler. It also includes F# interactive service that can be used for embedding F# scripting into your applications.</p>
+
+<blockquote>
+  <p>If you want learn more about <code>FSharp.Compiler.Services</code> visit <a href="https://fsharp.github.io/FSharp.Compiler.Service/">FCS webpage</a> to see documentation of available features, APIs, and list of projects using FCS.</p>
+</blockquote>
+
+<p>For our purpose we need two things - first we’ll create embedded in our application F# Interactive session, and then we will use it to load file with plugin and evaluate it.</p>
+
+<p>Creating FSI session is pretty straightforward:</p>
+
+<pre><code class="language-fsharp">open Microsoft.FSharp.Compiler.Interactive.Shell
+
+let sbOut = StringBuilder()
+let sbErr = StringBuilder()
+
+let fsi =
+    let inStream = new StringReader("")
+    let outStream = new StringWriter(sbOut)
+    let errStream = new StringWriter(sbErr)
+    let fsiConfig = FsiEvaluationSession.GetDefaultConfiguration()
+    let argv = [| "/temo/fsi.exe"; |]
+    FsiEvaluationSession.Create(fsiConfig, argv, inStream, outStream, errStream)
+</code></pre>
+
+<p>Next we can use FSI session to load file with extension and evaluate it’s content.</p>
+
+<pre><code class="language-fsharp"> let evaluate path =
+    let mdl = getOpen path
+    let load = getLoad path
+
+    fsi.EvalInteractionNonThrowing(sprintf "#load \"%s\";;" load)
+    fsi.EvalInteractionNonThrowing(sprintf "open %s;;" mdl)
+    fsi.EvalExpressionNonThrowing "map"
+
+    match res with
+    | Choice1Of2 (Some f) -&gt;
+        f.ReflectionValue :?&gt; Transformation |&gt; Some
+    | _ -&gt; None
+</code></pre>
+
+<p>First we find full path to file we want to load, and name of default module for this file (it’s name of the file with first character uppercase).</p>
+
+<p>We execute in FSI <code>#load</code> statement to load content of extension file, and then we open default module. Last operation is executing <code>map</code> in FSI which will return value of this expression (so function).</p>
+
+<blockquote>
+  <p>For sake of simplicity in sample, we make several assumptions about extensions files - we don’t define modules inside of <code>.fsx</code> files and they contain only single function  <code>map : string -&gt; string</code>.</p>
+</blockquote>
+
+<p>If everything is working we can now load F# script file and get from it normal F# function which we can execute somewhere else in our code!</p>
+
+<h1>Loading plugins on runtime</h1>
+
+<p>Next important feature of our application is dynamically loading (and unloading) scripts when users creates (or removes) them. For this we will use built-in .Net FileSystemWatcher class which let developer to perform operations whenever new file is created, file is removed etc. in given directory.</p>
+
+<p>We just create really simple functions which takes 2 functions (one executed when file is added, second one when file is removed) and directory to watch for changes:</p>
+
+<pre><code class="language-fsharp">let create addCb rmCb dir =
+    if Directory.Exists dir |&gt; not then Directory.CreateDirectory dir |&gt; ignore
+
+    let watcher = new FileSystemWatcher()
+    watcher.Filter &lt;- "*.fsx"
+    watcher.Path &lt;- dir
+    watcher.Created.Add (fun n -&gt; n.FullPath |&gt; addCb)
+    watcher.Deleted.Add (fun n -&gt; n.FullPath |&gt; rmCb)
+    watcher.Renamed.Add (fun n -&gt; n.OldFullPath |&gt; rmCb; n.FullPath |&gt; addCb)
+    watcher.Changed.Add (fun n -&gt; n.FullPath |&gt; rmCb; n.FullPath |&gt; addCb)
+    watcher.SynchronizingObject &lt;- null
+    watcher.EnableRaisingEvents &lt;- true
+
+    watcher
+</code></pre>
+
+<h1>Plugins register</h1>
+
+<p>The last important part is storing list of the transformations in memory when application is running. Since FileWatcher is running asynchronously in background of our applications we are afraid of any potential race conditions so we won’t use any global mutable state to do so. Instead we will encapsulate state of our application in agent.</p>
+
+<blockquote>
+  <p>To learn more about F# Agents visit Scott Wlaschin’s <a href="https://fsharpforfunandprofit.com/posts/concurrency-actor-model/">post about them</a></p>
+</blockquote>
+
+<pre><code class="language-fsharp">type private Msg =
+    | Add of string * Transformation
+    | Remove of string
+    | Get of AsyncReplyChannel&lt;Transformation list&gt;
+
+let private register =
+    MailboxProcessor.Start (fun inbox -&gt;
+        let rec loop lst = async {
+            let! msg = inbox.Receive()
+            match msg with
+            | Add (n,f) -&gt;
+                return! loop ((n,f)::lst)
+            | Remove n -&gt;
+                return! loop (lst |&gt; List.filter(fun (f,_) -&gt; f &lt;&gt; n))
+            | Get rc -&gt;
+                let l = lst |&gt; List.map snd
+                rc.Reply l
+                return! loop lst
+        }
+        loop [] )
+
+let add name fnc =
+    (name, fnc) |&gt; Add |&gt; register.Post
+
+let remove name =
+    name |&gt; Remove |&gt; register.Post
+
+let get () =
+    register.PostAndReply Get
+</code></pre>
+
+<p>Our agent can perform 3 operations - add transformation, remove it, or return list of all transformations.</p>
+
+<h1>Putting things together</h1>
+
+<p>The last step is putting whole application together:</p>
+
+<pre><code>[&lt;EntryPoint&gt;]
+let main argv =
+    let remove path =
+        let fn = Path.GetFileNameWithoutExtension path
+        Register.remove fn
+
+    let add path =
+        let fn = Path.GetFileNameWithoutExtension path
+        match Evaluator.evaluate path |&gt; Option.map (fun ev -&gt; Register.add fn ev ) with
+        | Some _ -&gt; ()
+        | None -&gt; printfn "File `%s` couldn't be parsed" path
+
+    let watcher = Watcher.create add remove "scripts"
+
+    while true do
+        let input = System.Console.ReadLine ()
+        let lst = Register.get ()
+        let res = lst |&gt; List.fold (fun s e -&gt; e s ) input
+        printfn "Result: %s" res
+</code></pre>
+
+<p>First we define callbacks for file watcher - on file remove we just send message to extensions register to remove it, when file is added we try to evaluate it and if it was successful we send message to agent to add it to list.</p>
+
+<p>Then we create watcher using those 2 functions watching <code>scripts</code> directory.</p>
+
+<p>Last step is loop which waits for user input, gets all transformations, apply them to input, and print out result at the end. Here is small demo:</p>
+
+<p><img src="images/gifs/FunctionLoader.gif" alt="Function Loader demo" /></p>
+
+<h1>Summary</h1>
+
+<p>In this post I’ve shown how to use <code>FSharp.Compiler.Services</code> to add dynamic extensibility mechanism to F# applications. Sample presented in this blog post was really simple, but I belive that this technique can be also used for more complex, real world applications (hopefully, I’ll be able to create some more complex project using this method soon ;) ). Full code for sample application can be found on <a href="https://gitlab.com/Krzysztof-Cieslak/FunctionLoader">GitLab (!)</a></p>
+
+                </div><!-- .entry-content -->
+                <footer class="entry-footer">
+                    <div class="share-post">
+                        <span>Share</span>
+                        <a class="fa-twitter" target="_blank" href="https://twitter.com/intent/tweet?text=Dynamically%20extending%20F%23%20applications&amp;url=http://kcieslak.io/Dynamically-extending-F-applications"><span class="screen-reader-text">Twitter</span></a>
+                        <a class="fa-facebook" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://kcieslak.io/Dynamically-extending-F-applications&amp;t=Dynamically%20extending%20F%23%20applications"><span class="screen-reader-text">Facebook</span></a>
+                        <a class="fa-google-plus" target="_blank" href="http://plus.google.com/share?url=http://kcieslak.io/Dynamically-extending-F-applications"><span class="screen-reader-text">Google+</span></a>
+                    </div><!-- .share-post -->
+                    
+                    <div class="tag-links">
+                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#FSharp.Compiler.Services" title="Pages tagged FSharp.Compiler.Services" rel="tag">FSharp.Compiler.Services</a>
+                    </div>
+                    
+                </footer><!-- .entry-footer -->
+            </article><!-- .post -->
+            <div class="author-box">
+                <div class="author-info">
+                    <div class="author-avatar" style="background-image: url(/images/authorimage.jpg)"><span class="screen-reader-text">Krzysztof Cieslak's Picture</span></div>
+                    <div class="author-details">
+                        <h2 class="author-title">About Krzysztof Cieslak</h2>
+                        <p class="author-bio">Krzysztof is a F# developer and consultant, open source contributor, conference speaker</p>
+                        <span class="author-location"><i class="fa-map-marker" aria-hidden="true"></i> Lodz, Poland</span>
+                        <span class="author-website"><i class="fa-chain" aria-hidden="true"></i> <a href="http://kcieslak.io" target="_blank"> http://kcieslak.io</a></span>
+                    </div><!-- .author-details -->
+                </div><!-- .author-info -->
+            </div><!-- .author-box -->
+            <nav class="post-navigation">
+                <h2 class="screen-reader-text">Post navigation</h2>
+                
+                <div class="nav-previous">
+                    <div class="nav-inside">
+                        
+                        <a href="/Working-with-F-Projects-In-VSCode" class="nav-thumb" style="background-image: url(/images/posts/landscape_5.jpg)"></a>
+                        
+                        <div class="nav-before">Previous</div>
+                        <div class="nav-title"><a href="/Working-with-F-Projects-In-VSCode">Working with F# projects in VSCode</a></div>
+                        <div class="nav-date">July 27, 2016</div>
+                    </div><!-- .nav-inside -->
+                </div><!-- .nav-previous -->
+                
+                
+            </nav><!-- .post-navigation -->
+            
+        </main><!-- .site-main -->
+        <aside class="sidebar">
+
+    
+    <section class="widget widget-text">
+        <h2 class="widget-title">About Krzysztof Cieslak</h2>
+        <p>Krzysztof is a F# developer and consultant, open source contributor, conference speaker</p>
+        
+    </section><!-- .widget-text -->
+    
+    
+    
+
+    
+    <section class="widget widget-text">
+        <p><a href="http://lambdafactory.io" target="_blank"><img src="/images/banner.png" alt="Optional Banner Ad" /></a></p>
+    </section><!-- .widget-text-->
+    
+
+    <section class="widget widget-recent-posts">
+        <h2 class="widget-title">Latest Posts</h2>
+        <ul class="recent-posts">
+            
+            <li class="recent-item"><a href="/Dynamically-extending-F-applications">Dynamically extending F# applications</a> <span>October 3, 2016</span></li>
+            
+            <li class="recent-item"><a href="/Working-with-F-Projects-In-VSCode">Working with F# projects in VSCode</a> <span>July 27, 2016</span></li>
+            
+            <li class="recent-item"><a href="/Creating-custom-project-file-for-F">Creating custom project file for F#</a> <span>June 23, 2016</span></li>
+            
+            <li class="recent-item"><a href="/Getting-Started-with-Fable-and-Webpack">Getting started with Fable and Webpack</a> <span>May 16, 2016</span></li>
+            
+            <li class="recent-item"><a href="/Creating-VS-Code-plugins-with-F-and-Fable">Creating VS Code plugins with F# and Fable</a> <span>March 21, 2016</span></li>
+            
+        </ul><!-- .recent-posts -->
+    </section><!-- .widget-recent-posts -->
+
+    <!--Create a sorted array of tags-->
+    
+    
+    <section class="widget widget-tags">
+        <h2 class="widget-title">Tags</h2>
+        <div class="tagcloud">
+            
+            <a href="/tags/#F%23">F#</a>
+            
+            <a href="/tags/#FAKE">FAKE</a>
+            
+            <a href="/tags/#FSharp.Compiler.Services">FSharp.Compiler.Services</a>
+            
+            <a href="/tags/#Fable">Fable</a>
+            
+            <a href="/tags/#JS">JS</a>
+            
+            <a href="/tags/#Paket">Paket</a>
+            
+            <a href="/tags/#Tooling">Tooling</a>
+            
+            <a href="/tags/#VS+Code">VS Code</a>
+            
+            <a href="/tags/#Webpack">Webpack</a>
+            
+        </div><!-- .tagcloud -->
+    </section><!-- .widget -->
+
+    <section class="widget widget-text">
+        <h2 class="widget-title">Contact me</h2>
+        
+        <a href="https://twitter.com/k_cieslak" class="fa-twitter square fill-horizontal"><span class="screen-reader-text">Twitter</span></a>
+        
+        
+        
+        
+        <a href="https://github.com/Krzysztof-Cieslak" class="fa-github-alt square fill-horizontal"><span class="screen-reader-text">GitHub</span></a>
+        
+        
+        
+        
+        
+        
+        
+        
+        <a href="mailto:krzysztof_cieslak@windowslive.com" class="fa-envelope square fill-horizontal"><span class="screen-reader-text">E-Mail</span></a>
+        
+    </section><!-- .widget-text -->             
+
+
+</aside><!-- .sidebar -->
+
+    </div><!-- .inner -->
+</div><!-- .site-content -->
+
+    <footer class="site-footer">
+    <div class="inner">
+        <div class="social-links">
+            
+            <a href="https://twitter.com/k_cieslak" class="fa-twitter square fill-horizontal"><span class="screen-reader-text">Twitter</span></a>
+            
+            
+            
+            
+            <a href="https://github.com/Krzysztof-Cieslak" class="fa-github-alt square fill-horizontal"><span class="screen-reader-text">GitHub</span></a>
+            
+            
+            
+            
+            
+            
+            
+            
+            <a href="mailto:krzysztof_cieslak@windowslive.com" class="fa-envelope square fill-horizontal"><span class="screen-reader-text">E-Mail</span></a>
+            
+            <a class="fa-feed square fill-horizontal" href="/feed.xml"><span class="screen-reader-text">RSS</span></a>
+        </div><!-- .social-links -->
+        <div class="site-info">
+            &copy; <a href="/">Krzysztof Cieslak</a> all rights reserved. <br />Powered by <a target="_blank" href="https://jekyllrb.com/">Jekyll</a>. BlogInn theme by <a target="_blank" href="http://justgoodthemes.com/">JustGoodThemes</a>
+            <a href="#top" id="top-link" class="fa-chevron-up top-link square fill-horizontal"><span class="screen-reader-text">Back to the top</span></a>
+        </div><!-- .site-info -->
+    </div><!-- .inner -->
+</footer><!-- .site-footer -->
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/highlight.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/languages/fsharp.min.js"></script>
+    <script type="text/javascript" src="/js/plugins.js"></script>
+    <script type="text/javascript" src="/js/custom.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+    <!-- Asynchronous Google Analytics snippet -->
+    <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    ga('create', 'UA-74514389-1', 'auto');  
+    ga('require', 'linkid', 'linkid.js');
+    ga('send', 'pageview');
+    </script>
+    
+</body>
+</html>
