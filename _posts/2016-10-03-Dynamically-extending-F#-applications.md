@@ -171,4 +171,4 @@ Last step is loop which waits for user input, gets all transformations, apply th
 
 # Summary
 
-In this post I've shown how to use `FSharp.Compiler.Services` to add dynamic extensibility mechanism to F# applications. Sample presented in this blog post was really simple, but I belive that this technique can be also used for more complex, real world applications (hopefully, I'll be able to create some more complex project using this method soon ;) ). Full code for sample application can be found on [GitLab (!)](https://gitlab.com/Krzysztof-Cieslak/FunctionLoader)
+In this post I've shown how to use `FSharp.Compiler.Services` to add dynamic extensibility mechanism to F# applications. Sample presented in this blog post was really simple, but I believe that this technique can be also used for more complex, real world applications (hopefully, I'll be able to create some more complex project using this method soon ;) ). Full code for sample application can be found on [GitLab (!)](https://gitlab.com/Krzysztof-Cieslak/FunctionLoader)
