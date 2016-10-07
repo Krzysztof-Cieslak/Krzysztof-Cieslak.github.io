@@ -76,7 +76,7 @@
 
 <p><em>EDIT 22.03.2016</em> Thanks to Alfonso’s help I was able to remove postbuild step fixing JS.</p>
 
-<p><a href="https://code.visualstudio.com/">VS Code</a> is new text editor (or rather lightweight IDE) created by Microsoft. Because it is product based on <a href="http://electron.atom.io/">Electron</a> - cross platform engine allowing developers to write desktop applications using web technologies - its plugin system supports JavaScript (and TypeScript). Unfortunately both those languages are not nice choice for someone using statically typed functional programming languages like F#. Up to this moment in my VS Code extensions I was using F# library called <a href="http://funscript.info/">FunScript</a> which compiles F# code to JavaScript. Whereas it sounds nice, library has some problems which makes writing code using it not nice experience. Fortunately recently, <a href="https://twitter.com/alfonsogcnunez">Alfonso Garcia-Caro</a>, one of contributors to FunScript, has decided to create new project compiling F# to JS (with <a href="https://babeljs.io/">Babel</a> as middle step) called <a href="https://github.com/fsprojects/Fable">Fable</a> which hopefully will solve some of the FunScript’s problems. I have decided to investigate how this new library can be used to create VS Code plugins… using VS Code to code and compile those plugins.</p>
+<p><a href="https://code.visualstudio.com/">VS Code</a> is new text editor (or rather lightweight IDE) created by Microsoft. Because it is product based on <a href="http://electron.atom.io/">Electron</a> - cross platform engine allowing developers to write desktop applications using web technologies - its plugin system supports JavaScript (and TypeScript). Unfortunately both those languages are not nice choice for someone using statically typed functional programming languages like F#. Up to this moment in my VS Code extensions I was using F# library called <a href="http://funscript.info/">FunScript</a> which compiles F# code to JavaScript. Whereas it sounds nice, library has some problems which makes writing code using it not nice experience. Fortunately recently, <a href="https://twitter.com/alfonsogcnunez">Alfonso Garcia-Caro</a>, one of contributors to FunScript, has decided to create new project compiling F# to JS (with <a href="https://babeljs.io/">Babel</a> as middle step) called <a href="http://fable.io">Fable</a> which hopefully will solve some of the FunScript’s problems. I have decided to investigate how this new library can be used to create VS Code plugins… using VS Code to code and compile those plugins.</p>
 
 <!--more-->
 
@@ -103,8 +103,8 @@ npm install -g generator-code
 
 <p>Installing Fable and VS Code bindings for it is easy - all things are published as npm modules. So we can just run following commands to add those tools to our project</p>
 
-<pre><code class="language-bash">npm install --save-dev fable-compiler
-npm install --save-dev fable-import fable-import-vscode
+<pre><code class="language-bash">npm install --save-dev fable-compiler fable-import-vscode
+npm install --save fable-core
 </code></pre>
 
 <p>Next step is updating our <code>package.json</code> file to include changes we have done and to create build targets which will compile F# code to JS.First of all we update <code>main</code> entry - it defines where is our entry file of plugin.</p>
@@ -120,13 +120,13 @@ npm install --save-dev fable-import fable-import-vscode
 <pre><code class="language-json">{
 ...
 "scripts": {
-    "build": "fable src/extension.fsx --outDir ../out -m --env node"
+    "build": "fable src/extension.fsx --outDir ../out -s -m commonjs"
   },
 }
 </code></pre>
 
 <blockquote>
-  <p>For more details about Fabel and compiler options please visit <a href="https://github.com/fsprojects/Fable">Fable on GitHub</a></p>
+  <p>For more details about Fable and compiler options please check <a href="http://fable.io/docs/compiling.html">Fable documentation</a></p>
 </blockquote>
 
 <p><code>build</code> target runs fable compiler to generate JS from our F# file.</p>
@@ -139,10 +139,10 @@ npm install --save-dev fable-import fable-import-vscode
 
 <p>At last we can write some F# code. Our sample extension will be simple - it will be just Hello World.To start in <code>src</code> folder we create F# script file called <code>extension.fs</code>. First step is referencing Fable core library and VS Code bindings</p>
 
-<pre><code class="language-fsharp">#r "../node_modules/fable-import/Fable.Import.dll"
-#load "../node_modules/fable-import-vscode/Fable.Import.VSCode.fs"
+<pre><code class="language-fsharp">#r "../node_modules/fable-core/Fable.Core.dll"
  
 open Fable.Core
+open Fable.Core.JsInterop
 open Fable.Import
 open Fable.Import.vscode
 </code></pre>
@@ -158,11 +158,6 @@ let activate (context : vscode.ExtensionContext) =
 </code></pre>
 
 <p>As we can see we can use both standard F# construct like <code>printfn</code> function (which is mapped to JS <code>console.log</code>) and functions defined in VS Code bindings. Here we print “Hello world” to console and register command which will display Hello World information in the popup. Now from console, we can run <code>npm build</code> and compile our F# script to JavaScript. We shall see result in <code>out</code> directory.</p>
-
-<pre><code class="language-fsharp">Node.Globals.exports?activate &lt;- activate
-</code></pre>
-
-<p>Last step is adding <code>activate</code> to <code>exports</code> object using Fable dynamic operator (<code>?</code>)</p>
 
 <h1>Integration with VS Code</h1>
 
