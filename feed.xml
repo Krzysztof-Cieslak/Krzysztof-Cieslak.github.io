@@ -5,8 +5,8 @@
         <description>Blog about F# and FP Programming</description>
         <link>http://kcieslak.io/</link>
         <atom:link href="http://kcieslak.io/feed.xml" rel="self" type="application/rss+xml"/>
-        <pubDate>Tue, 22 Nov 2016 01:09:35 +0100</pubDate>
-        <lastBuildDate>Tue, 22 Nov 2016 01:09:35 +0100</lastBuildDate>
+        <pubDate>Tue, 22 Nov 2016 01:19:27 +0100</pubDate>
+        <lastBuildDate>Tue, 22 Nov 2016 01:19:27 +0100</lastBuildDate>
         <generator>Jekyll v3.1.2</generator>
         
             <item>
@@ -19,9 +19,9 @@
 
 &lt;h1&gt;Workflow problem&lt;/h1&gt;
 
-&lt;p&gt;Azure Functions can be developed using online editor avaliable on Azure Portal - unfortunetlly it doesn’t provides any rich editing features (autocomplete, tooltips etc) we all like in our normal editors. Luckily, Azure Functions can be also created (and tested) locally, and configured to use GitHub repository (or coulpe other sources) as source of code, creating very nice Continues Deployment process (coding on local machine -&amp;gt; pushing code to GitHub -&amp;gt; deployment to Azure is automatically triggered). This way we should be able to use our rich editor tooling to develop Functions.&lt;/p&gt;
+&lt;p&gt;Azure Functions can be developed using online editor avaliable on Azure Portal - unfortunetlly it doesn’t provides any rich editing features (autocomplete, tooltips etc) we all like in our normal editors. Luckily, Azure Functions can be also created (and tested) locally, and configured to use GitHub repository (or couple other sources) as source of code, creating very nice Continues Deployment process (coding on local machine -&amp;gt; pushing code to GitHub -&amp;gt; deployment to Azure is automatically triggered). This way we should be able to use our rich editor tooling to develop Functions.&lt;/p&gt;
 
-&lt;p&gt;However, there is small problem. For sake of simplicity, dependency menagment in Azure Functions is using quite a lot of &lt;em&gt;magic&lt;/em&gt;. Essensially, all you need to do is create &lt;code&gt;project.json&lt;/code&gt;, put there your dependency… and then you can just put &lt;code&gt;#r dependency_name&lt;/code&gt; in your deployed &lt;code&gt;.fsx&lt;/code&gt; file to reference it. But as we now, that’s not exactly how things work in normal F# scripting - usually we need to add relative path to &lt;code&gt;.dll&lt;/code&gt;, not just a name of reference. What’s more I haven’t found a way to restore dependencies using Azure Functions CLI tool (which follows Microsoft’s tradition of calling &lt;code&gt;beta&lt;/code&gt; totally unusable software).&lt;/p&gt;
+&lt;p&gt;However, there is small problem. For sake of simplicity, dependency menagment in Azure Functions is using quite a lot of &lt;em&gt;magic&lt;/em&gt;. Essensially, all you need to do is create &lt;code&gt;project.json&lt;/code&gt;, put there your dependency… and then you can just put &lt;code&gt;#r dependency_name&lt;/code&gt; in your deployed &lt;code&gt;.fsx&lt;/code&gt; file to reference it. But as we know, that’s not exactly how things work in normal F# scripting - usually we need to add relative path to &lt;code&gt;.dll&lt;/code&gt;, not just a name of reference. What’s more I haven’t found a way to restore dependencies using Azure Functions CLI tool (which follows Microsoft’s tradition of calling totally unusable software &lt;code&gt;beta&lt;/code&gt;).&lt;/p&gt;
 
 &lt;h1&gt;Paket Strikes Back&lt;/h1&gt;
 
@@ -60,7 +60,7 @@ SCM_POST_DEPLOYMENT_ACTIONS_PATH = ../wwwroot
 
 &lt;h1&gt;Summary&lt;/h1&gt;
 
-&lt;p&gt;In this post, I’ve presented how to use Paket together with Azure Functions to create nice workflow for developing applications using this modern platform.&lt;/p&gt;
+&lt;p&gt;In this post, I’ve presented how to use Paket together with Azure Functions to create nice workflow for developing applications using this modern platform. The sample code can be found on GitHub - https://github.com/Krzysztof-Cieslak/AzureFunctionsSamples&lt;/p&gt;
 </description>
                 <pubDate>Tue, 22 Nov 2016 00:00:00 +0100</pubDate>
                 <link>http://kcieslak.io/Using-Paket-with-Azure-Functions</link>
