@@ -4,7 +4,7 @@ title: "Using Paket with Azure Functions"
 description: "Using Paket to manage dependencies in Azure Functions"
 modified: 2016-05-16
 tags: [F#, Paket, Azure Functions]
-banner_image: landscape_6.jpg
+banner_image: landscape_7.jpg
 ---
 
 # Introduction
