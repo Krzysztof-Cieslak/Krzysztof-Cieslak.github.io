@@ -58,4 +58,4 @@ Having those 2 files, we can push code to GitHub, go to Azure Portal, check depl
 
 # Summary
 
-In this post, I've presented how to use Paket together with Azure Functions to create nice workflow for developing applications using this modern platform.
+In this post, I've presented how to use Paket together with Azure Functions to create nice workflow for developing applications using this modern platform. The sample code can be found on GitHub - https://github.com/Krzysztof-Cieslak/AzureFunctionsSamples
