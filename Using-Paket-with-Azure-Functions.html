@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>F# Reflections</title>
-    <meta name="description" content="Blog about F# and FP Programming">
+    <title>Using Paket with Azure Functions</title>
+    <meta name="description" content="Using Paket to manage dependencies in Azure Functions">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="/favicon/favicon.ico">
     <link rel="apple-touch-icon-precomposed" href="/favicon/lattice-optic-illusion-152-204321.png" >
@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/styles/default.min.css">
     <link rel="stylesheet" href="/css/main.css" />
     <link rel="stylesheet" href="/css/font-awesome.min.css" />
-    <link rel="canonical" href="http://kcieslak.io/blog/page2/">
+    <link rel="canonical" href="http://kcieslak.io/Using-Paket-with-Azure-Functions">
     <link rel="alternate" type="application/rss+xml" title="F# Reflections Feed" href="http://kcieslak.io/feed.xml">
 </head>
 <body>
@@ -56,85 +56,115 @@
     </header>
     <div class="site-content">
     <div class="inner">
-        <main class="site-main"> 
-            
+        <main class="site-main">
             <article class="post">
                 <header class="entry-header"> 
                     <div class="entry-header-wrap">
                         
-                        <a href="/Creating-VS-Code-plugins-with-F-and-Fable" class="post-thumbnail"><img src="/images/posts/landscape_1.jpg" alt="Creating VS Code plugins with F# and Fable "></a>
+                        <div class="post-thumbnail">
+                            <img src="/images/posts/landscape_6.jpg" alt="Using Paket with Azure Functions">
+                        </div><!-- .post-thumbnail -->
                         
-                        <h2 class="entry-title"><a href="/Creating-VS-Code-plugins-with-F-and-Fable" rel="bookmark" title="Permanent Link to /Creating-VS-Code-plugins-with-F-and-Fable">Creating VS Code plugins with F# and Fable</a></h2>
+                        <h1 class="entry-title">Using Paket with Azure Functions</h1>
                     </div><!-- .entry-header-wrap -->
                     <div class="entry-meta">
-                        by <span class="post-author">Krzysztof Cieslak</span> on <time class="published" datetime="2016-03-21">March 21, 2016</time>
+                        by <span class="post-author">Krzysztof Cieslak</span> on <time class="published" datetime="2016-11-22">November 22, 2016</time>
                     </div><!-- .entry-meta -->
                 </header><!-- .entry-header -->
                 <div class="entry-content">
-                    
-                        <h1>Introduction</h1>
+                    <h1>Introduction</h1>
 
-<p><em>EDIT 22.03.2016</em> Thanks to Alfonso’s help I was able to remove postbuild step fixing JS.</p>
+<p><a href="https://azure.microsoft.com/en-us/services/functions/">Azure Functions</a> is Microsoft’s implementation of serverless architecture hosted on Azure. It is a solution for easily running small pieces of code, or “functions,” in the cloud. You can write just the code you need for the problem at hand, without worrying about a whole application or the infrastructure to run it. Functions can be written in many different languages, including F#.</p>
 
-<p><a href="https://code.visualstudio.com/">VS Code</a> is new text editor (or rather lightweight IDE) created by Microsoft. Because it is product based on <a href="http://electron.atom.io/">Electron</a> - cross platform engine allowing developers to write desktop applications using web technologies - its plugin system supports JavaScript (and TypeScript). Unfortunately both those languages are not nice choice for someone using statically typed functional programming languages like F#. Up to this moment in my VS Code extensions I was using F# library called <a href="http://funscript.info/">FunScript</a> which compiles F# code to JavaScript. Whereas it sounds nice, library has some problems which makes writing code using it not nice experience. Fortunately recently, <a href="https://twitter.com/alfonsogcnunez">Alfonso Garcia-Caro</a>, one of contributors to FunScript, has decided to create new project compiling F# to JS (with <a href="https://babeljs.io/">Babel</a> as middle step) called <a href="http://fable.io">Fable</a> which hopefully will solve some of the FunScript’s problems. I have decided to investigate how this new library can be used to create VS Code plugins… using VS Code to code and compile those plugins.</p>
+<!--more-->
 
+<h1>Workflow problem</h1>
 
-                    
-                    <p class="read-more"><a href="/Creating-VS-Code-plugins-with-F-and-Fable" class="more-link" title="read more">read more</a></p>
+<p>Azure Functions can be developed using online editor avaliable on Azure Portal - unfortunetlly it doesn’t provides any rich editing features (autocomplete, tooltips etc) we all like in our normal editors. Luckily, Azure Functions can be also created (and tested) locally, and configured to use GitHub repository (or coulpe other sources) as source of code, creating very nice Continues Deployment process (coding on local machine -&gt; pushing code to GitHub -&gt; deployment to Azure is automatically triggered). This way we should be able to use our rich editor tooling to develop Functions.</p>
+
+<p>However, there is small problem. For sake of simplicity, dependency menagment in Azure Functions is using quite a lot of <em>magic</em>. Essensially, all you need to do is create <code>project.json</code>, put there your dependency… and then you can just put <code>#r dependency_name</code> in your deployed <code>.fsx</code> file to reference it. But as we now, that’s not exactly how things work in normal F# scripting - usually we need to add relative path to <code>.dll</code>, not just a name of reference. What’s more I haven’t found a way to restore dependencies using Azure Functions CLI tool (which follows Microsoft’s tradition of calling <code>beta</code> totally unusable software).</p>
+
+<h1>Paket Strikes Back</h1>
+
+<p>Instead of fighting with bad workflow suggested by Microsoft, I’ve decided to do what F# developers usually do - use created by Community tool. And our solution to dependency management problem is <a href="https://fsprojects.github.io/Paket/">Paket</a>
+We normally initialize Paket, put <code>paket.bootstraper.exe</code> in <code>.paket</code> folder, create <code>paket.dependencies</code> file, install dependency. Thanks to that we can use <code>#r</code> reference with relative path to our dependency (which is downloaded to packages folder). For example: <code>#r "../packages/Tesseract/lib/net45/Tesseract.dll"</code>. This let us to use full power of our editors to develop Azure Functions locally.</p>
+
+<h1>Deployment to Azure</h1>
+
+<p>Now we need to force Azure to run Paket after deploying code from our repository to cloud. Doing it is fairly simple, but not documented too well.</p>
+
+<p>First of all, in root of our repository we create <code>build.cmd</code> file running Paket.</p>
+
+<pre><code class="language-bash">@echo off
+cls
+
+.paket\paket.bootstrapper.exe
+if errorlevel 1 (
+  exit /b %errorlevel%
+)
+
+.paket\paket.exe restore --force
+if errorlevel 1 (
+  exit /b %errorlevel%
+)
+</code></pre>
+
+<p>Second step is using deployment configuration file to run our <code>build.cmd</code>. We create <code>.deployment</code> file and add there following entry:</p>
+
+<pre><code class="language-toml">[config]
+SCM_POST_DEPLOYMENT_ACTIONS_PATH = ../wwwroot
+</code></pre>
+
+<p>It configures where deployment utility will look for any post deployment scripts (and <code>.cmd</code> file) after cloning and coping our repository. <code>wwwroot</code> is root folder which will contain our Function after deployment.</p>
+
+<p>Having those 2 files, we can push code to GitHub, go to Azure Portal, check deployments of our Function App. If everything is OK we should see Paket output in post deployment actions log.</p>
+
+<h1>Summary</h1>
+
+<p>In this post, I’ve presented how to use Paket together with Azure Functions to create nice workflow for developing applications using this modern platform.</p>
+
                 </div><!-- .entry-content -->
-                
                 <footer class="entry-footer">
-                    <div class="tag-links">
-                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#Fable" title="Pages tagged Fable" rel="tag">Fable</a><a href="/tags/index.html#VS+Code" title="Pages tagged VS Code" rel="tag">VS Code</a>
-                    </div>
-                </footer><!-- .entry-footer -->
-                
-            </article><!-- .post -->
-            
-            <article class="post">
-                <header class="entry-header"> 
-                    <div class="entry-header-wrap">
-                        
-                        <a href="/Using-Node-with-Paket-and-Fake" class="post-thumbnail"><img src="/images/posts/landscape_2.jpg" alt="Using Node.js and NPM with Paket and FAKE "></a>
-                        
-                        <h2 class="entry-title"><a href="/Using-Node-with-Paket-and-Fake" rel="bookmark" title="Permanent Link to /Using-Node-with-Paket-and-Fake">Using Node.js and NPM with Paket and FAKE</a></h2>
-                    </div><!-- .entry-header-wrap -->
-                    <div class="entry-meta">
-                        by <span class="post-author">Krzysztof Cieslak</span> on <time class="published" datetime="2016-03-01">March 1, 2016</time>
-                    </div><!-- .entry-meta -->
-                </header><!-- .entry-header -->
-                <div class="entry-content">
+                    <div class="share-post">
+                        <span>Share</span>
+                        <a class="fa-twitter" target="_blank" href="https://twitter.com/intent/tweet?text=Using%20Paket%20with%20Azure%20Functions&amp;url=http://kcieslak.io/Using-Paket-with-Azure-Functions"><span class="screen-reader-text">Twitter</span></a>
+                        <a class="fa-facebook" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://kcieslak.io/Using-Paket-with-Azure-Functions&amp;t=Using%20Paket%20with%20Azure%20Functions"><span class="screen-reader-text">Facebook</span></a>
+                        <a class="fa-google-plus" target="_blank" href="http://plus.google.com/share?url=http://kcieslak.io/Using-Paket-with-Azure-Functions"><span class="screen-reader-text">Google+</span></a>
+                    </div><!-- .share-post -->
                     
-                        <h1>Introduction</h1>
-
-<p>Web development is great fit for F# and Functional Programming . Libraries like <a href="http://suave.io">Suave</a> or <a href="http://docs.freya.io/en/latest/">Freya</a> makes it easy to create well-architectures, composable web applications. But that’s backend part of story. Nowadays most web applications are required to have lot of user interactions and logic on the front-end side - in the browser.</p>
-
-<p>Two important tools for front-end JavaScript development are <a href="https://nodejs.org/en/">Node.js</a> (JS backend server, used for running many JS development tools) and <a href="npmjs.com">npm</a> - package manager for Node.js. Those 2 tools are often installed globally on developer PC, are used to define dependencies for front-end application, and define build pipeline for it.</p>
-
-<p>But, using different build tools for backend and front-end development in one application can get annoying and tiresome for developer, so it would be nice to use one build pipeline for all tasks. And it is possible with Paket and FAKE.</p>
-
-
-                    
-                    <p class="read-more"><a href="/Using-Node-with-Paket-and-Fake" class="more-link" title="read more">read more</a></p>
-                </div><!-- .entry-content -->
-                
-                <footer class="entry-footer">
                     <div class="tag-links">
-                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#Paket" title="Pages tagged Paket" rel="tag">Paket</a><a href="/tags/index.html#FAKE" title="Pages tagged FAKE" rel="tag">FAKE</a>
+                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#Paket" title="Pages tagged Paket" rel="tag">Paket</a><a href="/tags/index.html#Azure+Functions" title="Pages tagged Azure Functions" rel="tag">Azure Functions</a>
                     </div>
+                    
                 </footer><!-- .entry-footer -->
-                
             </article><!-- .post -->
-            
-            
-            <nav class="pagination">
-                <h2 class="screen-reader-text">Posts navigation</h2>
+            <div class="author-box">
+                <div class="author-info">
+                    <div class="author-avatar" style="background-image: url(/images/authorimage.jpg)"><span class="screen-reader-text">Krzysztof Cieslak's Picture</span></div>
+                    <div class="author-details">
+                        <h2 class="author-title">About Krzysztof Cieslak</h2>
+                        <p class="author-bio">Krzysztof is a F# developer and consultant, open source contributor, conference speaker</p>
+                        <span class="author-location"><i class="fa-map-marker" aria-hidden="true"></i> Lodz, Poland</span>
+                        <span class="author-website"><i class="fa-chain" aria-hidden="true"></i> <a href="http://kcieslak.io" target="_blank"> http://kcieslak.io</a></span>
+                    </div><!-- .author-details -->
+                </div><!-- .author-info -->
+            </div><!-- .author-box -->
+            <nav class="post-navigation">
+                <h2 class="screen-reader-text">Post navigation</h2>
                 
-                <a href="/" class="newer-posts fa-chevron-left square fill-horizontal"><span class="screen-reader-text">Newer Posts</span></a>
+                <div class="nav-previous">
+                    <div class="nav-inside">
+                        
+                        <a href="/Dynamically-extending-F-applications" class="nav-thumb" style="background-image: url(/images/posts/landscape_6.jpg)"></a>
+                        
+                        <div class="nav-before">Previous</div>
+                        <div class="nav-title"><a href="/Dynamically-extending-F-applications">Dynamically extending F# applications</a></div>
+                        <div class="nav-date">October 3, 2016</div>
+                    </div><!-- .nav-inside -->
+                </div><!-- .nav-previous -->
                 
-                <span class="page-number">Page 2 of 2</span>
                 
-            </nav><!-- .pagination -->
+            </nav><!-- .post-navigation -->
             
         </main><!-- .site-main -->
         <aside class="sidebar">

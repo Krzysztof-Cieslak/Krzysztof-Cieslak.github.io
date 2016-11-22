@@ -5,9 +5,75 @@
         <description>Blog about F# and FP Programming</description>
         <link>http://kcieslak.io/</link>
         <atom:link href="http://kcieslak.io/feed.xml" rel="self" type="application/rss+xml"/>
-        <pubDate>Fri, 07 Oct 2016 17:22:25 +0200</pubDate>
-        <lastBuildDate>Fri, 07 Oct 2016 17:22:25 +0200</lastBuildDate>
+        <pubDate>Tue, 22 Nov 2016 01:04:52 +0100</pubDate>
+        <lastBuildDate>Tue, 22 Nov 2016 01:04:52 +0100</lastBuildDate>
         <generator>Jekyll v3.1.2</generator>
+        
+            <item>
+                <title>Using Paket with Azure Functions</title>
+                <description>&lt;h1&gt;Introduction&lt;/h1&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://azure.microsoft.com/en-us/services/functions/&quot;&gt;Azure Functions&lt;/a&gt; is Microsoft’s implementation of serverless architecture hosted on Azure. It is a solution for easily running small pieces of code, or “functions,” in the cloud. You can write just the code you need for the problem at hand, without worrying about a whole application or the infrastructure to run it. Functions can be written in many different languages, including F#.&lt;/p&gt;
+
+&lt;!--more--&gt;
+
+&lt;h1&gt;Workflow problem&lt;/h1&gt;
+
+&lt;p&gt;Azure Functions can be developed using online editor avaliable on Azure Portal - unfortunetlly it doesn’t provides any rich editing features (autocomplete, tooltips etc) we all like in our normal editors. Luckily, Azure Functions can be also created (and tested) locally, and configured to use GitHub repository (or coulpe other sources) as source of code, creating very nice Continues Deployment process (coding on local machine -&amp;gt; pushing code to GitHub -&amp;gt; deployment to Azure is automatically triggered). This way we should be able to use our rich editor tooling to develop Functions.&lt;/p&gt;
+
+&lt;p&gt;However, there is small problem. For sake of simplicity, dependency menagment in Azure Functions is using quite a lot of &lt;em&gt;magic&lt;/em&gt;. Essensially, all you need to do is create &lt;code&gt;project.json&lt;/code&gt;, put there your dependency… and then you can just put &lt;code&gt;#r dependency_name&lt;/code&gt; in your deployed &lt;code&gt;.fsx&lt;/code&gt; file to reference it. But as we now, that’s not exactly how things work in normal F# scripting - usually we need to add relative path to &lt;code&gt;.dll&lt;/code&gt;, not just a name of reference. What’s more I haven’t found a way to restore dependencies using Azure Functions CLI tool (which follows Microsoft’s tradition of calling &lt;code&gt;beta&lt;/code&gt; totally unusable software).&lt;/p&gt;
+
+&lt;h1&gt;Paket Strikes Back&lt;/h1&gt;
+
+&lt;p&gt;Instead of fighting with bad workflow suggested by Microsoft, I’ve decided to do what F# developers usually do - use created by Community tool. And our solution to dependency management problem is &lt;a href=&quot;https://fsprojects.github.io/Paket/&quot;&gt;Paket&lt;/a&gt;
+We normally initialize Paket, put &lt;code&gt;paket.bootstraper.exe&lt;/code&gt; in &lt;code&gt;.paket&lt;/code&gt; folder, create &lt;code&gt;paket.dependencies&lt;/code&gt; file, install dependency. Thanks to that we can use &lt;code&gt;#r&lt;/code&gt; reference with relative path to our dependency (which is downloaded to packages folder). For example: &lt;code&gt;#r &quot;../packages/Tesseract/lib/net45/Tesseract.dll&quot;&lt;/code&gt;. This let us to use full power of our editors to develop Azure Functions locally.&lt;/p&gt;
+
+&lt;h1&gt;Deployment to Azure&lt;/h1&gt;
+
+&lt;p&gt;Now we need to force Azure to run Paket after deploying code from our repository to cloud. Doing it is fairly simple, but not documented too well.&lt;/p&gt;
+
+&lt;p&gt;First of all, in root of our repository we create &lt;code&gt;build.cmd&lt;/code&gt; file running Paket.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;@echo off
+cls
+
+.paket\paket.bootstrapper.exe
+if errorlevel 1 (
+  exit /b %errorlevel%
+)
+
+.paket\paket.exe restore --force
+if errorlevel 1 (
+  exit /b %errorlevel%
+)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Second step is using deployment configuration file to run our &lt;code&gt;build.cmd&lt;/code&gt;. We create &lt;code&gt;.deployment&lt;/code&gt; file and add there following entry:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&quot;language-toml&quot;&gt;[config]
+SCM_POST_DEPLOYMENT_ACTIONS_PATH = ../wwwroot
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;It configures where deployment utility will look for any post deployment scripts (and &lt;code&gt;.cmd&lt;/code&gt; file) after cloning and coping our repository. &lt;code&gt;wwwroot&lt;/code&gt; is root folder which will contain our Function after deployment.&lt;/p&gt;
+
+&lt;p&gt;Having those 2 files, we can push code to GitHub, go to Azure Portal, check deployments of our Function App. If everything is OK we should see Paket output in post deployment actions log.&lt;/p&gt;
+
+&lt;h1&gt;Summary&lt;/h1&gt;
+
+&lt;p&gt;In this post, I’ve presented how to use Paket together with Azure Functions to create nice workflow for developing applications using this modern platform.&lt;/p&gt;
+</description>
+                <pubDate>Tue, 22 Nov 2016 00:00:00 +0100</pubDate>
+                <link>http://kcieslak.io/Using-Paket-with-Azure-Functions</link>
+                <guid isPermaLink="true">http://kcieslak.io/Using-Paket-with-Azure-Functions</guid>
+                
+                <category>F#</category>
+                
+                <category>Paket</category>
+                
+                <category>Azure Functions</category>
+                
+                
+            </item>
         
             <item>
                 <title>Dynamically extending F# applications</title>
