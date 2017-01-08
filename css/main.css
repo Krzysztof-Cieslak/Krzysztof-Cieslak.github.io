@@ -1036,18 +1036,18 @@ green     #859900  operators, other keywords
 
 .inner {
   margin: 0 auto;
-  max-width: 1200px; }
+  max-width: 1500px; }
 
 .site-main {
   float: left;
   margin-bottom: 30px;
-  width: 75%; }
+  width: 80%; }
 
 .sidebar {
   float: right;
   font-size: 16px;
   margin-bottom: 30px;
-  width: 21.666%; }
+  width: 17%; }
 
 /**
  * 1. Site Navigation
