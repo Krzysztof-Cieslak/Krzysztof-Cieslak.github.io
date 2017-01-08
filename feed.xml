@@ -3,10 +3,10 @@
     <channel>
         <title>F# Reflections</title>
         <description>Blog about F# and FP Programming</description>
-        <link>http://localhost:4000/</link>
-        <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml"/>
-        <pubDate>Sun, 08 Jan 2017 19:14:04 +0100</pubDate>
-        <lastBuildDate>Sun, 08 Jan 2017 19:14:04 +0100</lastBuildDate>
+        <link>http://kcieslak.io/</link>
+        <atom:link href="http://kcieslak.io/feed.xml" rel="self" type="application/rss+xml"/>
+        <pubDate>Sun, 08 Jan 2017 19:16:53 +0100</pubDate>
+        <lastBuildDate>Sun, 08 Jan 2017 19:16:53 +0100</lastBuildDate>
         <generator>Jekyll v3.3.1</generator>
         
             <item>
@@ -63,8 +63,8 @@ SCM_POST_DEPLOYMENT_ACTIONS_PATH = ../wwwroot
 &lt;p&gt;In this post, I’ve presented how to use Paket together with Azure Functions to create nice workflow for developing applications using this modern platform. The sample code can be found on GitHub - https://github.com/Krzysztof-Cieslak/AzureFunctionsSamples&lt;/p&gt;
 </description>
                 <pubDate>Tue, 22 Nov 2016 00:00:00 +0100</pubDate>
-                <link>http://localhost:4000/Using-Paket-with-Azure-Functions</link>
-                <guid isPermaLink="true">http://localhost:4000/Using-Paket-with-Azure-Functions</guid>
+                <link>http://kcieslak.io/Using-Paket-with-Azure-Functions</link>
+                <guid isPermaLink="true">http://kcieslak.io/Using-Paket-with-Azure-Functions</guid>
                 
                 <category>F#</category>
                 
@@ -244,8 +244,8 @@ let main argv =
 &lt;p&gt;In this post I’ve shown how to use &lt;code&gt;FSharp.Compiler.Services&lt;/code&gt; to add dynamic extensibility mechanism to F# applications. Sample presented in this blog post was really simple, but I believe that this technique can be also used for more complex, real world applications (hopefully, I’ll be able to create some more complex project using this method soon ;) ). Full code for sample application can be found on &lt;a href=&quot;https://gitlab.com/Krzysztof-Cieslak/FunctionLoader&quot;&gt;GitLab (!)&lt;/a&gt;&lt;/p&gt;
 </description>
                 <pubDate>Mon, 03 Oct 2016 00:00:00 +0200</pubDate>
-                <link>http://localhost:4000/Dynamically-extending-F-applications</link>
-                <guid isPermaLink="true">http://localhost:4000/Dynamically-extending-F-applications</guid>
+                <link>http://kcieslak.io/Dynamically-extending-F-applications</link>
+                <guid isPermaLink="true">http://kcieslak.io/Dynamically-extending-F-applications</guid>
                 
                 <category>F#</category>
                 
@@ -328,8 +328,8 @@ let main argv =
 &lt;p&gt;In this post, I’ve presented some Ionide’s features which makes supporting and handling F# projects in Visual Studio Code. There are still not as many project editing features as in Visual Studio or Xamarin Studio, but I belive that it’s good start point, and nice set of features for lightweight editor.&lt;/p&gt;
 </description>
                 <pubDate>Wed, 27 Jul 2016 00:00:00 +0200</pubDate>
-                <link>http://localhost:4000/Working-with-F-Projects-In-VSCode</link>
-                <guid isPermaLink="true">http://localhost:4000/Working-with-F-Projects-In-VSCode</guid>
+                <link>http://kcieslak.io/Working-with-F-Projects-In-VSCode</link>
+                <guid isPermaLink="true">http://kcieslak.io/Working-with-F-Projects-In-VSCode</guid>
                 
                 <category>F#</category>
                 
@@ -532,8 +532,8 @@ let main argv =
 &lt;p&gt;In this post I’ve presented possible ways of expanding F# development environment with new project system. I haven’t shown here any ready solutions for the problem but I hope that this post shows that having new, better project system is possible. We just need as Community to start reasonable discussion about such possibility.&lt;/p&gt;
 </description>
                 <pubDate>Thu, 23 Jun 2016 00:00:00 +0200</pubDate>
-                <link>http://localhost:4000/Creating-custom-project-file-for-F</link>
-                <guid isPermaLink="true">http://localhost:4000/Creating-custom-project-file-for-F</guid>
+                <link>http://kcieslak.io/Creating-custom-project-file-for-F</link>
+                <guid isPermaLink="true">http://kcieslak.io/Creating-custom-project-file-for-F</guid>
                 
                 <category>F#</category>
                 
@@ -765,8 +765,8 @@ We can run those task usign &lt;code&gt;Tasks: Run Task&lt;/code&gt; command (&l
 &lt;p&gt;In this post we have shortly moved all steps necessary to create browser, client-side applications using F#, Fable and Webpack. Whole source code of this sample application is on GitHub - https://github.com/Krzysztof-Cieslak/fable-webpack-demo&lt;/p&gt;
 </description>
                 <pubDate>Mon, 16 May 2016 00:00:00 +0200</pubDate>
-                <link>http://localhost:4000/Getting-Started-with-Fable-and-Webpack</link>
-                <guid isPermaLink="true">http://localhost:4000/Getting-Started-with-Fable-and-Webpack</guid>
+                <link>http://kcieslak.io/Getting-Started-with-Fable-and-Webpack</link>
+                <guid isPermaLink="true">http://kcieslak.io/Getting-Started-with-Fable-and-Webpack</guid>
                 
                 <category>F#</category>
                 
@@ -896,8 +896,8 @@ In &lt;code&gt;.vscode&lt;/code&gt; folder we create &lt;code&gt;tasks.json&lt;/
 &lt;p&gt;In this post we have shortly moved all steps necessary to create VS Code extension using F# and Fable. From my short experience with this tool it looks like it is much nicer option than FunScript, hopefully I will be able to port my other extensions to it! Whole source code of this sample application is on &lt;a href=&quot;https://github.com/Krzysztof-Cieslak/vscode-fable-demo&quot;&gt;GitHub&lt;/a&gt;&lt;/p&gt;
 </description>
                 <pubDate>Mon, 21 Mar 2016 00:00:00 +0100</pubDate>
-                <link>http://localhost:4000/Creating-VS-Code-plugins-with-F-and-Fable</link>
-                <guid isPermaLink="true">http://localhost:4000/Creating-VS-Code-plugins-with-F-and-Fable</guid>
+                <link>http://kcieslak.io/Creating-VS-Code-plugins-with-F-and-Fable</link>
+                <guid isPermaLink="true">http://kcieslak.io/Creating-VS-Code-plugins-with-F-and-Fable</guid>
                 
                 <category>F#</category>
                 
@@ -993,8 +993,8 @@ In &lt;code&gt;.vscode&lt;/code&gt; folder we create &lt;code&gt;tasks.json&lt;/
 &lt;p&gt;In the post we’ve shortly moved through all steps necessery to create build pipeline combingin our known F# tools - Paket and FAKE, with JavaScript tooling used for front-end development - Node and npm. This post was based on FsSnippet web page implementation where this technique is used - for more details, and “real world” usage feel free to check &lt;a href=&quot;https://github.com/fssnippets/fssnip-website&quot;&gt;FsSnippet source code on GitHub&lt;/a&gt;&lt;/p&gt;
 </description>
                 <pubDate>Tue, 01 Mar 2016 00:00:00 +0100</pubDate>
-                <link>http://localhost:4000/Using-Node-with-Paket-and-Fake</link>
-                <guid isPermaLink="true">http://localhost:4000/Using-Node-with-Paket-and-Fake</guid>
+                <link>http://kcieslak.io/Using-Node-with-Paket-and-Fake</link>
+                <guid isPermaLink="true">http://kcieslak.io/Using-Node-with-Paket-and-Fake</guid>
                 
                 <category>F#</category>
                 
