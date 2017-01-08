@@ -219,4 +219,179 @@ jQuery(window).load(function () {
 
     ChartOrgs1();
     ChartOrgs2();
+
+    // SCENE 2
+
+    var shipN = true;
+    var Sx = -5;
+    var Sy = 5;
+    var Sz = -70;
+    jQuery('#scene_2').mouseover(function () {
+        var x = jQuery(this).find('#ship');
+        if (shipN == true)
+            Ship(x);
+    });
+
+    function Ship(item) {
+        shipN = false;
+        var T = 1;
+        for (var i = 0; i < 3; i++) {
+
+            setTimeout(function () {
+                Sx = Sx * (-1);
+                Sy = Sy * (-1);
+                jQuery({
+                    deg: Sx
+                }).animate({
+                    deg: Sy
+                }, {
+                    duration: 1000,
+                    step: function (now) {
+                        jQuery(item).css({
+                            transform: 'rotate(' + now + 'deg)'
+                        });
+                    }
+                });
+            }, T);
+            T = T + 1000;
+        }
+        jQuery('#scene_2 .wave:nth-child(2)').animate({
+            'background-position-x': Sz
+        }, 3000, "linear");
+        Sz = Sz * (-1);
+        jQuery('#scene_2 .wave:nth-child(3)').animate({
+            'background-position-x': Sz
+        }, 3000, "linear");
+
+        setTimeout(function () {
+            jQuery(item).clearQueue();
+            jQuery(item).stop();
+            shipN = true;
+        }, 3000);
+    }
+
+    jQuery('#scene_2').mouseover(function () {
+        Wave(this);
+    });
+
+    function Wave(item) {
+        if (jQuery(item).hasClass('left')) {
+            jQuery(item).animate({
+                'left': '40px'
+            }, 2000, function () {
+                jQuery(item).animate({
+                    'left': '0px'
+                }, 2000, function () {
+                    jQuery(item).clearQueue();
+                    jQuery(item).stop();
+                    Wave(item);
+                    return false;
+                });
+            });
+        }
+        if (jQuery(item).hasClass('right')) {
+            jQuery(item).animate({
+                'right': '40px'
+            }, 2000, function () {
+                jQuery(item).animate({
+                    'right': '0px'
+                }, 2000, function () {
+                    jQuery(item).clearQueue();
+                    jQuery(item).stop();
+                    Wave(item);
+                    return false;
+                });
+            });
+        }
+    }
+
+
+    // CHARTS - OTHERS
+
+    function ChartOrgs3 () {
+        var ctx = document.getElementById("myChart3");
+        var data = {
+            datasets: [{
+                data: [
+                    30
+                ],
+                backgroundColor: [ "rgba(247,243,198,0.2)" ],
+                hoverBackgroundColor: [ "rgba(247,243,198,0.2)" ]
+            }],
+            labels: [
+                "30 commits",
+            ]
+        };
+
+        var myChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: data,
+            options: {
+                animation:{
+                    animateScale:true
+                },
+                scale: {
+                    ticks: {
+                        beginAtZero: true,
+                        showLabelBackdrop: false
+                    }
+                },
+                cutoutPercentage: 75,
+                circumference: 6,
+                tooltips: {
+                    enabled: false
+                },
+                events: [],
+                legend: {
+                    display: false
+                }
+            }
+        });
+    }
+
+
+    function ChartOrgs4 () {
+        var ctx = document.getElementById("myChart4");
+        var data = {
+            datasets: [{
+                data: [ 7 ],
+                backgroundColor: [ "rgba(247,243,198,0.2)" ],
+                hoverBackgroundColor: [ "rgba(247,243,198,0.2)" ]
+            }],
+            labels: [
+                "7 Pull Requests",
+            ]
+        };
+
+        var myChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: data,
+            options: {
+                animation:{
+                    animateScale:true
+                },
+                scale: {
+                    ticks: {
+                        beginAtZero: true,
+                        showLabelBackdrop: false
+                    }
+                },
+                cutoutPercentage: 75,
+                circumference: 4,
+                tooltips: {
+                    enabled: false
+                },
+                events: [],
+                legend: {
+                    display: false
+                }
+            }
+        });
+    }
+
+
+    ChartOrgs3();
+    ChartOrgs4();
+
+
 });
