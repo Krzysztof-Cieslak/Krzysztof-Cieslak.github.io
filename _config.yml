@@ -31,6 +31,8 @@ navigation:
   url: /about
 - text: Archives
   url: /tags/
+- text: 2016
+  url: /2016
 
 # The shortname for your Disqus site to enable comments.
 disqus:

@@ -15,6 +15,7 @@
     <link rel="stylesheet" href="{{ site.baseurl }}/css/font-awesome.min.css" />
     <link rel="canonical" href="{{ page.url | replace:'/index.html','/' | prepend: site.baseurl | prepend: site.url }}">
     <link rel="alternate" type="application/rss+xml" title="{{ site.title }} Feed" href="{{ "/feed.xml" | prepend: site.baseurl | prepend: site.url }}">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
 </head>
 <body>
     <nav id="top" class="site-navigation">
@@ -46,7 +47,7 @@
     </header>
     {{content}}
     {% include footer.html %}
-    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
+
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/highlight.min.js"></script>
     <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/languages/fsharp.min.js"></script>
     <script type="text/javascript" src="{{ site.baseurl }}/js/plugins.js"></script>
