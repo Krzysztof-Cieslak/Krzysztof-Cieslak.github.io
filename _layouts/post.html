@@ -5,7 +5,7 @@ layout: default
     <div class="inner">
         <main class="site-main">
             <article class="post">
-                <header class="entry-header"> 
+                <header class="entry-header">
                     <div class="entry-header-wrap">
                         {% if page.banner_image %}
                         <div class="post-thumbnail">
@@ -37,7 +37,7 @@ layout: default
             </article><!-- .post -->
             <div class="author-box">
                 <div class="author-info">
-                    <div class="author-avatar" style="background-image: url({{ site.author_image }})"><span class="screen-reader-text">{{ site.author_name }}'s Picture</span></div>
+                    <a href="{{ site.author_url }}/about" target="_blank"> <div class="author-avatar" style="background-image: url({{ site.author_image }})"><span class="screen-reader-text">{{ site.author_name }}'s Picture</span></div> </a>
                     <div class="author-details">
                         <h2 class="author-title">About {{ site.author_name }}</h2>
                         <p class="author-bio">{{ site.author_bio }}</p>
