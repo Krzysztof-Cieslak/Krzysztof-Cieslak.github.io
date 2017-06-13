@@ -1,0 +1,319 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Path to Community based Open Source Software</title>
+    <meta name="description" content="Path to Community based Open Source Software">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="/favicon/favicon.ico">
+    <link rel="apple-touch-icon-precomposed" href="/favicon/lattice-optic-illusion-152-204321.png" >
+    <meta name="msapplication-TileColor" content="#ffffff" />
+    <meta name="msapplication-TileImage" content="/favicon/lattice-optic-illusion-144-204321.png">
+    <link rel="stylesheet" type="text/css"  href="//fonts.googleapis.com/css?family=Lato:400,400italic,700,700italic" />
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/styles/default.min.css">
+    <link rel="stylesheet" href="/css/main.css" />
+    <link rel="stylesheet" href="/css/font-awesome.min.css" />
+    <link rel="canonical" href="http://kcieslak.io/Path-to-community-based-OSS">
+    <link rel="alternate" type="application/rss+xml" title="F# Reflections Feed" href="http://kcieslak.io/feed.xml">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
+</head>
+<body>
+    <nav id="top" class="site-navigation">
+        <div class="inner">
+            <button id="menu-toggle" aria-expanded="false">Menu</button>
+            <div class="nav-menu">
+                <ul class="menu">
+                
+                  
+                  
+                  <li class="">
+                    <a class="" href="/">Home</a>
+                  </li>
+                
+                  
+                  
+                  <li class="">
+                    <a class="" href="/about">About</a>
+                  </li>
+                
+                  
+                  
+                  <li class="">
+                    <a class="" href="/tags/">Archives</a>
+                  </li>
+                
+                  
+                  
+                  <li class="">
+                    <a class="" href="/2016">2016</a>
+                  </li>
+                
+                </ul>
+            </div><!-- .nav-menu -->
+            <div class="subscribe-button">
+                <a class="fa-feed square fill-horizontal" href="/feed.xml"><span class="screen-reader-text">RSS</span></a>
+            </div><!-- .social-links -->
+        </div><!-- .inner -->
+    </nav><!-- .site-navigation -->
+    <header class="site-header">
+        <div class="inner">
+            <h1 class="site-title"><a class="logo-text" href="/">F# Reflections</a></h1>
+            <p class="site-description">Thoughts, stories and ideas.</p>
+        </div><!-- .inner -->
+    </header>
+    <div class="site-content">
+    <div class="inner">
+        <main class="site-main">
+            <article class="post">
+                <header class="entry-header">
+                    <div class="entry-header-wrap">
+                        
+                        <div class="post-thumbnail">
+                            <img src="/images/posts/landscape_8.jpg" alt="Path to Community based Open Source Software">
+                        </div><!-- .post-thumbnail -->
+                        
+                        <h1 class="entry-title">Path to Community based Open Source Software</h1>
+                    </div><!-- .entry-header-wrap -->
+                    <div class="entry-meta">
+                        by <span class="post-author">Krzysztof Cieslak</span> on <time class="published" datetime="2017-06-12">June 12, 2017</time>
+                    </div><!-- .entry-meta -->
+                </header><!-- .entry-header -->
+                <div class="entry-content">
+                    <h1>Introduction</h1>
+
+<p>Open Source movement has changed the software development world as much as only few things before. Nowadays, it’s almost impossible to develop any project without using OSS - we can be sure that some parts of our stack are developed in the open - from the libraries we download from the package managers, through runtime, to compilers that we are using. Even most conservative, and not-so-long-time-ago actively hostile to OSS companies are now trying to embrace Open Source development.</p>
+
+<p>But putting code in open by uploading to GitHub, using one of the licenses formally accepted by the <a href="https://opensource.org/">Open Source Initiative</a> is just first step. In my opinion, the real value of the Open Source is not just license, and publicly available code (although, those things are also valuable on their own) but rather possible change in governance model, collaboration with Community and embracing “OSS Culture”.</p>
+
+<p>In this post I’ll describe different “stages of enlightenment” that company can go through in its path to the Open Source development model that will bring most value to both company and community.</p>
+
+<!--more-->
+
+<h1>Open Source License</h1>
+
+<p>Even though, as I’ve mentioned I believe that embracing OSS goes much beyond just having OSS license we can’t really forgot about importance and impact of it. Having OSS license is necessary condition for any project that wants to be called OSS projects. There exist formal definition created by Open Source Initiative called <a href="https://opensource.org/docs/osd">Open Source Definition</a> that sets strict rules that license must follow to be called OSS license.</p>
+
+<h1>Stage 1 - Code dump</h1>
+
+<p>At this level, company publishes online projects that its no longer going to invest into or maintain. Probably project failed, was deprecated, or is not profitable. Usually it means that company is no longer interested in the code base - there will be no maintainers, no merged PRs, no responses to issues, and no updates. Rarely, it’s desperation step and company is trying to save project… more often company is trying to save itself from outrage of existing community and userbase after cancelling product. The only way it can end well is when there already exist active project community that will fork project, and continue to maintain project. And usually that’s not a case - since product was developed as a closed sourced project it usually don’t have huge community of developers that are engaged enough to pick up dropped ball.</p>
+
+<h1>Stage 2 - Open facade</h1>
+
+<p>In this model company still actively develops the application. Publicly available code is updated regularly, some people from the company are responding to the issues (it’s often used only as a public bug tracker). But all decisions, discussions about new features, bug fixes are done internally in company using private communications channels - community has no impact on the direction of the product, communication is often only one-way - community tries to give it feedback, and suggest way forward but usually there is no respond from the company (even if some of those suggestions are taken into account by some members of the development team), PRs are ignored or actively discouraged. In terms of building community this level is often even worse than previous stage - at least fact that no one cares about project forces the community to step up (if there is need for the project), in this stage community is discouraged to do anything - it has no impact, and someone else is developing the project. In longer term it’s really bad - it creates community that is 100% reliant on the company building the product, and that is unable to step up when needed (for example to extend ecosystem of the project).</p>
+
+<h1>Stage 3 - Development in the open</h1>
+
+<p>That’s the level when company can see first real advantages of the Open Source methodologies, it’s also level where most companies trying to embrace OSS are at. In this stage company develops product in the open - code development is done directly on GitHub (or other provider), discussions about product future (or at least some of them) are done using public channels such as issues. Bug reports are treated seriously, feature requests are discussed in with the community in the public, PRs are getting accepted as long as they follow the direction of the project set by company. This level creates decently engaged community - even though community and external developers can’t dictate future of the project, and direction it’s going to be developed in they still can at least quickly fix the bugs and problems they encounter. They also feels that company is taking their feedback seriously - as long as the communication works decently, most external developers can understand why some features are not going to be implemented, or they are not priority. Company can expect decent feedback focused on the technical level - the implementation details, as that’s something that’s focus point of the community. However, communication is still mostly “initialized” by the community - they report bugs, or suggest feature requests and then development team from the company responds to that. Also the company goals are still focal point of the development - they dictate development plans and what feature requests are accepted.</p>
+
+<h1>Stage 4 - Enlightened despot</h1>
+
+<p>At this level company starts to understand that short term business goals are less important for the success than long term growth of the community. In terms of development practices it’s really similar to previous level - development is done in the open, things are discussed in public channels, PRs are getting accepted. The difference is really subtle but important - the company is actively trying to look for the feedback about product future (and not only particular features), communication is often initialized by development team, the short term road maps (for example monthly iteration plans) are published so the community knows what the development team is going to focus on. The project is still in the formal control of the company (only members of the company have write access to the repository) but the product is developed with community being focal point of the process. This model creates really engaged community as it puts lot of weight on communication with community. It also makes community feel that it has real impact on the project and that company cares not only about business goals but also abut growth of ecosystem. In this model company can expect lot of really good feedback (both positive and negative), which increases chances of making right decisions about everything… from general decisions about project future to implementation details.</p>
+
+<h1>Stage 5 - Community based Open Source</h1>
+
+<p>At this stage company not only focuses on the community, it becomes part of the community equals to all other contributors. Decisions are made by consensus between all parts of the community. The write access to repository is given to the external developers that are not hired by the company, developers that are hired by the company are not getting automatically write access just because they are hired - they need to follow same path as any other member of the community, proof to be a good actor in the community. Community starts to self govern itself - there no longer exist one entity that’s formally more important than other parts of the community. There are no private commination channels as every member of the community has access to information. Really often general project roadmaps stops existing - there is no way of forcing everyone in the community to work on some particular set of features, people tend to work on features they want to have implemented (of course, as long as they are in the scope of the projects and community generally agrees that it’s needed feature). This model brings to the project not only great discussions, great developers (that you wouldn’t necessarily be able to hire) but also great leaders, maintainers and evangelists - people that really care about your project, that will be willing to spend lot of time and effort to develop product and its ecosystem.</p>
+
+<h1>Problems with embracing Community based OSS</h1>
+
+<p>Companies are often really afraid of the governance model in which they give up parts of their privileges connected with absolute power over the project. They often state that they need to maintain control to make sure that the product will be developed in right direction (even if they are OK with putting community in the center of this direction, or at least consult it with community). I believe that there are two points that are often missed when this argument is raised. First of all - development team hired by the company still can focus on those features, and those parts of the project that are most important for your business - company still can have its roadmaps and plans that are important for hired development team. Secondly, if we assume that whole community will agree on given direction, community itself will be the best entity that will ensure that product is developed in direction that was agreed on by all parts. As long as the company understands that growth of the community and ecosystem is good for the business in long term, everything should be fine.</p>
+
+<h1>Summary</h1>
+
+<p>In this blog post I’ve described several different models for embracing Open Source development methodologies. I belive that it’s clear that even though putting code in public with OSS license is good move, the real power of the OSS is collaboration with the community - and more effort is put into this collaboration, more control is given over to communing, the better results will be - from creating really engaged user base that cares enough to report bugs and suggest new features on its own, through getting some technical feedback and small bug fixes, to creating real self governing community that will create its own leaders, and evangelists, that will include some people that you couldn’t bring to project otherwise.</p>
+
+
+                </div><!-- .entry-content -->
+                <footer class="entry-footer">
+                    <div class="share-post">
+                        <span>Share</span>
+                        <a class="fa-twitter" target="_blank" href="https://twitter.com/intent/tweet?text=Path%20to%20Community%20based%20Open%20Source%20Software&amp;url=http://kcieslak.io/Path-to-community-based-OSS"><span class="screen-reader-text">Twitter</span></a>
+                        <a class="fa-facebook" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://kcieslak.io/Path-to-community-based-OSS&amp;t=Path%20to%20Community%20based%20Open%20Source%20Software"><span class="screen-reader-text">Facebook</span></a>
+                        <a class="fa-google-plus" target="_blank" href="http://plus.google.com/share?url=http://kcieslak.io/Path-to-community-based-OSS"><span class="screen-reader-text">Google+</span></a>
+                    </div><!-- .share-post -->
+                    
+                    <div class="tag-links">
+                        Tags: <a href="/tags/index.html#Open+Source" title="Pages tagged Open Source" rel="tag">Open Source</a><a href="/tags/index.html#Community" title="Pages tagged Community" rel="tag">Community</a>
+                    </div>
+                    
+                </footer><!-- .entry-footer -->
+            </article><!-- .post -->
+            <div class="author-box">
+                <div class="author-info">
+                    <a href="http://kcieslak.io/about" target="_blank"> <div class="author-avatar" style="background-image: url(/images/authorimage.jpg)"><span class="screen-reader-text">Krzysztof Cieslak's Picture</span></div> </a>
+                    <div class="author-details">
+                        <h2 class="author-title">About Krzysztof Cieslak</h2>
+                        <p class="author-bio">Krzysztof is a F# developer and consultant, open source contributor, conference speaker</p>
+                        <span class="author-location"><i class="fa-map-marker" aria-hidden="true"></i> Lodz, Poland</span>
+                        <span class="author-website"><i class="fa-chain" aria-hidden="true"></i> <a href="http://kcieslak.io" target="_blank"> http://kcieslak.io</a></span>
+                    </div><!-- .author-details -->
+                </div><!-- .author-info -->
+            </div><!-- .author-box -->
+            <nav class="post-navigation">
+                <h2 class="screen-reader-text">Post navigation</h2>
+                
+                <div class="nav-previous">
+                    <div class="nav-inside">
+                        
+                        <a href="/Using-Paket-with-Azure-Functions" class="nav-thumb" style="background-image: url(/images/posts/landscape_7.jpg)"></a>
+                        
+                        <div class="nav-before">Previous</div>
+                        <div class="nav-title"><a href="/Using-Paket-with-Azure-Functions">Using Paket with Azure Functions</a></div>
+                        <div class="nav-date">November 22, 2016</div>
+                    </div><!-- .nav-inside -->
+                </div><!-- .nav-previous -->
+                
+                
+            </nav><!-- .post-navigation -->
+            
+        </main><!-- .site-main -->
+        <aside class="sidebar">
+
+    
+    <section class="widget widget-text">
+        <h2 class="widget-title">About Krzysztof Cieslak</h2>
+        <p>Krzysztof is a F# developer and consultant, open source contributor, conference speaker</p>
+
+    </section><!-- .widget-text -->
+    
+
+    
+
+    
+    <section class="widget widget-text">
+        <p><a href="http://lambdafactory.io" target="_blank"><img src="/images/banner.png" alt="Optional Banner Ad" /></a></p>
+    </section><!-- .widget-text-->
+    
+
+    <section class="widget widget-recent-posts">
+        <h2 class="widget-title">Latest Posts</h2>
+        <ul class="recent-posts">
+            
+            <li class="recent-item"><a href="/Path-to-community-based-OSS">Path to Community based Open Source Software</a> <span>June 12, 2017</span></li>
+            
+            <li class="recent-item"><a href="/Using-Paket-with-Azure-Functions">Using Paket with Azure Functions</a> <span>November 22, 2016</span></li>
+            
+            <li class="recent-item"><a href="/Dynamically-extending-F-applications">Dynamically extending F# applications</a> <span>October 3, 2016</span></li>
+            
+            <li class="recent-item"><a href="/Working-with-F-Projects-In-VSCode">Working with F# projects in VSCode</a> <span>July 27, 2016</span></li>
+            
+            <li class="recent-item"><a href="/Creating-custom-project-file-for-F">Creating custom project file for F#</a> <span>June 23, 2016</span></li>
+            
+        </ul><!-- .recent-posts -->
+    </section><!-- .widget-recent-posts -->
+
+    <!--Create a sorted array of tags-->
+    
+    
+    <section class="widget widget-tags">
+        <h2 class="widget-title">Tags</h2>
+        <div class="tagcloud">
+            
+            <a href="/tags/#Azure+Functions">Azure Functions</a>
+            
+            <a href="/tags/#Community">Community</a>
+            
+            <a href="/tags/#F%23">F#</a>
+            
+            <a href="/tags/#FAKE">FAKE</a>
+            
+            <a href="/tags/#FSharp.Compiler.Services">FSharp.Compiler.Services</a>
+            
+            <a href="/tags/#Fable">Fable</a>
+            
+            <a href="/tags/#JS">JS</a>
+            
+            <a href="/tags/#Open+Source">Open Source</a>
+            
+            <a href="/tags/#Paket">Paket</a>
+            
+            <a href="/tags/#Tooling">Tooling</a>
+            
+            <a href="/tags/#VS+Code">VS Code</a>
+            
+            <a href="/tags/#Webpack">Webpack</a>
+            
+        </div><!-- .tagcloud -->
+    </section><!-- .widget -->
+
+    <section class="widget widget-text">
+        <h2 class="widget-title">Contact me</h2>
+        
+        <a href="https://twitter.com/k_cieslak" class="fa-twitter square fill-horizontal"><span class="screen-reader-text">Twitter</span></a>
+        
+        
+        
+        
+        <a href="https://github.com/Krzysztof-Cieslak" class="fa-github-alt square fill-horizontal"><span class="screen-reader-text">GitHub</span></a>
+        
+        
+        <a href="https://gitlab.com/Krzysztof-Cieslak" class="fa-gitlab square fill-horizontal"><span class="screen-reader-text">GitHub</span></a>
+        
+        
+        
+        
+        
+        
+        
+        
+        <a href="mailto:krzysztof_cieslak@windowslive.com" class="fa-envelope square fill-horizontal"><span class="screen-reader-text">E-Mail</span></a>
+        
+    </section><!-- .widget-text -->
+
+
+</aside><!-- .sidebar -->
+
+    </div><!-- .inner -->
+</div><!-- .site-content -->
+
+    <footer class="site-footer">
+    <div class="inner">
+        <div class="social-links">
+            
+            <a href="https://twitter.com/k_cieslak" class="fa-twitter square fill-horizontal"><span class="screen-reader-text">Twitter</span></a>
+            
+            
+            
+            
+            <a href="https://github.com/Krzysztof-Cieslak" class="fa-github-alt square fill-horizontal"><span class="screen-reader-text">GitHub</span></a>
+            
+            
+            <a href="https://gitlab.com/Krzysztof-Cieslak" class="fa-gitlab square fill-horizontal"><span class="screen-reader-text">GitHub</span></a>
+            
+            
+            
+            
+            
+            
+            
+            
+            <a href="mailto:krzysztof_cieslak@windowslive.com" class="fa-envelope square fill-horizontal"><span class="screen-reader-text">E-Mail</span></a>
+            
+            <a class="fa-feed square fill-horizontal" href="/feed.xml"><span class="screen-reader-text">RSS</span></a>
+        </div><!-- .social-links -->
+        <div class="site-info">
+            &copy; <a href="/">Krzysztof Cieslak</a> all rights reserved. <br />Powered by <a target="_blank" href="https://jekyllrb.com/">Jekyll</a>. BlogInn theme by <a target="_blank" href="http://justgoodthemes.com/">JustGoodThemes</a>
+            <a href="#top" id="top-link" class="fa-chevron-up top-link square fill-horizontal"><span class="screen-reader-text">Back to the top</span></a>
+        </div><!-- .site-info -->
+    </div><!-- .inner -->
+</footer><!-- .site-footer -->
+
+
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/highlight.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/languages/fsharp.min.js"></script>
+    <script type="text/javascript" src="/js/plugins.js"></script>
+    <script type="text/javascript" src="/js/custom.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+    <!-- Asynchronous Google Analytics snippet -->
+    <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    ga('create', 'UA-74514389-1', 'auto');
+    ga('require', 'linkid', 'linkid.js');
+    ga('send', 'pageview');
+    </script>
+    
+</body>
+</html>
