@@ -41,6 +41,13 @@ For the last couple of weeks I've been working on [Saturn](https://github.com/Sa
 
 A core part of Saturn is a library that can be put on top of any existing Giraffe application. This library contains a set of helper functions, tries to hide some complexity of Giraffe (for example manual passing of `next` in every function), and what's most important it introduces several higher level building blocks that can be used to model a web application. Those building blocks are using a nice high level, declarative DSL using computation expressions with custom keywords. Currently in Saturn there exists 4 such higher level building blocks:
 
+* Pipelines
+* Scopes
+* Controllers
+* Applications
+
+and now I shall explain each with a code sample.
+
  * `pipeline` - the simplest building block provided by Saturn. It can be used to combine multiple `HttpHandlers` in a more declarative way without using custom operators. It also provides custom operations that hide some of the Giraffe complexity.
 
 Example:
@@ -54,7 +61,7 @@ let browser = pipeline {
 }
 ```
 
- * `scope` - it is a DSL that can be used to define routing and combining this routing together with the `pieplines`
+ * `scope` - it is a DSL that can be used to define routing and combining this routing together with the `pipelines`
 
 Example:
 
@@ -73,7 +80,7 @@ let browserRouter = scope {
 }
 ```
 
-* `controller` - it is a DSL for building typical HTTP controllers. It's using predefined routing inspired by Phoenix's `resource` macro. It's the highest level building block provided by Saturn.
+* `controller` - it is a DSL for building typical HTTP controllers. It's using predefined routing inspired by Phoenix's `resource` macro.s
 
 Example:
 
