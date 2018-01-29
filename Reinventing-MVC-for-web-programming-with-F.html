@@ -1,0 +1,434 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Reinventing MVC pattern for web programming with F#</title>
+    <meta name="description" content="Reinventing MVC pattern for web programming with F#">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="/favicon/favicon.ico">
+    <link rel="apple-touch-icon-precomposed" href="/favicon/lattice-optic-illusion-152-204321.png" >
+    <meta name="msapplication-TileColor" content="#ffffff" />
+    <meta name="msapplication-TileImage" content="/favicon/lattice-optic-illusion-144-204321.png">
+    <link rel="stylesheet" type="text/css"  href="//fonts.googleapis.com/css?family=Lato:400,400italic,700,700italic" />
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/styles/default.min.css">
+    <link rel="stylesheet" href="/css/main.css" />
+    <link rel="stylesheet" href="/css/font-awesome.min.css" />
+    <link rel="canonical" href="http://kcieslak.io/Reinventing-MVC-for-web-programming-with-F">
+    <link rel="alternate" type="application/rss+xml" title="F# Reflections Feed" href="http://kcieslak.io/feed.xml">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
+</head>
+<body>
+    <nav id="top" class="site-navigation">
+        <div class="inner">
+            <button id="menu-toggle" aria-expanded="false">Menu</button>
+            <div class="nav-menu">
+                <ul class="menu">
+                
+                  
+                  
+                  <li class="">
+                    <a class="" href="/">Home</a>
+                  </li>
+                
+                  
+                  
+                  <li class="">
+                    <a class="" href="/about">About</a>
+                  </li>
+                
+                  
+                  
+                  <li class="">
+                    <a class="" href="/tags/">Archives</a>
+                  </li>
+                
+                  
+                  
+                  <li class="">
+                    <a class="" href="/2016">2016</a>
+                  </li>
+                
+                </ul>
+            </div><!-- .nav-menu -->
+            <div class="subscribe-button">
+                <a class="fa-feed square fill-horizontal" href="/feed.xml"><span class="screen-reader-text">RSS</span></a>
+            </div><!-- .social-links -->
+        </div><!-- .inner -->
+    </nav><!-- .site-navigation -->
+    <header class="site-header">
+        <div class="inner">
+            <h1 class="site-title"><a class="logo-text" href="/">F# Reflections</a></h1>
+            <p class="site-description">Thoughts, stories and ideas.</p>
+        </div><!-- .inner -->
+    </header>
+    <div class="site-content">
+    <div class="inner">
+        <main class="site-main">
+            <article class="post">
+                <header class="entry-header">
+                    <div class="entry-header-wrap">
+                        
+                        <div class="post-thumbnail">
+                            <img src="/images/posts/landscape_9.jpg" alt="Reinventing MVC pattern for web programming with F#">
+                        </div><!-- .post-thumbnail -->
+                        
+                        <h1 class="entry-title">Reinventing MVC pattern for web programming with F#</h1>
+                    </div><!-- .entry-header-wrap -->
+                    <div class="entry-meta">
+                        by <span class="post-author">Krzysztof Cieslak</span> on <time class="published" datetime="2018-01-25">January 25, 2018</time>
+                    </div><!-- .entry-meta -->
+                </header><!-- .entry-header -->
+                <div class="entry-content">
+                    <h1>Introduction</h1>
+
+<p>A couple of weeks ago, I’ve posted <a href="https://twitter.com/k_cieslak/status/944349420937793536">yet-another-controversial-tweet</a> - this time criticizing F# libraries for web programming and saying that “they focus on wrong problem”. In this post I’d like to expand this thought a bit, describe what is, in my opinion, problem with those libraries, and introduce a project that will try to fix those problems.</p>
+
+<blockquote>
+  <p>DISCLAIMER: In the original tweet I’ve mentioned three libraries - <a href="https://suave.io/">Suave</a>, <a href="https://github.com/giraffe-fsharp/Giraffe">Giraffe</a>, and <a href="https://freya.io/">Freya</a>. First of all, if we were to talk about all major F# web solutions we should also mention <a href="https://websharper.com/">WebSharper</a>. Secondly, my experience with Freya and WebSharper is fairly limited - I’ve never used any of them in commercial application - so in this post I won’t talk about them but focus on Suave and Giraffe</p>
+</blockquote>
+
+<blockquote>
+  <p>DISCLAIMER 2: I really like both Suave and Giraffe - I’ve been using Suave for years in multiple commercial applications and I think it’s really good project. Also I’ve been investigating and testing Giraffe for last couple of months and I also believe it’s good project with a bright future.</p>
+</blockquote>
+
+<!--more-->
+
+<h1>The model</h1>
+
+<p>So let’s start with describing a programming model that Suave and Giraffe use. Both libraries are using a really similar model of building applications from small functions that takes <code>HttpContext</code> as an input and returns a modified <code>HttpContext</code> and then they use combinators functions to combine those small functions and build application with them. This model is really powerful, it provides full control over the flow of the program, and follows some FP principles (building applications as a composition of functions).</p>
+
+<blockquote>
+  <p>There are some small differences between Suave and Giraffe implementation of this model, but going into such details is not in scope of this post.</p>
+</blockquote>
+
+<h1>The problem</h1>
+
+<p>While I love the programming model I also believe that both Suave and Giraffe missed an opportunity to build on top of this model. Helper functions provided by both libraries that are the main building block of the applications are really “low level” - they mostly focus on the details of the HTTP protocol. And I think that while this is an useful level of abstraction for some use cases, my experience with building business applications with Suave / Giraffe suggests that this is not a level of abstraction that’s useful for typical, boring-line-of-business applications - and that’s most common use case for most software developers. If we compare Suave / Giraffe with other ecosystems it often feels like writing ASP.Net applications with just middleware - without using MVC / WebAPI abstractions, or writing Elixir web applications with just Plugs - without <a href="http://phoenixframework.org/">Phoenix Framework</a>. Of course there are cases where this lower level of abstraction is a good choice, but success and popularity of such libraries like <a href="http://rubyonrails.org/">Rails</a>, ASP.Net MVC, or Phoenix shows us that developers want to use some higher level of abstraction and focus on solving their business domain problems instead of worrying about the details of the HTTP protocol.</p>
+
+<h1>Developer experience</h1>
+
+<p>The previous paragraph was focused on technical issues but let’s now move to something a bit different. Working on OSS tooling for the last couple of years has thought me one important thing - good user experience is sometimes more valuable for project than technical superiority. I also strongly believe that tooling can be a great way to allow people ramp up faster and to teach users some new concepts. A great example of that is <a href="https://www.jetbrains.com/resharper/">ReSharper</a> - while it’s not super popular in F# community ( ;-) ) and some of the features for C# are probably overkill, I strongly believe that ReSharper is one of the most impactful source of information about new language features for C# developers - not every developer is following all news, conferences and announcements but it’s hard to miss when tool starts to give warnings and shows automatic refactorings introducing new language features. In web space great example for such behavior is Phoenix - everything it does in regards of tooling, from new project template through opinionated structure of the project to generators that let users to scaffold some new controllers is designed to make the introduction of most important concepts used in Phoenix easier for new developer.</p>
+
+<p>I strongly believe that lack of opinionated tooling and opinionated, commonly used way to build web applications is another important issue of Suave and Giraffe. Developers don’t want to focus on making decisions about structuring the project, or wonder how they need to combine things together, or what are best practices - they want to focus on problems of their business. Again, frameworks like Phoenix and Rails are great example of how having such an opinionated way of building web applications works great in practice.</p>
+
+<h1>Introducing Saturn</h1>
+
+<p>For the last couple of weeks I’ve been working on <a href="https://github.com/SaturnFramework/Saturn">Saturn</a> - a new F# OSS project that will attempt to solve the problems mentioned above. It’s strongly inspired by some concepts from Phoenix. Before going into details of Saturn an important thing about it is that it builds on top of the existing ecosystem - and to be precise on top of Giraffe - in similar fashion that Phoenix builds on top of Plugs abstraction.</p>
+
+<h3>Library</h3>
+
+<p>A core part of Saturn is a library that can be put on top of any existing Giraffe application. This library contains a set of helper functions, tries to hide some complexity of Giraffe (for example manual passing of <code>next</code> in every function), and what’s most important it introduces several higher level building blocks that can be used to model a web application. Those building blocks are using a nice high level, declarative DSL using computation expressions with custom keywords. Currently in Saturn there exists 4 such higher level building blocks:</p>
+
+<ul>
+  <li>Pipelines</li>
+  <li>Scopes</li>
+  <li>Controllers</li>
+  <li>Applications</li>
+</ul>
+
+<p>and now I shall explain each with a code sample.</p>
+
+<ul>
+  <li><code>pipeline</code> - the simplest building block provided by Saturn. It can be used to combine multiple <code>HttpHandlers</code> in a more declarative way without using custom operators. It also provides custom operations that hide some of the Giraffe complexity.</li>
+</ul>
+
+<p>Example:</p>
+
+<pre><code>let browser = pipeline {
+    plug acceptHtml
+    plug putSecureBrowserHeaders
+    fetchSession
+    set_header "x-pipeline-type" "Browser"
+}
+</code></pre>
+
+<ul>
+  <li><code>scope</code> - it is a DSL that can be used to define routing and combining this routing together with the <code>pipelines</code></li>
+</ul>
+
+<p>Example:</p>
+
+<pre><code>let defaultView = scope {
+    get "/" (renderHtml Index.layout)
+    get "/index.html" (redirectTo false "/")
+    get "/default.html" (redirectTo false "/")
+}
+
+let browserRouter = scope {
+    error_handler (renderHtml NotFound.layout) //Use the default 404 webpage
+    pipe_through browser //Use the default browser pipeline
+
+    forward "" defaultView //Use the default view
+}
+</code></pre>
+
+<ul>
+  <li><code>controller</code> - it is a DSL for building typical HTTP controllers. It’s using predefined routing inspired by Phoenix’s <code>resource</code> macro.s</li>
+</ul>
+
+<p>Example:</p>
+
+<pre><code>let resource = controller {
+    index indexAction
+    show showAction
+    add addAction
+    edit editAction
+    create createAction
+    update updateAction
+    delete deleteAction
+}
+</code></pre>
+<p>Example:</p>
+
+<ul>
+  <li><code>application</code> - it’s a DSL used for defining application settings and ASP.Net configuration. It aims to replace some cumbersome configuration of some ASP.Net features with declarative feature toggles.</li>
+</ul>
+
+<pre><code>let app = application {
+    pipe_through endpointPipe
+
+    error_handler (fun ex _ -&gt; HttpHandlers.renderHtml (InternalError.layout ex))
+    router Router.router
+    url "http://0.0.0.0:8085/"
+    memory_cache
+    use_static "static"
+    use_gzip
+}
+</code></pre>
+
+<p>The important thing about Saturn’s computation expression and those higher level building blocks - <code>pipeline</code>, <code>scope</code> and <code>controller</code> is that they are not introducing any additional abstraction in terms of types - they are transformed to standard Giraffe <code>HttpHandler</code> which means they are composable with each other and with other, existing <code>HttpHandlers</code> that you may have.</p>
+
+<h3>Tooling</h3>
+
+<p>The other, as important as core library, part of Saturn is additional, opinionated tooling for scaffolding new projects, generating controllers, models, database layer and migration scripts, controlling database migrations etc.</p>
+
+<p>This tooling comes in 2 parts - first one is a project template that creates default the project structure, and a set of helper files. This is a normal <code>dotnet</code> project template distributed through NuGet which means you will be able to use <code>dotnet new saturn</code> to create Saturn applications. The second part of the tooling is a <code>dotnet</code> extension tool, again, distributed by NuGet. It’s automatically referenced when creating a new Saturn project. So after creating new project you will be able to go to the project folder and run, for example, the <code>dotnet saturn gen</code> command to generate new controller, views, model and a database layer.</p>
+
+<h3>Design choices</h3>
+
+<p>Some parts of the Saturn library and the whole tooling is really opinionated - for example there is no choice to change the way the routing for <code>controller</code> is created, you can just decide not to implement some of the actions. This may seem restrictive at first, but I strongly believe that it is a good design for the most common use cases. And since everything is based on the composable <code>HttpHandler</code> model if the default implementation of <code>controller</code> is not working for you, you can easily recreate it with lower level abstractions such as the <code>scope</code> DSL.</p>
+
+<p>Similarly the tooling is really opinionated - the default template out of the box uses <a href="https://fsprojects.github.io/Paket/">Paket</a> for dependency management, <a href="https://fake.build/">FAKE</a> for build script, <a href="https://github.com/StackExchange/Dapper">Dapper</a> for data access, <a href="https://github.com/canton7/Simple.Migrations">Simple.Migrations</a> to handle database migrations. The <code>dotnet saturn</code> tool generates code assuming certain project structure was created as by the default template, and probably won’t work in other situation.</p>
+
+<h3>Resources</h3>
+
+<p>Both Saturn library and tooling are open-source projects that can be found on GitHub and NuGet:</p>
+
+<ul>
+  <li>
+    <p>Saturn library - <a href="https://github.com/SaturnFramework/Saturn">https://github.com/SaturnFramework/Saturn</a> and <a href="https://www.nuget.org/packages/Saturn/">https://www.nuget.org/packages/Saturn/</a></p>
+  </li>
+  <li>
+    <p>Saturn template - <a href="https://github.com/SaturnFramework/Saturn.Template">https://github.com/SaturnFramework/Saturn.Template</a> and <a href="https://www.nuget.org/packages/Saturn.Template/">https://www.nuget.org/packages/Saturn.Template/</a></p>
+  </li>
+  <li>
+    <p>Saturn <code>dotnet</code> tool - <a href="https://github.com/SaturnFramework/Saturn.Dotnet">https://github.com/SaturnFramework/Saturn.Dotnet</a> and <a href="https://www.nuget.org/packages/Saturn.Dotnet/">https://www.nuget.org/packages/Saturn.Dotnet/</a></p>
+  </li>
+  <li>
+    <p>Saturn sample project created using template and generator tool - <a href="https://github.com/SaturnFramework/Saturn.Sample">https://github.com/SaturnFramework/Saturn.Sample</a></p>
+  </li>
+</ul>
+
+<h1>Summary</h1>
+
+<p>In this post I’ve tried to point out some problems of Suave and Giraffe and explain why I’ve decided to create new library for web programming with F#.</p>
+
+                </div><!-- .entry-content -->
+                <footer class="entry-footer">
+                    <div class="share-post">
+                        <span>Share</span>
+                        <a class="fa-twitter" target="_blank" href="https://twitter.com/intent/tweet?text=Reinventing%20MVC%20pattern%20for%20web%20programming%20with%20F#&amp;url=http://kcieslak.io/Reinventing-MVC-for-web-programming-with-F"><span class="screen-reader-text">Twitter</span></a>
+                        <a class="fa-facebook" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://kcieslak.io/Reinventing-MVC-for-web-programming-with-F&amp;t=Reinventing%20MVC%20pattern%20for%20web%20programming%20with%20F#"><span class="screen-reader-text">Facebook</span></a>
+                        <a class="fa-google-plus" target="_blank" href="http://plus.google.com/share?url=http://kcieslak.io/Reinventing-MVC-for-web-programming-with-F"><span class="screen-reader-text">Google+</span></a>
+                    </div><!-- .share-post -->
+                    
+                    <div class="tag-links">
+                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#Saturn" title="Pages tagged Saturn" rel="tag">Saturn</a><a href="/tags/index.html#Web" title="Pages tagged Web" rel="tag">Web</a>
+                    </div>
+                    
+                </footer><!-- .entry-footer -->
+            </article><!-- .post -->
+            <div class="author-box">
+                <div class="author-info">
+                    <a href="http://kcieslak.io/about" target="_blank"> <div class="author-avatar" style="background-image: url(/images/authorimage.jpg)"><span class="screen-reader-text">Krzysztof Cieslak's Picture</span></div> </a>
+                    <div class="author-details">
+                        <h2 class="author-title">About Krzysztof Cieslak</h2>
+                        <p class="author-bio">Krzysztof is a F# developer and consultant, open source contributor, conference speaker</p>
+                        <span class="author-location"><i class="fa-map-marker" aria-hidden="true"></i> Lodz, Poland</span>
+                        <span class="author-website"><i class="fa-chain" aria-hidden="true"></i> <a href="http://kcieslak.io" target="_blank"> http://kcieslak.io</a></span>
+                    </div><!-- .author-details -->
+                </div><!-- .author-info -->
+            </div><!-- .author-box -->
+            <nav class="post-navigation">
+                <h2 class="screen-reader-text">Post navigation</h2>
+                
+                <div class="nav-previous">
+                    <div class="nav-inside">
+                        
+                        <a href="/Path-to-community-based-OSS" class="nav-thumb" style="background-image: url(/images/posts/landscape_8.jpg)"></a>
+                        
+                        <div class="nav-before">Previous</div>
+                        <div class="nav-title"><a href="/Path-to-community-based-OSS">Path to Community based Open Source Software</a></div>
+                        <div class="nav-date">June 12, 2017</div>
+                    </div><!-- .nav-inside -->
+                </div><!-- .nav-previous -->
+                
+                
+            </nav><!-- .post-navigation -->
+            
+        </main><!-- .site-main -->
+        <aside class="sidebar">
+
+    
+    <section class="widget widget-text">
+        <h2 class="widget-title">About Krzysztof Cieslak</h2>
+        <p>Krzysztof is a F# developer and consultant, open source contributor, conference speaker</p>
+
+    </section><!-- .widget-text -->
+    
+
+    
+
+    
+    <section class="widget widget-text">
+        <p><a href="http://lambdafactory.io" target="_blank"><img src="/images/banner.png" alt="Optional Banner Ad" /></a></p>
+    </section><!-- .widget-text-->
+    
+
+    <section class="widget widget-recent-posts">
+        <h2 class="widget-title">Latest Posts</h2>
+        <ul class="recent-posts">
+            
+            <li class="recent-item"><a href="/Reinventing-MVC-for-web-programming-with-F">Reinventing MVC pattern for web programming with F#</a> <span>January 25, 2018</span></li>
+            
+            <li class="recent-item"><a href="/Path-to-community-based-OSS">Path to Community based Open Source Software</a> <span>June 12, 2017</span></li>
+            
+            <li class="recent-item"><a href="/Using-Paket-with-Azure-Functions">Using Paket with Azure Functions</a> <span>November 22, 2016</span></li>
+            
+            <li class="recent-item"><a href="/Dynamically-extending-F-applications">Dynamically extending F# applications</a> <span>October 3, 2016</span></li>
+            
+            <li class="recent-item"><a href="/Working-with-F-Projects-In-VSCode">Working with F# projects in VSCode</a> <span>July 27, 2016</span></li>
+            
+        </ul><!-- .recent-posts -->
+    </section><!-- .widget-recent-posts -->
+
+    <!--Create a sorted array of tags-->
+    
+    
+    <section class="widget widget-tags">
+        <h2 class="widget-title">Tags</h2>
+        <div class="tagcloud">
+            
+            <a href="/tags/#Azure+Functions">Azure Functions</a>
+            
+            <a href="/tags/#Community">Community</a>
+            
+            <a href="/tags/#F%23">F#</a>
+            
+            <a href="/tags/#FAKE">FAKE</a>
+            
+            <a href="/tags/#FSharp.Compiler.Services">FSharp.Compiler.Services</a>
+            
+            <a href="/tags/#Fable">Fable</a>
+            
+            <a href="/tags/#JS">JS</a>
+            
+            <a href="/tags/#Open+Source">Open Source</a>
+            
+            <a href="/tags/#Paket">Paket</a>
+            
+            <a href="/tags/#Saturn">Saturn</a>
+            
+            <a href="/tags/#Tooling">Tooling</a>
+            
+            <a href="/tags/#VS+Code">VS Code</a>
+            
+            <a href="/tags/#Web">Web</a>
+            
+            <a href="/tags/#Webpack">Webpack</a>
+            
+        </div><!-- .tagcloud -->
+    </section><!-- .widget -->
+
+    <section class="widget widget-text">
+        <h2 class="widget-title">Contact me</h2>
+        
+        <a href="https://twitter.com/k_cieslak" class="fa-twitter square fill-horizontal"><span class="screen-reader-text">Twitter</span></a>
+        
+        
+        
+        
+        <a href="https://github.com/Krzysztof-Cieslak" class="fa-github-alt square fill-horizontal"><span class="screen-reader-text">GitHub</span></a>
+        
+        
+        <a href="https://gitlab.com/Krzysztof-Cieslak" class="fa-gitlab square fill-horizontal"><span class="screen-reader-text">GitHub</span></a>
+        
+        
+        
+        
+        
+        
+        
+        
+        <a href="mailto:krzysztof_cieslak@windowslive.com" class="fa-envelope square fill-horizontal"><span class="screen-reader-text">E-Mail</span></a>
+        
+    </section><!-- .widget-text -->
+
+
+</aside><!-- .sidebar -->
+
+    </div><!-- .inner -->
+</div><!-- .site-content -->
+
+    <footer class="site-footer">
+    <div class="inner">
+        <div class="social-links">
+            
+            <a href="https://twitter.com/k_cieslak" class="fa-twitter square fill-horizontal"><span class="screen-reader-text">Twitter</span></a>
+            
+            
+            
+            
+            <a href="https://github.com/Krzysztof-Cieslak" class="fa-github-alt square fill-horizontal"><span class="screen-reader-text">GitHub</span></a>
+            
+            
+            <a href="https://gitlab.com/Krzysztof-Cieslak" class="fa-gitlab square fill-horizontal"><span class="screen-reader-text">GitHub</span></a>
+            
+            
+            
+            
+            
+            
+            
+            
+            <a href="mailto:krzysztof_cieslak@windowslive.com" class="fa-envelope square fill-horizontal"><span class="screen-reader-text">E-Mail</span></a>
+            
+            <a class="fa-feed square fill-horizontal" href="/feed.xml"><span class="screen-reader-text">RSS</span></a>
+        </div><!-- .social-links -->
+        <div class="site-info">
+            &copy; <a href="/">Krzysztof Cieslak</a> all rights reserved. <br />Powered by <a target="_blank" href="https://jekyllrb.com/">Jekyll</a>. BlogInn theme by <a target="_blank" href="http://justgoodthemes.com/">JustGoodThemes</a>
+            <a href="#top" id="top-link" class="fa-chevron-up top-link square fill-horizontal"><span class="screen-reader-text">Back to the top</span></a>
+        </div><!-- .site-info -->
+    </div><!-- .inner -->
+</footer><!-- .site-footer -->
+
+
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/highlight.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/languages/fsharp.min.js"></script>
+    <script type="text/javascript" src="/js/plugins.js"></script>
+    <script type="text/javascript" src="/js/custom.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+    <!-- Asynchronous Google Analytics snippet -->
+    <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    ga('create', 'UA-74514389-1', 'auto');
+    ga('require', 'linkid', 'linkid.js');
+    ga('send', 'pageview');
+    </script>
+    
+</body>
+</html>

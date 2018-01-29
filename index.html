@@ -69,6 +69,45 @@
                 <header class="entry-header"> 
                     <div class="entry-header-wrap">
                         
+                        <a href="/Reinventing-MVC-for-web-programming-with-F" class="post-thumbnail"><img src="/images/posts/landscape_9.jpg" alt="Reinventing MVC pattern for web programming with F# "></a>
+                        
+                        <h2 class="entry-title"><a href="/Reinventing-MVC-for-web-programming-with-F" rel="bookmark" title="Permanent Link to /Reinventing-MVC-for-web-programming-with-F">Reinventing MVC pattern for web programming with F#</a></h2>
+                    </div><!-- .entry-header-wrap -->
+                    <div class="entry-meta">
+                        by <span class="post-author">Krzysztof Cieslak</span> on <time class="published" datetime="2018-01-25">January 25, 2018</time>
+                    </div><!-- .entry-meta -->
+                </header><!-- .entry-header -->
+                <div class="entry-content">
+                    
+                        <h1>Introduction</h1>
+
+<p>A couple of weeks ago, I’ve posted <a href="https://twitter.com/k_cieslak/status/944349420937793536">yet-another-controversial-tweet</a> - this time criticizing F# libraries for web programming and saying that “they focus on wrong problem”. In this post I’d like to expand this thought a bit, describe what is, in my opinion, problem with those libraries, and introduce a project that will try to fix those problems.</p>
+
+<blockquote>
+  <p>DISCLAIMER: In the original tweet I’ve mentioned three libraries - <a href="https://suave.io/">Suave</a>, <a href="https://github.com/giraffe-fsharp/Giraffe">Giraffe</a>, and <a href="https://freya.io/">Freya</a>. First of all, if we were to talk about all major F# web solutions we should also mention <a href="https://websharper.com/">WebSharper</a>. Secondly, my experience with Freya and WebSharper is fairly limited - I’ve never used any of them in commercial application - so in this post I won’t talk about them but focus on Suave and Giraffe</p>
+</blockquote>
+
+<blockquote>
+  <p>DISCLAIMER 2: I really like both Suave and Giraffe - I’ve been using Suave for years in multiple commercial applications and I think it’s really good project. Also I’ve been investigating and testing Giraffe for last couple of months and I also believe it’s good project with a bright future.</p>
+</blockquote>
+
+
+                    
+                    <p class="read-more"><a href="/Reinventing-MVC-for-web-programming-with-F" class="more-link" title="read more">read more</a></p>
+                </div><!-- .entry-content -->
+                
+                <footer class="entry-footer">
+                    <div class="tag-links">
+                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#Saturn" title="Pages tagged Saturn" rel="tag">Saturn</a><a href="/tags/index.html#Web" title="Pages tagged Web" rel="tag">Web</a>
+                    </div>
+                </footer><!-- .entry-footer -->
+                
+            </article><!-- .post -->
+            
+            <article class="post">
+                <header class="entry-header"> 
+                    <div class="entry-header-wrap">
+                        
                         <a href="/Path-to-community-based-OSS" class="post-thumbnail"><img src="/images/posts/landscape_8.jpg" alt="Path to Community based Open Source Software "></a>
                         
                         <h2 class="entry-title"><a href="/Path-to-community-based-OSS" rel="bookmark" title="Permanent Link to /Path-to-community-based-OSS">Path to Community based Open Source Software</a></h2>
@@ -203,54 +242,6 @@
                 
             </article><!-- .post -->
             
-            <article class="post">
-                <header class="entry-header"> 
-                    <div class="entry-header-wrap">
-                        
-                        <a href="/Creating-custom-project-file-for-F" class="post-thumbnail"><img src="/images/posts/landscape_4.jpg" alt="Creating custom project file for F# "></a>
-                        
-                        <h2 class="entry-title"><a href="/Creating-custom-project-file-for-F" rel="bookmark" title="Permanent Link to /Creating-custom-project-file-for-F">Creating custom project file for F#</a></h2>
-                    </div><!-- .entry-header-wrap -->
-                    <div class="entry-meta">
-                        by <span class="post-author">Krzysztof Cieslak</span> on <time class="published" datetime="2016-06-23">June 23, 2016</time>
-                    </div><!-- .entry-meta -->
-                </header><!-- .entry-header -->
-                <div class="entry-content">
-                    
-                        <h1>Introduction</h1>
-
-<p>Let’s imagine a world where F# is independent language, with cross-platform tooling making life of every F# developer easier. In this world, after we’ve fixed dependency management problem with Paket, we could go one step further… and fix project file format and building. We would use same principles as Paket - very simple, human readable, file format which can be edited without any other tooling, and command line tool responsible for building such project.</p>
-
-<p>In such world I’ve decided to create new open-source project called <code>Chris</code></p>
-
-<h1>File format</h1>
-
-<p>For our hypothetical project file (called <code>project.chris</code>) I’ve decided to use <code>toml</code>. In this very simple file we would just specify few properties, files of our project, GAC references and external NuGet packages. It would look like as follows:</p>
-
-<pre><code class="language-toml">[Info]
-Name = "Fancy_Test_Project"
-Author = "Lambda Factory"
-Git = ""
-
-[Stuff]
-References = ["mscorlib", "System", "System.Core", "System.Numerics"]
-Files = ["Message.fs", "Test.fs"]
-Packages = []
-</code></pre>
-
-
-                    
-                    <p class="read-more"><a href="/Creating-custom-project-file-for-F" class="more-link" title="read more">read more</a></p>
-                </div><!-- .entry-content -->
-                
-                <footer class="entry-footer">
-                    <div class="tag-links">
-                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#VS+Code" title="Pages tagged VS Code" rel="tag">VS Code</a><a href="/tags/index.html#Tooling" title="Pages tagged Tooling" rel="tag">Tooling</a>
-                    </div>
-                </footer><!-- .entry-footer -->
-                
-            </article><!-- .post -->
-            
             
             <nav class="pagination">
                 <h2 class="screen-reader-text">Posts navigation</h2>
@@ -284,6 +275,8 @@ Packages = []
         <h2 class="widget-title">Latest Posts</h2>
         <ul class="recent-posts">
             
+            <li class="recent-item"><a href="/Reinventing-MVC-for-web-programming-with-F">Reinventing MVC pattern for web programming with F#</a> <span>January 25, 2018</span></li>
+            
             <li class="recent-item"><a href="/Path-to-community-based-OSS">Path to Community based Open Source Software</a> <span>June 12, 2017</span></li>
             
             <li class="recent-item"><a href="/Using-Paket-with-Azure-Functions">Using Paket with Azure Functions</a> <span>November 22, 2016</span></li>
@@ -291,8 +284,6 @@ Packages = []
             <li class="recent-item"><a href="/Dynamically-extending-F-applications">Dynamically extending F# applications</a> <span>October 3, 2016</span></li>
             
             <li class="recent-item"><a href="/Working-with-F-Projects-In-VSCode">Working with F# projects in VSCode</a> <span>July 27, 2016</span></li>
-            
-            <li class="recent-item"><a href="/Creating-custom-project-file-for-F">Creating custom project file for F#</a> <span>June 23, 2016</span></li>
             
         </ul><!-- .recent-posts -->
     </section><!-- .widget-recent-posts -->
@@ -322,9 +313,13 @@ Packages = []
             
             <a href="/tags/#Paket">Paket</a>
             
+            <a href="/tags/#Saturn">Saturn</a>
+            
             <a href="/tags/#Tooling">Tooling</a>
             
             <a href="/tags/#VS+Code">VS Code</a>
+            
+            <a href="/tags/#Web">Web</a>
             
             <a href="/tags/#Webpack">Webpack</a>
             

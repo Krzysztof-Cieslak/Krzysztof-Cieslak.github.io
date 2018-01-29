@@ -5,9 +5,178 @@
         <description>Blog about F# and FP Programming</description>
         <link>http://kcieslak.io/</link>
         <atom:link href="http://kcieslak.io/feed.xml" rel="self" type="application/rss+xml"/>
-        <pubDate>Tue, 13 Jun 2017 21:19:24 +0200</pubDate>
-        <lastBuildDate>Tue, 13 Jun 2017 21:19:24 +0200</lastBuildDate>
+        <pubDate>Mon, 29 Jan 2018 15:32:56 +0100</pubDate>
+        <lastBuildDate>Mon, 29 Jan 2018 15:32:56 +0100</lastBuildDate>
         <generator>Jekyll v3.4.3</generator>
+        
+            <item>
+                <title>Reinventing MVC pattern for web programming with F#</title>
+                <description>&lt;h1&gt;Introduction&lt;/h1&gt;
+
+&lt;p&gt;A couple of weeks ago, I’ve posted &lt;a href=&quot;https://twitter.com/k_cieslak/status/944349420937793536&quot;&gt;yet-another-controversial-tweet&lt;/a&gt; - this time criticizing F# libraries for web programming and saying that “they focus on wrong problem”. In this post I’d like to expand this thought a bit, describe what is, in my opinion, problem with those libraries, and introduce a project that will try to fix those problems.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;DISCLAIMER: In the original tweet I’ve mentioned three libraries - &lt;a href=&quot;https://suave.io/&quot;&gt;Suave&lt;/a&gt;, &lt;a href=&quot;https://github.com/giraffe-fsharp/Giraffe&quot;&gt;Giraffe&lt;/a&gt;, and &lt;a href=&quot;https://freya.io/&quot;&gt;Freya&lt;/a&gt;. First of all, if we were to talk about all major F# web solutions we should also mention &lt;a href=&quot;https://websharper.com/&quot;&gt;WebSharper&lt;/a&gt;. Secondly, my experience with Freya and WebSharper is fairly limited - I’ve never used any of them in commercial application - so in this post I won’t talk about them but focus on Suave and Giraffe&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;DISCLAIMER 2: I really like both Suave and Giraffe - I’ve been using Suave for years in multiple commercial applications and I think it’s really good project. Also I’ve been investigating and testing Giraffe for last couple of months and I also believe it’s good project with a bright future.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;!--more--&gt;
+
+&lt;h1&gt;The model&lt;/h1&gt;
+
+&lt;p&gt;So let’s start with describing a programming model that Suave and Giraffe use. Both libraries are using a really similar model of building applications from small functions that takes &lt;code&gt;HttpContext&lt;/code&gt; as an input and returns a modified &lt;code&gt;HttpContext&lt;/code&gt; and then they use combinators functions to combine those small functions and build application with them. This model is really powerful, it provides full control over the flow of the program, and follows some FP principles (building applications as a composition of functions).&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;There are some small differences between Suave and Giraffe implementation of this model, but going into such details is not in scope of this post.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h1&gt;The problem&lt;/h1&gt;
+
+&lt;p&gt;While I love the programming model I also believe that both Suave and Giraffe missed an opportunity to build on top of this model. Helper functions provided by both libraries that are the main building block of the applications are really “low level” - they mostly focus on the details of the HTTP protocol. And I think that while this is an useful level of abstraction for some use cases, my experience with building business applications with Suave / Giraffe suggests that this is not a level of abstraction that’s useful for typical, boring-line-of-business applications - and that’s most common use case for most software developers. If we compare Suave / Giraffe with other ecosystems it often feels like writing ASP.Net applications with just middleware - without using MVC / WebAPI abstractions, or writing Elixir web applications with just Plugs - without &lt;a href=&quot;http://phoenixframework.org/&quot;&gt;Phoenix Framework&lt;/a&gt;. Of course there are cases where this lower level of abstraction is a good choice, but success and popularity of such libraries like &lt;a href=&quot;http://rubyonrails.org/&quot;&gt;Rails&lt;/a&gt;, ASP.Net MVC, or Phoenix shows us that developers want to use some higher level of abstraction and focus on solving their business domain problems instead of worrying about the details of the HTTP protocol.&lt;/p&gt;
+
+&lt;h1&gt;Developer experience&lt;/h1&gt;
+
+&lt;p&gt;The previous paragraph was focused on technical issues but let’s now move to something a bit different. Working on OSS tooling for the last couple of years has thought me one important thing - good user experience is sometimes more valuable for project than technical superiority. I also strongly believe that tooling can be a great way to allow people ramp up faster and to teach users some new concepts. A great example of that is &lt;a href=&quot;https://www.jetbrains.com/resharper/&quot;&gt;ReSharper&lt;/a&gt; - while it’s not super popular in F# community ( ;-) ) and some of the features for C# are probably overkill, I strongly believe that ReSharper is one of the most impactful source of information about new language features for C# developers - not every developer is following all news, conferences and announcements but it’s hard to miss when tool starts to give warnings and shows automatic refactorings introducing new language features. In web space great example for such behavior is Phoenix - everything it does in regards of tooling, from new project template through opinionated structure of the project to generators that let users to scaffold some new controllers is designed to make the introduction of most important concepts used in Phoenix easier for new developer.&lt;/p&gt;
+
+&lt;p&gt;I strongly believe that lack of opinionated tooling and opinionated, commonly used way to build web applications is another important issue of Suave and Giraffe. Developers don’t want to focus on making decisions about structuring the project, or wonder how they need to combine things together, or what are best practices - they want to focus on problems of their business. Again, frameworks like Phoenix and Rails are great example of how having such an opinionated way of building web applications works great in practice.&lt;/p&gt;
+
+&lt;h1&gt;Introducing Saturn&lt;/h1&gt;
+
+&lt;p&gt;For the last couple of weeks I’ve been working on &lt;a href=&quot;https://github.com/SaturnFramework/Saturn&quot;&gt;Saturn&lt;/a&gt; - a new F# OSS project that will attempt to solve the problems mentioned above. It’s strongly inspired by some concepts from Phoenix. Before going into details of Saturn an important thing about it is that it builds on top of the existing ecosystem - and to be precise on top of Giraffe - in similar fashion that Phoenix builds on top of Plugs abstraction.&lt;/p&gt;
+
+&lt;h3&gt;Library&lt;/h3&gt;
+
+&lt;p&gt;A core part of Saturn is a library that can be put on top of any existing Giraffe application. This library contains a set of helper functions, tries to hide some complexity of Giraffe (for example manual passing of &lt;code&gt;next&lt;/code&gt; in every function), and what’s most important it introduces several higher level building blocks that can be used to model a web application. Those building blocks are using a nice high level, declarative DSL using computation expressions with custom keywords. Currently in Saturn there exists 4 such higher level building blocks:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Pipelines&lt;/li&gt;
+  &lt;li&gt;Scopes&lt;/li&gt;
+  &lt;li&gt;Controllers&lt;/li&gt;
+  &lt;li&gt;Applications&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;and now I shall explain each with a code sample.&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code&gt;pipeline&lt;/code&gt; - the simplest building block provided by Saturn. It can be used to combine multiple &lt;code&gt;HttpHandlers&lt;/code&gt; in a more declarative way without using custom operators. It also provides custom operations that hide some of the Giraffe complexity.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Example:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;let browser = pipeline {
+    plug acceptHtml
+    plug putSecureBrowserHeaders
+    fetchSession
+    set_header &quot;x-pipeline-type&quot; &quot;Browser&quot;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code&gt;scope&lt;/code&gt; - it is a DSL that can be used to define routing and combining this routing together with the &lt;code&gt;pipelines&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Example:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;let defaultView = scope {
+    get &quot;/&quot; (renderHtml Index.layout)
+    get &quot;/index.html&quot; (redirectTo false &quot;/&quot;)
+    get &quot;/default.html&quot; (redirectTo false &quot;/&quot;)
+}
+
+let browserRouter = scope {
+    error_handler (renderHtml NotFound.layout) //Use the default 404 webpage
+    pipe_through browser //Use the default browser pipeline
+
+    forward &quot;&quot; defaultView //Use the default view
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code&gt;controller&lt;/code&gt; - it is a DSL for building typical HTTP controllers. It’s using predefined routing inspired by Phoenix’s &lt;code&gt;resource&lt;/code&gt; macro.s&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Example:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;let resource = controller {
+    index indexAction
+    show showAction
+    add addAction
+    edit editAction
+    create createAction
+    update updateAction
+    delete deleteAction
+}
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;Example:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code&gt;application&lt;/code&gt; - it’s a DSL used for defining application settings and ASP.Net configuration. It aims to replace some cumbersome configuration of some ASP.Net features with declarative feature toggles.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;pre&gt;&lt;code&gt;let app = application {
+    pipe_through endpointPipe
+
+    error_handler (fun ex _ -&amp;gt; HttpHandlers.renderHtml (InternalError.layout ex))
+    router Router.router
+    url &quot;http://0.0.0.0:8085/&quot;
+    memory_cache
+    use_static &quot;static&quot;
+    use_gzip
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;The important thing about Saturn’s computation expression and those higher level building blocks - &lt;code&gt;pipeline&lt;/code&gt;, &lt;code&gt;scope&lt;/code&gt; and &lt;code&gt;controller&lt;/code&gt; is that they are not introducing any additional abstraction in terms of types - they are transformed to standard Giraffe &lt;code&gt;HttpHandler&lt;/code&gt; which means they are composable with each other and with other, existing &lt;code&gt;HttpHandlers&lt;/code&gt; that you may have.&lt;/p&gt;
+
+&lt;h3&gt;Tooling&lt;/h3&gt;
+
+&lt;p&gt;The other, as important as core library, part of Saturn is additional, opinionated tooling for scaffolding new projects, generating controllers, models, database layer and migration scripts, controlling database migrations etc.&lt;/p&gt;
+
+&lt;p&gt;This tooling comes in 2 parts - first one is a project template that creates default the project structure, and a set of helper files. This is a normal &lt;code&gt;dotnet&lt;/code&gt; project template distributed through NuGet which means you will be able to use &lt;code&gt;dotnet new saturn&lt;/code&gt; to create Saturn applications. The second part of the tooling is a &lt;code&gt;dotnet&lt;/code&gt; extension tool, again, distributed by NuGet. It’s automatically referenced when creating a new Saturn project. So after creating new project you will be able to go to the project folder and run, for example, the &lt;code&gt;dotnet saturn gen&lt;/code&gt; command to generate new controller, views, model and a database layer.&lt;/p&gt;
+
+&lt;h3&gt;Design choices&lt;/h3&gt;
+
+&lt;p&gt;Some parts of the Saturn library and the whole tooling is really opinionated - for example there is no choice to change the way the routing for &lt;code&gt;controller&lt;/code&gt; is created, you can just decide not to implement some of the actions. This may seem restrictive at first, but I strongly believe that it is a good design for the most common use cases. And since everything is based on the composable &lt;code&gt;HttpHandler&lt;/code&gt; model if the default implementation of &lt;code&gt;controller&lt;/code&gt; is not working for you, you can easily recreate it with lower level abstractions such as the &lt;code&gt;scope&lt;/code&gt; DSL.&lt;/p&gt;
+
+&lt;p&gt;Similarly the tooling is really opinionated - the default template out of the box uses &lt;a href=&quot;https://fsprojects.github.io/Paket/&quot;&gt;Paket&lt;/a&gt; for dependency management, &lt;a href=&quot;https://fake.build/&quot;&gt;FAKE&lt;/a&gt; for build script, &lt;a href=&quot;https://github.com/StackExchange/Dapper&quot;&gt;Dapper&lt;/a&gt; for data access, &lt;a href=&quot;https://github.com/canton7/Simple.Migrations&quot;&gt;Simple.Migrations&lt;/a&gt; to handle database migrations. The &lt;code&gt;dotnet saturn&lt;/code&gt; tool generates code assuming certain project structure was created as by the default template, and probably won’t work in other situation.&lt;/p&gt;
+
+&lt;h3&gt;Resources&lt;/h3&gt;
+
+&lt;p&gt;Both Saturn library and tooling are open-source projects that can be found on GitHub and NuGet:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;Saturn library - &lt;a href=&quot;https://github.com/SaturnFramework/Saturn&quot;&gt;https://github.com/SaturnFramework/Saturn&lt;/a&gt; and &lt;a href=&quot;https://www.nuget.org/packages/Saturn/&quot;&gt;https://www.nuget.org/packages/Saturn/&lt;/a&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Saturn template - &lt;a href=&quot;https://github.com/SaturnFramework/Saturn.Template&quot;&gt;https://github.com/SaturnFramework/Saturn.Template&lt;/a&gt; and &lt;a href=&quot;https://www.nuget.org/packages/Saturn.Template/&quot;&gt;https://www.nuget.org/packages/Saturn.Template/&lt;/a&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Saturn &lt;code&gt;dotnet&lt;/code&gt; tool - &lt;a href=&quot;https://github.com/SaturnFramework/Saturn.Dotnet&quot;&gt;https://github.com/SaturnFramework/Saturn.Dotnet&lt;/a&gt; and &lt;a href=&quot;https://www.nuget.org/packages/Saturn.Dotnet/&quot;&gt;https://www.nuget.org/packages/Saturn.Dotnet/&lt;/a&gt;&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;Saturn sample project created using template and generator tool - &lt;a href=&quot;https://github.com/SaturnFramework/Saturn.Sample&quot;&gt;https://github.com/SaturnFramework/Saturn.Sample&lt;/a&gt;&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1&gt;Summary&lt;/h1&gt;
+
+&lt;p&gt;In this post I’ve tried to point out some problems of Suave and Giraffe and explain why I’ve decided to create new library for web programming with F#.&lt;/p&gt;
+</description>
+                <pubDate>Thu, 25 Jan 2018 00:00:00 +0100</pubDate>
+                <link>http://kcieslak.io/Reinventing-MVC-for-web-programming-with-F</link>
+                <guid isPermaLink="true">http://kcieslak.io/Reinventing-MVC-for-web-programming-with-F</guid>
+                
+                <category>F#</category>
+                
+                <category>Saturn</category>
+                
+                <category>Web</category>
+                
+                
+            </item>
         
             <item>
                 <title>Path to Community based Open Source Software</title>

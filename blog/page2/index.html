@@ -69,6 +69,54 @@
                 <header class="entry-header"> 
                     <div class="entry-header-wrap">
                         
+                        <a href="/Creating-custom-project-file-for-F" class="post-thumbnail"><img src="/images/posts/landscape_4.jpg" alt="Creating custom project file for F# "></a>
+                        
+                        <h2 class="entry-title"><a href="/Creating-custom-project-file-for-F" rel="bookmark" title="Permanent Link to /Creating-custom-project-file-for-F">Creating custom project file for F#</a></h2>
+                    </div><!-- .entry-header-wrap -->
+                    <div class="entry-meta">
+                        by <span class="post-author">Krzysztof Cieslak</span> on <time class="published" datetime="2016-06-23">June 23, 2016</time>
+                    </div><!-- .entry-meta -->
+                </header><!-- .entry-header -->
+                <div class="entry-content">
+                    
+                        <h1>Introduction</h1>
+
+<p>Let’s imagine a world where F# is independent language, with cross-platform tooling making life of every F# developer easier. In this world, after we’ve fixed dependency management problem with Paket, we could go one step further… and fix project file format and building. We would use same principles as Paket - very simple, human readable, file format which can be edited without any other tooling, and command line tool responsible for building such project.</p>
+
+<p>In such world I’ve decided to create new open-source project called <code>Chris</code></p>
+
+<h1>File format</h1>
+
+<p>For our hypothetical project file (called <code>project.chris</code>) I’ve decided to use <code>toml</code>. In this very simple file we would just specify few properties, files of our project, GAC references and external NuGet packages. It would look like as follows:</p>
+
+<pre><code class="language-toml">[Info]
+Name = "Fancy_Test_Project"
+Author = "Lambda Factory"
+Git = ""
+
+[Stuff]
+References = ["mscorlib", "System", "System.Core", "System.Numerics"]
+Files = ["Message.fs", "Test.fs"]
+Packages = []
+</code></pre>
+
+
+                    
+                    <p class="read-more"><a href="/Creating-custom-project-file-for-F" class="more-link" title="read more">read more</a></p>
+                </div><!-- .entry-content -->
+                
+                <footer class="entry-footer">
+                    <div class="tag-links">
+                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#VS+Code" title="Pages tagged VS Code" rel="tag">VS Code</a><a href="/tags/index.html#Tooling" title="Pages tagged Tooling" rel="tag">Tooling</a>
+                    </div>
+                </footer><!-- .entry-footer -->
+                
+            </article><!-- .post -->
+            
+            <article class="post">
+                <header class="entry-header"> 
+                    <div class="entry-header-wrap">
+                        
                         <a href="/Getting-Started-with-Fable-and-Webpack" class="post-thumbnail"><img src="/images/posts/landscape_3.jpg" alt="Getting started with Fable and Webpack "></a>
                         
                         <h2 class="entry-title"><a href="/Getting-Started-with-Fable-and-Webpack" rel="bookmark" title="Permanent Link to /Getting-Started-with-Fable-and-Webpack">Getting started with Fable and Webpack</a></h2>
@@ -205,6 +253,8 @@
         <h2 class="widget-title">Latest Posts</h2>
         <ul class="recent-posts">
             
+            <li class="recent-item"><a href="/Reinventing-MVC-for-web-programming-with-F">Reinventing MVC pattern for web programming with F#</a> <span>January 25, 2018</span></li>
+            
             <li class="recent-item"><a href="/Path-to-community-based-OSS">Path to Community based Open Source Software</a> <span>June 12, 2017</span></li>
             
             <li class="recent-item"><a href="/Using-Paket-with-Azure-Functions">Using Paket with Azure Functions</a> <span>November 22, 2016</span></li>
@@ -212,8 +262,6 @@
             <li class="recent-item"><a href="/Dynamically-extending-F-applications">Dynamically extending F# applications</a> <span>October 3, 2016</span></li>
             
             <li class="recent-item"><a href="/Working-with-F-Projects-In-VSCode">Working with F# projects in VSCode</a> <span>July 27, 2016</span></li>
-            
-            <li class="recent-item"><a href="/Creating-custom-project-file-for-F">Creating custom project file for F#</a> <span>June 23, 2016</span></li>
             
         </ul><!-- .recent-posts -->
     </section><!-- .widget-recent-posts -->
@@ -243,9 +291,13 @@
             
             <a href="/tags/#Paket">Paket</a>
             
+            <a href="/tags/#Saturn">Saturn</a>
+            
             <a href="/tags/#Tooling">Tooling</a>
             
             <a href="/tags/#VS+Code">VS Code</a>
+            
+            <a href="/tags/#Web">Web</a>
             
             <a href="/tags/#Webpack">Webpack</a>
             
