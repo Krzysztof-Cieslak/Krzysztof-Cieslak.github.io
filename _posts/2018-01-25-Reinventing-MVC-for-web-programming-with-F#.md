@@ -130,13 +130,13 @@ Similarly the tooling is really opinionated - the default template out of the bo
 
 Both Saturn library and tooling are open-source projects that can be found on GitHub and NuGet:
 
-  * Saturn library - https://github.com/SaturnFramework/Saturn and https://www.nuget.org/packages/Saturn/
+  * Saturn library - [https://github.com/SaturnFramework/Saturn](https://github.com/SaturnFramework/Saturn) and [https://www.nuget.org/packages/Saturn/](https://www.nuget.org/packages/Saturn/)
 
-  * Saturn template - https://github.com/SaturnFramework/Saturn.Template and https://www.nuget.org/packages/Saturn.Template/
+  * Saturn template - [https://github.com/SaturnFramework/Saturn.Template](https://github.com/SaturnFramework/Saturn.Template) and [https://www.nuget.org/packages/Saturn.Template/](https://www.nuget.org/packages/Saturn.Template/)
 
-  * Saturn `dotnet` tool - https://github.com/SaturnFramework/Saturn.Dotnet and https://www.nuget.org/packages/Saturn.Dotnet/
+  * Saturn `dotnet` tool - [https://github.com/SaturnFramework/Saturn.Dotnet](https://github.com/SaturnFramework/Saturn.Dotnet) and [https://www.nuget.org/packages/Saturn.Dotnet/](https://www.nuget.org/packages/Saturn.Dotnet/)
 
-  * Saturn sample project - https://github.com/SaturnFramework/Saturn.Sample
+  * Saturn sample project created using template and generator tool - [https://github.com/SaturnFramework/Saturn.Sample](https://github.com/SaturnFramework/Saturn.Sample)
 
 # Summary
 
