@@ -4,7 +4,7 @@ title: "OSS and Community. The Story"
 description: "OSS and Community. The Story"
 modified: 2018-02-23
 tags: [Open Source, Community, F#]
-banner_image: landscape_10.jpg
+banner_image: landscape_4.jpg
 ---
 
 # Disclaimer
