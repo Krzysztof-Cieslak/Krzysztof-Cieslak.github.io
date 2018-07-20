@@ -69,6 +69,39 @@
                 <header class="entry-header"> 
                     <div class="entry-header-wrap">
                         
+                        <a href="/Dynamically-extending-F-applications" class="post-thumbnail"><img src="/images/posts/landscape_6.jpg" alt="Dynamically extending F# applications "></a>
+                        
+                        <h2 class="entry-title"><a href="/Dynamically-extending-F-applications" rel="bookmark" title="Permanent Link to /Dynamically-extending-F-applications">Dynamically extending F# applications</a></h2>
+                    </div><!-- .entry-header-wrap -->
+                    <div class="entry-meta">
+                        by <span class="post-author">Krzysztof Cieslak</span> on <time class="published" datetime="2016-10-03">October 3, 2016</time>
+                    </div><!-- .entry-meta -->
+                </header><!-- .entry-header -->
+                <div class="entry-content">
+                    
+                        <h1>Introduction</h1>
+
+<p>Changing requirements, introducing different data format, extending applications with new features. All those things requires us (developers) to go to code, do changes, add API versioning system (to be backward compatible), add configuration for turning on/off new features, compile application, and at the end release new application (what itself may be complex process). It’s often lot of work required for every, even very small, change.</p>
+
+<p>In this post I’ll present way to add new features to our F# application - dynamically, on runtime, without any recompiling and redeployment of application. What’s more extensions will be also defined using F#… in fact they will be simple F# script files.</p>
+
+
+                    
+                    <p class="read-more"><a href="/Dynamically-extending-F-applications" class="more-link" title="read more">read more</a></p>
+                </div><!-- .entry-content -->
+                
+                <footer class="entry-footer">
+                    <div class="tag-links">
+                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#FSharp.Compiler.Services" title="Pages tagged FSharp.Compiler.Services" rel="tag">FSharp.Compiler.Services</a>
+                    </div>
+                </footer><!-- .entry-footer -->
+                
+            </article><!-- .post -->
+            
+            <article class="post">
+                <header class="entry-header"> 
+                    <div class="entry-header-wrap">
+                        
                         <a href="/Working-with-F-Projects-In-VSCode" class="post-thumbnail"><img src="/images/posts/landscape_5.jpg" alt="Working with F# projects in VSCode "></a>
                         
                         <h2 class="entry-title"><a href="/Working-with-F-Projects-In-VSCode" rel="bookmark" title="Permanent Link to /Working-with-F-Projects-In-VSCode">Working with F# projects in VSCode</a></h2>
@@ -224,48 +257,15 @@ Packages = []
                 
             </article><!-- .post -->
             
-            <article class="post">
-                <header class="entry-header"> 
-                    <div class="entry-header-wrap">
-                        
-                        <a href="/Using-Node-with-Paket-and-Fake" class="post-thumbnail"><img src="/images/posts/landscape_2.jpg" alt="Using Node.js and NPM with Paket and FAKE "></a>
-                        
-                        <h2 class="entry-title"><a href="/Using-Node-with-Paket-and-Fake" rel="bookmark" title="Permanent Link to /Using-Node-with-Paket-and-Fake">Using Node.js and NPM with Paket and FAKE</a></h2>
-                    </div><!-- .entry-header-wrap -->
-                    <div class="entry-meta">
-                        by <span class="post-author">Krzysztof Cieslak</span> on <time class="published" datetime="2016-03-01">March 1, 2016</time>
-                    </div><!-- .entry-meta -->
-                </header><!-- .entry-header -->
-                <div class="entry-content">
-                    
-                        <h1>Introduction</h1>
-
-<p>Web development is great fit for F# and Functional Programming . Libraries like <a href="http://suave.io">Suave</a> or <a href="http://docs.freya.io/en/latest/">Freya</a> makes it easy to create well-architectures, composable web applications. But that’s backend part of story. Nowadays most web applications are required to have lot of user interactions and logic on the front-end side - in the browser.</p>
-
-<p>Two important tools for front-end JavaScript development are <a href="https://nodejs.org/en/">Node.js</a> (JS backend server, used for running many JS development tools) and <a href="npmjs.com">npm</a> - package manager for Node.js. Those 2 tools are often installed globally on developer PC, are used to define dependencies for front-end application, and define build pipeline for it.</p>
-
-<p>But, using different build tools for backend and front-end development in one application can get annoying and tiresome for developer, so it would be nice to use one build pipeline for all tasks. And it is possible with Paket and FAKE.</p>
-
-
-                    
-                    <p class="read-more"><a href="/Using-Node-with-Paket-and-Fake" class="more-link" title="read more">read more</a></p>
-                </div><!-- .entry-content -->
-                
-                <footer class="entry-footer">
-                    <div class="tag-links">
-                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#Paket" title="Pages tagged Paket" rel="tag">Paket</a><a href="/tags/index.html#FAKE" title="Pages tagged FAKE" rel="tag">FAKE</a>
-                    </div>
-                </footer><!-- .entry-footer -->
-                
-            </article><!-- .post -->
-            
             
             <nav class="pagination">
                 <h2 class="screen-reader-text">Posts navigation</h2>
                 
                 <a href="/" class="newer-posts fa-chevron-left square fill-horizontal"><span class="screen-reader-text">Newer Posts</span></a>
                 
-                <span class="page-number">Page 2 of 2</span>
+                <span class="page-number">Page 2 of 3</span>
+                
+                <a href="/blog/page3/" class="older-posts fa-chevron-right square fill-horizontal"><span class="screen-reader-text">Older Posts</span></a>
                 
             </nav><!-- .pagination -->
             
@@ -292,6 +292,8 @@ Packages = []
         <h2 class="widget-title">Latest Posts</h2>
         <ul class="recent-posts">
             
+            <li class="recent-item"><a href="/Magic-of-Saturn-controllers">Magic of Saturn controllers</a> <span>July 20, 2018</span></li>
+            
             <li class="recent-item"><a href="/OSS-The-Story">OSS and Community. The Story</a> <span>February 23, 2018</span></li>
             
             <li class="recent-item"><a href="/Reinventing-MVC-for-web-programming-with-F">Reinventing MVC pattern for web programming with F#</a> <span>January 25, 2018</span></li>
@@ -299,8 +301,6 @@ Packages = []
             <li class="recent-item"><a href="/Path-to-community-based-OSS">Path to Community based Open Source Software</a> <span>June 12, 2017</span></li>
             
             <li class="recent-item"><a href="/Using-Paket-with-Azure-Functions">Using Paket with Azure Functions</a> <span>November 22, 2016</span></li>
-            
-            <li class="recent-item"><a href="/Dynamically-extending-F-applications">Dynamically extending F# applications</a> <span>October 3, 2016</span></li>
             
         </ul><!-- .recent-posts -->
     </section><!-- .widget-recent-posts -->

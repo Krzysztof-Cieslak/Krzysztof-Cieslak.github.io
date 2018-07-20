@@ -5,9 +5,222 @@
         <description>Blog about F# and FP Programming</description>
         <link>http://kcieslak.io/</link>
         <atom:link href="http://kcieslak.io/feed.xml" rel="self" type="application/rss+xml"/>
-        <pubDate>Sat, 24 Feb 2018 01:23:11 +0100</pubDate>
-        <lastBuildDate>Sat, 24 Feb 2018 01:23:11 +0100</lastBuildDate>
-        <generator>Jekyll v3.7.2</generator>
+        <pubDate>Fri, 20 Jul 2018 22:19:07 +0200</pubDate>
+        <lastBuildDate>Fri, 20 Jul 2018 22:19:07 +0200</lastBuildDate>
+        <generator>Jekyll v3.3.1</generator>
+        
+            <item>
+                <title>Magic of Saturn controllers</title>
+                <description>&lt;h1&gt;Introduction&lt;/h1&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://saturnframework.org&quot;&gt;Saturn&lt;/a&gt; is new F# web framework that implements well know design pattern - MVC - in more functional way. Despite Saturn being fairly young project it’s getting more and more popular among F# community and industrial users. One of the main Saturn’s goals is to create high level abstractions that will enable developers to focus on writing domain, business code instead of focusing on creating correct routing for your application or setting right response headers. One of such abstractions, that I want to talk about today, is &lt;code&gt;controller&lt;/code&gt;.&lt;/p&gt;
+
+&lt;!--more--&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;This article was created for Saturn version 0.7.x&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h1&gt;Basic usage&lt;/h1&gt;
+
+&lt;p&gt;&lt;code&gt;controller&lt;/code&gt; is simple computation expression (CE) that enables you to easily implement application endpoint following REST-ish conventions. It can be used for implementing endpoints that renders views if you’re building application using server side rendering, or just return serialized data if you’re building API or your application is using client side rendering. Just like all other CEs used in Saturn, &lt;code&gt;controller&lt;/code&gt; provides set of custom operations that you can use. And, what’s important, all operations in &lt;code&gt;controller&lt;/code&gt; CE are optional, which means you can easily choose which subset of functionality you need. Example, basic implementation looks like this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;let resource = controller {
+    index indexAction
+    show showAction
+    add addAction
+    edit editAction
+    create createAction
+    update updateAction
+    patch patchAction
+    delete deleteAction
+    deleteAll deleteAllAction
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Let’s now go one by one, and describe each operation:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code&gt;index&lt;/code&gt; - mapped into &lt;code&gt;GET&lt;/code&gt; request at &lt;code&gt;/&lt;/code&gt; endpoint. Usually used to render a view displaying list of items, or return whole list of items.&lt;/li&gt;
+  &lt;li&gt;&lt;code&gt;show&lt;/code&gt; - mapped into &lt;code&gt;GET&lt;/code&gt; request at &lt;code&gt;/:id&lt;/code&gt; endpoint. Usually used to render a view displaying details of particular item, or return single item with given id.&lt;/li&gt;
+  &lt;li&gt;&lt;code&gt;add&lt;/code&gt; - mapped into &lt;code&gt;GET&lt;/code&gt; request at &lt;code&gt;/add&lt;/code&gt; endpoint. Used to render a form for adding new item. Usually not used in API controllers.&lt;/li&gt;
+  &lt;li&gt;&lt;code&gt;edit&lt;/code&gt; - mapped into &lt;code&gt;GET&lt;/code&gt; request at &lt;code&gt;/:id/edit&lt;/code&gt;. Used to render a form for editing existing item. Usually not used in API controllers.&lt;/li&gt;
+  &lt;li&gt;&lt;code&gt;create&lt;/code&gt; - mapped into &lt;code&gt;POST&lt;/code&gt; request at &lt;code&gt;/&lt;/code&gt; endpoint. Used to create and save new item.&lt;/li&gt;
+  &lt;li&gt;&lt;code&gt;update&lt;/code&gt; - mapped into &lt;code&gt;POST&lt;/code&gt; and &lt;code&gt;PUT&lt;/code&gt; requests at &lt;code&gt;/:id&lt;/code&gt; endpoint. Used to update existing item. Usually replaces original item (keeping id), and requires are fields to be filled in the incoming item.&lt;/li&gt;
+  &lt;li&gt;&lt;code&gt;patch&lt;/code&gt; - mapped into &lt;code&gt;PATCH&lt;/code&gt; request at &lt;code&gt;/:id&lt;/code&gt; endpoint. Used to update existing item. Usually only changes some fields of original item, request body contains only changed fields or JSON Patch object.&lt;/li&gt;
+  &lt;li&gt;&lt;code&gt;delete&lt;/code&gt; - mapped into &lt;code&gt;DELETE&lt;/code&gt; request at &lt;code&gt;/:id&lt;/code&gt; endpoint. Used to delete or deactivate existing item.&lt;/li&gt;
+  &lt;li&gt;&lt;code&gt;deleteAll&lt;/code&gt; - mapped into &lt;code&gt;DELETE&lt;/code&gt; request at &lt;code&gt;/&lt;/code&gt; endpoint. Used to delete or deactivate all items.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Please remember that Saturn is not enforcing behaviour or inputs of actions any way, so above descriptions are suggestions and best practices, not something that’s encoded in framework. The only thing that controller provides is set in stone routing structure.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h1&gt;Actions implementation&lt;/h1&gt;
+
+&lt;p&gt;All actions &lt;code&gt;indexAction&lt;/code&gt;, &lt;code&gt;showAction&lt;/code&gt; … are simple F# functions. All of them as first parameter accepts &lt;code&gt;HttpContext&lt;/code&gt; object - it’s an ASP.NET class that contains all information about incoming request, response, server, environment and other data that was injected into it by framework. Actions that are using ID of the item, such as &lt;code&gt;showAction&lt;/code&gt; or &lt;code&gt;editAction&lt;/code&gt; are functions that get &lt;code&gt;id&lt;/code&gt; as a second parameter. The &lt;code&gt;id&lt;/code&gt; may be generic but we currently supports limited set of the possible types to which we can decode ID from URL.&lt;/p&gt;
+
+&lt;p&gt;Supported types:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code&gt;string&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code&gt;char&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code&gt;int&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code&gt;int64&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code&gt;float&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code&gt;bool&lt;/code&gt;&lt;/li&gt;
+  &lt;li&gt;&lt;code&gt;System.Guid&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;In case you’d need some custom ID type, I’d recommend using &lt;code&gt;string&lt;/code&gt; and deserializing it manually. Another important limitation of current controllers is fact that all actions needs to use same ID type in one controller instance. Again, if you’d need different ID types - use &lt;code&gt;string&lt;/code&gt; and deserialize it manually.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Example action implementation may look like this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;let myIndex (ctx: HttpContext) = Controller.text ctx &quot;Hello world&quot;
+
+let myShow (ctx: HttpContext) (id: string) =
+    id
+    |&amp;gt; sprintf &quot;Hello world, %s&quot;
+    |&amp;gt; Controller.text ctx
+
+let myController = controller {
+    index myIndex
+    show myShow
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h1&gt;Action output type&lt;/h1&gt;
+
+&lt;p&gt;If you’ll hover over &lt;code&gt;myIndex&lt;/code&gt; or &lt;code&gt;myShow&lt;/code&gt; you’ll notice that return type of those functions is &lt;code&gt;Task&amp;lt;HttpContext option&amp;gt;&lt;/code&gt;. First thing - all actions in Saturn’s controllers are asynchronous by design, and they are using standard .Net Task to model it. However, they’re generic over what type is actually returned by the task. If you return &lt;code&gt;HttpContext option&lt;/code&gt; you’re following standard path of integration with Giraffe (web library on top of which Saturn is built). This gives you not only full control over what’s going on and how your response is modified, but also provides ability to integrate with existing Giraffe ecosystem. Additionally Saturn itself provides rich set of helpers that return &lt;code&gt;Task&amp;lt;HttpContext option&amp;gt;&lt;/code&gt; in &lt;code&gt;Controller&lt;/code&gt; module (example of this is &lt;code&gt;Controller.text&lt;/code&gt; function used in example, that sets content of the response to given string, and also sets appropriate response header).&lt;/p&gt;
+
+&lt;p&gt;But returning &lt;code&gt;Task&amp;lt;HttpContext option&amp;gt;&lt;/code&gt; is not only option. You can also return &lt;code&gt;Task&amp;lt;'a&amp;gt;&lt;/code&gt; (where &lt;code&gt;'a&lt;/code&gt; is any type) and Saturn will perform automatic output content negotiation. In such case Saturn will check output type of your action, check what’s the client preference based on the &lt;code&gt;Accept&lt;/code&gt; header (if &lt;code&gt;Accept&lt;/code&gt; header is not present, &lt;code&gt;Content-Type&lt;/code&gt; header will be used instead) and decide what’s the best way to handle response object:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;If you return &lt;code&gt;string&lt;/code&gt; Saturn will return string with &lt;code&gt;text/plain&lt;/code&gt; or &lt;code&gt;text/html&lt;/code&gt;&lt;code&gt;Content-Type&lt;/code&gt; depending on &lt;code&gt;Accept&lt;/code&gt; header&lt;/li&gt;
+  &lt;li&gt;If you return &lt;code&gt;GiraffeViewEngine.XmlNode&lt;/code&gt; (Giraffe’s view object) and client accepts &lt;code&gt;text/html&lt;/code&gt; responses Saturn will render the view and return to client&lt;/li&gt;
+  &lt;li&gt;If you return any other type it will be deserialized to JSON (with &lt;code&gt;application/json&lt;/code&gt; &lt;code&gt;Content-Type&lt;/code&gt;) unless client doesn’t accept JSON response - in such case XML will be tried.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Same output content negotiation algorithm is provided by &lt;code&gt;Controller.response&lt;/code&gt; helper.&lt;/p&gt;
+
+&lt;p&gt;Example action implementation using output content negotiation:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;let myIndex (ctx: HttpContext) =
+   task { return &quot;Hello world&quot; }
+
+let myShow (ctx: HttpContext) (id: string) =
+    task {
+        return sprintf &quot;Hello world, %s&quot; id
+    }
+
+let myAdd (ctx: HttpContext) =
+    task { return DateTime.Now }
+
+let myController = controller {
+    index myIndex
+    show myShow
+    add myAdd
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;blockquote&gt;
+
+&lt;/blockquote&gt;
+
+&lt;h1&gt;Versioning&lt;/h1&gt;
+
+&lt;p&gt;Versioning of the endpoints is one of the most important cross cutting concernes in web applications… and most of the web frameworks don’t provide any built-in ways to handle it easily. Saturn provides opinionated way to easily version your controllers. Saturn is using &lt;a href=&quot;https://www.troyhunt.com/your-api-versioning-is-wrong-which-is/&quot;&gt;1 of 3 wrong ways&lt;/a&gt; - custom header &lt;code&gt;x-controller-version&lt;/code&gt; to decide which version of the control should be called. Of course, if you don’t like this strategy, Saturn makes it easy to fallback to bit lower level of abstraction, so you can create differently wrong versioning strategy.&lt;/p&gt;
+
+&lt;p&gt;The implementation of versioning in your controllers is trivial - it’s just adding one additional operation to your controllers - &lt;code&gt;version&lt;/code&gt;. Here’s an example:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;
+let myController = controller {
+    index myIndex
+    show myShow
+    add myAdd
+}
+
+let myControllerV1 = controller {
+    version &quot;1&quot;
+
+    index myIndex
+    show myShow
+    add myAdd
+}
+
+let appRouter = router {
+    forward &quot;/endpoint&quot; myControllerV1
+    forward &quot;/endpoint&quot; myController
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Since controller without version is not performing any checks it’s important to plug controllers in correct order in your router - the controller without any version should go lowest.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h1&gt;Plugs&lt;/h1&gt;
+
+&lt;p&gt;Another important feature of any web framework is ability of (declaratively) plugging some additional actions/modifications for particular actions in controllers. For example, in ASP .NET MVC this is done with attributes and enables features like authorization and authentication for particular actions in controller (and many, many more other features and cross cutting concerns). Saturn provides flexible mechanism to provide such functionalities using controller plugs, using one simple CE operation - &lt;code&gt;plug&lt;/code&gt; - that accepts list of the actions to which it should apply and the plug function. Plug implementation is any &lt;code&gt;HttpHandler&lt;/code&gt; which means that it integrates well if existing ecosystem and helpers, and plug implementation is decoupled from the controller itself, which means you can easily create plugs for cross cutting concerns such as logging or authorization and reuse them across many controllers in your application.&lt;/p&gt;
+
+&lt;p&gt;Example implementation:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;
+let myControllerV1 = controller {
+    plug [All] (setHttpHeader &quot;user-controller-all&quot; &quot;123&quot;)
+    plug [Index; Show] (setHttpHeader &quot;user-controller-some&quot; &quot;456&quot;)
+    plug (except Index) (setHttpHeader &quot;user-controller-except&quot; &quot;789&quot;)
+
+    index myIndex
+    show myShow
+    add myAdd
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h1&gt;Subcontrollers&lt;/h1&gt;
+
+&lt;p&gt;Last important feature of the &lt;code&gt;controller&lt;/code&gt; is ability to embed controllers. This, again, is fairly opinionated feature that follows REST-ish conventions. Subcontroller should be used in case when one particular item (represented in controller by &lt;code&gt;/:id&lt;/code&gt;) has some child items - for example &lt;code&gt;blog&lt;/code&gt; item contains list of &lt;code&gt;post&lt;/code&gt; items. Or &lt;code&gt;post&lt;/code&gt; item contains list of &lt;code&gt;comment&lt;/code&gt; items. Subcontroller is subrouted into &lt;code&gt;/:id/:subcontrollerPath&lt;/code&gt; route of original controller (so for example &lt;code&gt;/:id/:subcontrollerPath/:id2&lt;/code&gt; shows the particular comment, or &lt;code&gt;/:id/:subcontrollerPath/add&lt;/code&gt; will show form for adding new child item to the parent item with given ID). Adding subcontroller to your controller is done by using yet another custom operation in CE - &lt;code&gt;subController&lt;/code&gt; that takes path of the subcontroller and child controller as inputs (passing ID to this subcontroller).&lt;/p&gt;
+
+&lt;p&gt;Example implementation:&lt;/p&gt;
+&lt;pre&gt;&lt;code&gt;let commentController userId = controller {
+    index (fun ctx -&amp;gt; (sprintf &quot;Comment Index handler for user %i&quot; userId ) |&amp;gt; Controller.text ctx)
+    add (fun ctx -&amp;gt; (sprintf &quot;Comment Add handler for user %i&quot; userId ) |&amp;gt; Controller.text ctx)
+    show (fun ctx id -&amp;gt; (sprintf &quot;Show comment %s handler for user %i&quot; id userId ) |&amp;gt; Controller.text ctx)
+    edit (fun ctx id -&amp;gt; (sprintf &quot;Edit comment %s handler for user %i&quot; id userId )  |&amp;gt; Controller.text ctx)
+}
+
+let userControllerVersion1 = controller {
+    subController &quot;/comments&quot; commentController
+
+    index (fun ctx -&amp;gt; &quot;Index handler&quot; |&amp;gt; Controller.text ctx)
+    add (fun ctx -&amp;gt; &quot;Add handler&quot; |&amp;gt; Controller.text ctx)
+    show (fun ctx id -&amp;gt; (sprintf &quot;Show handler - %i&quot; id) |&amp;gt; Controller.text ctx)
+    edit (fun ctx id -&amp;gt; (sprintf &quot;Edit handler - %i&quot; id) |&amp;gt; Controller.text ctx)
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;&lt;code&gt;subController&lt;/code&gt; operation actually accepts any &lt;code&gt;HttpHandler&lt;/code&gt; not only controllers, which means you anything in there. Also, you can add multiple subcontrollers to one controller which may be useful… for example in combination with controller versioning feature.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h1&gt;Summary&lt;/h1&gt;
+
+&lt;p&gt;In this post I’ve tried to present all features and power of Saturn’s high level abstraction - &lt;code&gt;controller&lt;/code&gt;, and flexible design they allow.&lt;/p&gt;
+</description>
+                <pubDate>Fri, 20 Jul 2018 00:00:00 +0200</pubDate>
+                <link>http://kcieslak.io/Magic-of-Saturn-controllers</link>
+                <guid isPermaLink="true">http://kcieslak.io/Magic-of-Saturn-controllers</guid>
+                
+                <category>F#</category>
+                
+                <category>Saturn</category>
+                
+                <category>Web</category>
+                
+                
+            </item>
         
             <item>
                 <title>OSS and Community. The Story</title>
@@ -1192,103 +1405,6 @@ In &lt;code&gt;.vscode&lt;/code&gt; folder we create &lt;code&gt;tasks.json&lt;/
                 <category>Fable</category>
                 
                 <category>VS Code</category>
-                
-                
-            </item>
-        
-            <item>
-                <title>Using Node.js and NPM with Paket and FAKE</title>
-                <description>&lt;h1&gt;Introduction&lt;/h1&gt;
-
-&lt;p&gt;Web development is great fit for F# and Functional Programming . Libraries like &lt;a href=&quot;http://suave.io&quot;&gt;Suave&lt;/a&gt; or &lt;a href=&quot;http://docs.freya.io/en/latest/&quot;&gt;Freya&lt;/a&gt; makes it easy to create well-architectures, composable web applications. But that’s backend part of story. Nowadays most web applications are required to have lot of user interactions and logic on the front-end side - in the browser.&lt;/p&gt;
-
-&lt;p&gt;Two important tools for front-end JavaScript development are &lt;a href=&quot;https://nodejs.org/en/&quot;&gt;Node.js&lt;/a&gt; (JS backend server, used for running many JS development tools) and &lt;a href=&quot;npmjs.com&quot;&gt;npm&lt;/a&gt; - package manager for Node.js. Those 2 tools are often installed globally on developer PC, are used to define dependencies for front-end application, and define build pipeline for it.&lt;/p&gt;
-
-&lt;p&gt;But, using different build tools for backend and front-end development in one application can get annoying and tiresome for developer, so it would be nice to use one build pipeline for all tasks. And it is possible with Paket and FAKE.&lt;/p&gt;
-
-&lt;!--more--&gt;
-
-&lt;h1&gt;Installing Node and npm using Paket&lt;/h1&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;In case you haven’t heard about Paket - it is alternative dependency management tool built by F# community, supporting NuGet, GitHub and git. For more information please visit : &lt;a href=&quot;http://fsprojects.github.io/Paket/&quot;&gt;http://fsprojects.github.io/Paket/&lt;/a&gt;&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;Installing Node.js and npm using Paket is as easy as installing any .Net package - luckily there exist up-to-date NuGet packages for both tools.&lt;/p&gt;
-
-&lt;p&gt;Installing Node:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;paket add nuget Node.js
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Installing npm:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;paket add nuget Npm.js
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Tools executable are respectively &lt;code&gt;.\packages\Node.js\node.exe&lt;/code&gt; and &lt;code&gt;.\packages\Npm.js\tools\npm.cmd&lt;/code&gt;.&lt;/p&gt;
-
-&lt;h1&gt;Using package.json file&lt;/h1&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;&lt;code&gt;package.json&lt;/code&gt; is npm file defining project, its dependencies and build scripts we can run. For more information about it, please visit &lt;a href=&quot;https://docs.npmjs.com/files/package.json&quot;&gt;npm documentation on this topic&lt;/a&gt;&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;&lt;code&gt;Package.json&lt;/code&gt; file looks as in every normal project using npm. We define our project name, repository, dependencies and we create build scripts. There is one small difference - instead of just calling &lt;code&gt;node&lt;/code&gt; or &lt;code&gt;npm&lt;/code&gt; we have to give relative installation path to those tools.&lt;/p&gt;
-
-&lt;p&gt;Example &lt;code&gt;scripts&lt;/code&gt; section of &lt;code&gt;package.json&lt;/code&gt;:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-json&quot;&gt;&quot;scripts&quot;: {
-  &quot;build:js&quot;: &quot;packages\\Node.js\\node.exe node_modules/uglifyjs-folder/cli.js
-                web/content/app/ -eo web/content/dist/&quot;,
-  &quot;build&quot;: &quot;packages\\Npm.js\\tools\\npm.cmd run build:js&quot;
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h1&gt;Running npm scripts using FAKE&lt;/h1&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;FAKE - F# Make - is a build automation system with capabilities which are similar to make and rake. It is using an easy domain-specific language (DSL) so that you can start using it without learning F#. For more details visit: &lt;a href=&quot;http://fsharp.github.io/FAKE/&quot;&gt;http://fsharp.github.io/FAKE/&lt;/a&gt;&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;FAKE is fantastic build system, that allows to create complex build scripts using F#. One of its big advantage is having built-in helpers for different tools from .Net space … and not only .Net. Fortunately, there exist FAKE helper for npm.&lt;/p&gt;
-
-&lt;p&gt;Using npm helper is as simple as creating normal FAKE target and running &lt;code&gt;Npm&lt;/code&gt; function.&lt;/p&gt;
-
-&lt;p&gt;Running &lt;code&gt;npm install&lt;/code&gt; - command downloading all dependencies specified in &lt;code&gt;package.json&lt;/code&gt; file:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-fsharp&quot;&gt;Target &quot;NpmInstall&quot; (fun _ -&amp;gt;
-  Npm (fun p -&amp;gt;
-        { p with
-          Command = Install Standard
-          WorkingDirectory = &quot;./src/FAKESimple.Web/&quot;
-        })
- )
-&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;Running build script defined in &lt;code&gt;package.json&lt;/code&gt; file is not different:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-fsharp&quot;&gt;Target &quot;NpmInstall&quot; (fun _ -&amp;gt;
-  Npm (fun p -&amp;gt;
-        { p with
-          Command = (Run &quot;build&quot;)
-          WorkingDirectory = &quot;./src/FAKESimple.Web/&quot;
-        })
-)
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h1&gt;Summary&lt;/h1&gt;
-
-&lt;p&gt;In the post we’ve shortly moved through all steps necessery to create build pipeline combingin our known F# tools - Paket and FAKE, with JavaScript tooling used for front-end development - Node and npm. This post was based on FsSnippet web page implementation where this technique is used - for more details, and “real world” usage feel free to check &lt;a href=&quot;https://github.com/fssnippets/fssnip-website&quot;&gt;FsSnippet source code on GitHub&lt;/a&gt;&lt;/p&gt;
-</description>
-                <pubDate>Tue, 01 Mar 2016 00:00:00 +0100</pubDate>
-                <link>http://kcieslak.io/Using-Node-with-Paket-and-Fake</link>
-                <guid isPermaLink="true">http://kcieslak.io/Using-Node-with-Paket-and-Fake</guid>
-                
-                <category>F#</category>
-                
-                <category>Paket</category>
-                
-                <category>FAKE</category>
                 
                 
             </item>
