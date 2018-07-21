@@ -1,3 +1,12 @@
+---
+layout: post
+title: "Introducing Saturn on Functions"
+description: "Introducing Saturn on Functions"
+modified: 2018-07-21
+tags: [F#, Saturn, Web, Azure Functions]
+banner_image: landscape_3.jpg
+---
+
 # Introduction
 
 Azure Functions is a service that provides serverless execution model while running code in the cloud. Serverless model is getting more and more popular nowadays, being great solution for building distributed, scalable, event-driven applications. However, those are not the only use cases - compute-on-demand story, automatic, low friction scalability and great pricing model means that Azure Functions can be used to host normal (REST-ish) APIs.
