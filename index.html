@@ -69,6 +69,87 @@
                 <header class="entry-header"> 
                     <div class="entry-header-wrap">
                         
+                        <a href="/Introducing-Saturn-on-Functions" class="post-thumbnail"><img src="/images/posts/landscape_3.jpg" alt="Introducing Saturn on Functions "></a>
+                        
+                        <h2 class="entry-title"><a href="/Introducing-Saturn-on-Functions" rel="bookmark" title="Permanent Link to /Introducing-Saturn-on-Functions">Introducing Saturn on Functions</a></h2>
+                    </div><!-- .entry-header-wrap -->
+                    <div class="entry-meta">
+                        by <span class="post-author">Krzysztof Cieslak</span> on <time class="published" datetime="2018-07-21">July 21, 2018</time>
+                    </div><!-- .entry-meta -->
+                </header><!-- .entry-header -->
+                <div class="entry-content">
+                    
+                        <h1>Introduction</h1>
+
+<p>Azure Functions is a service that provides serverless execution model while running code in the cloud. Serverless model is getting more and more popular nowadays, being great solution for building distributed, scalable, event-driven applications. However, those are not the only use cases - compute-on-demand story, automatic, low friction scalability and great pricing model means that Azure Functions can be used to host normal (REST-ish) APIs.</p>
+
+<p>On the other hand, Saturn is new F# web framework that provides flexible, high level model of creating web applications using principles of functional programming and MVC architectural pattern. Main design goals of Saturn includes high level abstractions that lets developers focus on creating business code , and general developer experience.</p>
+
+<h1>Saturn on Functions</h1>
+
+<p>Today I want to introduce new extension to Saturn that adds ability to easily host Saturn controllers and routers inside Azure Functions HTTP triggers. Saturn is a library built on top of Giraffe and ASP.NET Core which means it can easily integrate with existing .Net ecosystem. HTTP triggers in Azure Functions as one of the input parameters are getting standard <code>HttpRequest</code> object that can be passed into Saturn’s <code>controller</code> or <code>router</code> (and any other <code>HttpHandler</code>).</p>
+
+<h1>Computation Expression</h1>
+
+<p>To reduce amount of boilerplate required to call any <code>HttpHandler</code> and provide, in Saturn’s spirit, opinionated way of hosting your controllers in Azure Functions we’ve created <code>Saturn.AzureFunctions</code> project that adds new computation expression  - <code> azureFunction</code></p>
+
+<p>Example:</p>
+
+<pre><code>let testCntl = controller {
+    index (fun ctx -&gt; Controller.text ctx "Hello world")
+    show (fun ctx id -&gt; id |&gt; sprintf "Hello world, %s" |&gt; Controller.text ctx)
+}
+let func log = azureFunction {
+    host_prefix "/api"
+    use_router testCntl
+    logger log
+    error_handler customErrorHandler
+    not_found_handler customNotFoundHandler
+}
+</code></pre>
+
+<p><code>azureFunction</code> CE provides set of custom operations that can be used to configure Azure Functions adapter:</p>
+<ul>
+  <li><code>host_prefix</code>  -  prefix of the routes used by Azure Functions. By default Functions are using <code>/api</code> prefix.</li>
+  <li><code>use_router</code>  -  plugs <code>HttpHandler</code> that will be used. Setting it is required.</li>
+  <li><code>logger </code> -  enables passing <code>TraceWriter</code> into your <code>HttpHandler</code> . It’s passed into your functions by <code>ctx.Items.["TraceWriter"]</code> property. It’s also used for logging error in default error handler.</li>
+  <li><code>error_handler</code>  -  enables plugging custom error handler for unhandled exceptions.</li>
+  <li><code>not_found_handler</code>  -  enables plugging custom handler for not matched requests.</li>
+</ul>
+
+<h1>Using it together</h1>
+
+<p><code>azureFunction</code> CE is transformed into a function that accepts <code>HttpRequest</code> as an input and returns <code>Task&lt;HttpResponse&gt; </code> -  something that is understood by Functions runtime, and as such can be easily used in normal Azure Functions endpoint.</p>
+
+<p>For example using <code>azureFunction</code> defined above would look like this:</p>
+
+<pre><code>[&lt;FunctionName("HelloWorld")&gt;]
+let helloWorld ([&lt;HttpTrigger(Extensions.Http.AuthorizationLevel.Anonymous, Route = "{route?}")&gt;]req: HttpRequest, log: TraceWriter) =
+    func log req
+</code></pre>
+
+<h1>Summary</h1>
+
+<p>In this post I’ve presented new way of hosting your Saturn applications - using Azure Functions. As you can see Saturn will provide easy to use, opinionated way to embed Saturn controllers or routers in Azure Functions providing great, alternative way of hosting your web applications. </p>
+
+<p><code>Saturn.AzureFunctions</code> is currently still developed - if you’d like to check out current implementation, test it, or provide some feedback feel free to check this PR -  https://github.com/SaturnFramework/Saturn/pull/121</p>
+
+                    
+                    <p class="read-more"><a href="/Introducing-Saturn-on-Functions" class="more-link" title="read more">read more</a></p>
+                </div><!-- .entry-content -->
+                
+                <footer class="entry-footer">
+                    <div class="tag-links">
+                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#Saturn" title="Pages tagged Saturn" rel="tag">Saturn</a><a href="/tags/index.html#Web" title="Pages tagged Web" rel="tag">Web</a><a href="/tags/index.html#Azure+Functions" title="Pages tagged Azure Functions" rel="tag">Azure Functions</a>
+                    </div>
+                </footer><!-- .entry-footer -->
+                
+            </article><!-- .post -->
+            
+            <article class="post">
+                <header class="entry-header"> 
+                    <div class="entry-header-wrap">
+                        
                         <a href="/Magic-of-Saturn-controllers" class="post-thumbnail"><img src="/images/posts/landscape_10.jpg" alt="Magic of Saturn controllers "></a>
                         
                         <h2 class="entry-title"><a href="/Magic-of-Saturn-controllers" rel="bookmark" title="Permanent Link to /Magic-of-Saturn-controllers">Magic of Saturn controllers</a></h2>
@@ -201,37 +282,6 @@
                 
             </article><!-- .post -->
             
-            <article class="post">
-                <header class="entry-header"> 
-                    <div class="entry-header-wrap">
-                        
-                        <a href="/Using-Paket-with-Azure-Functions" class="post-thumbnail"><img src="/images/posts/landscape_7.jpg" alt="Using Paket with Azure Functions "></a>
-                        
-                        <h2 class="entry-title"><a href="/Using-Paket-with-Azure-Functions" rel="bookmark" title="Permanent Link to /Using-Paket-with-Azure-Functions">Using Paket with Azure Functions</a></h2>
-                    </div><!-- .entry-header-wrap -->
-                    <div class="entry-meta">
-                        by <span class="post-author">Krzysztof Cieslak</span> on <time class="published" datetime="2016-11-22">November 22, 2016</time>
-                    </div><!-- .entry-meta -->
-                </header><!-- .entry-header -->
-                <div class="entry-content">
-                    
-                        <h1>Introduction</h1>
-
-<p><a href="https://azure.microsoft.com/en-us/services/functions/">Azure Functions</a> is Microsoft’s implementation of serverless architecture hosted on Azure. It is a solution for easily running small pieces of code, or “functions,” in the cloud. You can write just the code you need for the problem at hand, without worrying about a whole application or the infrastructure to run it. Functions can be written in many different languages, including F#.</p>
-
-
-                    
-                    <p class="read-more"><a href="/Using-Paket-with-Azure-Functions" class="more-link" title="read more">read more</a></p>
-                </div><!-- .entry-content -->
-                
-                <footer class="entry-footer">
-                    <div class="tag-links">
-                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#Paket" title="Pages tagged Paket" rel="tag">Paket</a><a href="/tags/index.html#Azure+Functions" title="Pages tagged Azure Functions" rel="tag">Azure Functions</a>
-                    </div>
-                </footer><!-- .entry-footer -->
-                
-            </article><!-- .post -->
-            
             
             <nav class="pagination">
                 <h2 class="screen-reader-text">Posts navigation</h2>
@@ -265,6 +315,8 @@
         <h2 class="widget-title">Latest Posts</h2>
         <ul class="recent-posts">
             
+            <li class="recent-item"><a href="/Introducing-Saturn-on-Functions">Introducing Saturn on Functions</a> <span>July 21, 2018</span></li>
+            
             <li class="recent-item"><a href="/Magic-of-Saturn-controllers">Magic of Saturn controllers</a> <span>July 20, 2018</span></li>
             
             <li class="recent-item"><a href="/OSS-The-Story">OSS and Community. The Story</a> <span>February 23, 2018</span></li>
@@ -272,8 +324,6 @@
             <li class="recent-item"><a href="/Reinventing-MVC-for-web-programming-with-F">Reinventing MVC pattern for web programming with F#</a> <span>January 25, 2018</span></li>
             
             <li class="recent-item"><a href="/Path-to-community-based-OSS">Path to Community based Open Source Software</a> <span>June 12, 2017</span></li>
-            
-            <li class="recent-item"><a href="/Using-Paket-with-Azure-Functions">Using Paket with Azure Functions</a> <span>November 22, 2016</span></li>
             
         </ul><!-- .recent-posts -->
     </section><!-- .widget-recent-posts -->

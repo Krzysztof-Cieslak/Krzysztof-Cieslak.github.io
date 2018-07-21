@@ -69,6 +69,37 @@
                 <header class="entry-header"> 
                     <div class="entry-header-wrap">
                         
+                        <a href="/Using-Paket-with-Azure-Functions" class="post-thumbnail"><img src="/images/posts/landscape_7.jpg" alt="Using Paket with Azure Functions "></a>
+                        
+                        <h2 class="entry-title"><a href="/Using-Paket-with-Azure-Functions" rel="bookmark" title="Permanent Link to /Using-Paket-with-Azure-Functions">Using Paket with Azure Functions</a></h2>
+                    </div><!-- .entry-header-wrap -->
+                    <div class="entry-meta">
+                        by <span class="post-author">Krzysztof Cieslak</span> on <time class="published" datetime="2016-11-22">November 22, 2016</time>
+                    </div><!-- .entry-meta -->
+                </header><!-- .entry-header -->
+                <div class="entry-content">
+                    
+                        <h1>Introduction</h1>
+
+<p><a href="https://azure.microsoft.com/en-us/services/functions/">Azure Functions</a> is Microsoft’s implementation of serverless architecture hosted on Azure. It is a solution for easily running small pieces of code, or “functions,” in the cloud. You can write just the code you need for the problem at hand, without worrying about a whole application or the infrastructure to run it. Functions can be written in many different languages, including F#.</p>
+
+
+                    
+                    <p class="read-more"><a href="/Using-Paket-with-Azure-Functions" class="more-link" title="read more">read more</a></p>
+                </div><!-- .entry-content -->
+                
+                <footer class="entry-footer">
+                    <div class="tag-links">
+                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#Paket" title="Pages tagged Paket" rel="tag">Paket</a><a href="/tags/index.html#Azure+Functions" title="Pages tagged Azure Functions" rel="tag">Azure Functions</a>
+                    </div>
+                </footer><!-- .entry-footer -->
+                
+            </article><!-- .post -->
+            
+            <article class="post">
+                <header class="entry-header"> 
+                    <div class="entry-header-wrap">
+                        
                         <a href="/Dynamically-extending-F-applications" class="post-thumbnail"><img src="/images/posts/landscape_6.jpg" alt="Dynamically extending F# applications "></a>
                         
                         <h2 class="entry-title"><a href="/Dynamically-extending-F-applications" rel="bookmark" title="Permanent Link to /Dynamically-extending-F-applications">Dynamically extending F# applications</a></h2>
@@ -224,39 +255,6 @@ Packages = []
                 
             </article><!-- .post -->
             
-            <article class="post">
-                <header class="entry-header"> 
-                    <div class="entry-header-wrap">
-                        
-                        <a href="/Creating-VS-Code-plugins-with-F-and-Fable" class="post-thumbnail"><img src="/images/posts/landscape_1.jpg" alt="Creating VS Code plugins with F# and Fable "></a>
-                        
-                        <h2 class="entry-title"><a href="/Creating-VS-Code-plugins-with-F-and-Fable" rel="bookmark" title="Permanent Link to /Creating-VS-Code-plugins-with-F-and-Fable">Creating VS Code plugins with F# and Fable</a></h2>
-                    </div><!-- .entry-header-wrap -->
-                    <div class="entry-meta">
-                        by <span class="post-author">Krzysztof Cieslak</span> on <time class="published" datetime="2016-03-21">March 21, 2016</time>
-                    </div><!-- .entry-meta -->
-                </header><!-- .entry-header -->
-                <div class="entry-content">
-                    
-                        <h1>Introduction</h1>
-
-<p><em>EDIT 22.03.2016</em> Thanks to Alfonso’s help I was able to remove postbuild step fixing JS.</p>
-
-<p><a href="https://code.visualstudio.com/">VS Code</a> is new text editor (or rather lightweight IDE) created by Microsoft. Because it is product based on <a href="http://electron.atom.io/">Electron</a> - cross platform engine allowing developers to write desktop applications using web technologies - its plugin system supports JavaScript (and TypeScript). Unfortunately both those languages are not nice choice for someone using statically typed functional programming languages like F#. Up to this moment in my VS Code extensions I was using F# library called <a href="http://funscript.info/">FunScript</a> which compiles F# code to JavaScript. Whereas it sounds nice, library has some problems which makes writing code using it not nice experience. Fortunately recently, <a href="https://twitter.com/alfonsogcnunez">Alfonso Garcia-Caro</a>, one of contributors to FunScript, has decided to create new project compiling F# to JS (with <a href="https://babeljs.io/">Babel</a> as middle step) called <a href="http://fable.io">Fable</a> which hopefully will solve some of the FunScript’s problems. I have decided to investigate how this new library can be used to create VS Code plugins… using VS Code to code and compile those plugins.</p>
-
-
-                    
-                    <p class="read-more"><a href="/Creating-VS-Code-plugins-with-F-and-Fable" class="more-link" title="read more">read more</a></p>
-                </div><!-- .entry-content -->
-                
-                <footer class="entry-footer">
-                    <div class="tag-links">
-                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#Fable" title="Pages tagged Fable" rel="tag">Fable</a><a href="/tags/index.html#VS+Code" title="Pages tagged VS Code" rel="tag">VS Code</a>
-                    </div>
-                </footer><!-- .entry-footer -->
-                
-            </article><!-- .post -->
-            
             
             <nav class="pagination">
                 <h2 class="screen-reader-text">Posts navigation</h2>
@@ -292,6 +290,8 @@ Packages = []
         <h2 class="widget-title">Latest Posts</h2>
         <ul class="recent-posts">
             
+            <li class="recent-item"><a href="/Introducing-Saturn-on-Functions">Introducing Saturn on Functions</a> <span>July 21, 2018</span></li>
+            
             <li class="recent-item"><a href="/Magic-of-Saturn-controllers">Magic of Saturn controllers</a> <span>July 20, 2018</span></li>
             
             <li class="recent-item"><a href="/OSS-The-Story">OSS and Community. The Story</a> <span>February 23, 2018</span></li>
@@ -299,8 +299,6 @@ Packages = []
             <li class="recent-item"><a href="/Reinventing-MVC-for-web-programming-with-F">Reinventing MVC pattern for web programming with F#</a> <span>January 25, 2018</span></li>
             
             <li class="recent-item"><a href="/Path-to-community-based-OSS">Path to Community based Open Source Software</a> <span>June 12, 2017</span></li>
-            
-            <li class="recent-item"><a href="/Using-Paket-with-Azure-Functions">Using Paket with Azure Functions</a> <span>November 22, 2016</span></li>
             
         </ul><!-- .recent-posts -->
     </section><!-- .widget-recent-posts -->

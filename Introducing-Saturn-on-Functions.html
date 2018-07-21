@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>About this blog</title>
-    <meta name="description" content="About Krzysztof Cieslak">
+    <title>Introducing Saturn on Functions</title>
+    <meta name="description" content="Introducing Saturn on Functions">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="/favicon/favicon.ico">
     <link rel="apple-touch-icon-precomposed" href="/favicon/lattice-optic-illusion-152-204321.png" >
@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/styles/default.min.css">
     <link rel="stylesheet" href="/css/main.css" />
     <link rel="stylesheet" href="/css/font-awesome.min.css" />
-    <link rel="canonical" href="http://kcieslak.io/about">
+    <link rel="canonical" href="http://kcieslak.io/Introducing-Saturn-on-Functions">
     <link rel="alternate" type="application/rss+xml" title="F# Reflections Feed" href="http://kcieslak.io/feed.xml">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
 </head>
@@ -32,8 +32,8 @@
                 
                   
                   
-                  <li class="nav-current">
-                    <a class="nav-current" href="/about">About</a>
+                  <li class="">
+                    <a class="" href="/about">About</a>
                   </li>
                 
                   
@@ -66,24 +66,117 @@
         <main class="site-main">
             <article class="post">
                 <header class="entry-header">
-                    <div class="entry-header-wrap">  
+                    <div class="entry-header-wrap">
                         
                         <div class="post-thumbnail">
-                            <img src="/images/aboutPage.jpg" alt="About this blog">
+                            <img src="/images/posts/landscape_3.jpg" alt="Introducing Saturn on Functions">
                         </div><!-- .post-thumbnail -->
                         
-                        <h1 class="entry-title">About this blog</h1>
+                        <h1 class="entry-title">Introducing Saturn on Functions</h1>
                     </div><!-- .entry-header-wrap -->
+                    <div class="entry-meta">
+                        by <span class="post-author">Krzysztof Cieslak</span> on <time class="published" datetime="2018-07-21">July 21, 2018</time>
+                    </div><!-- .entry-meta -->
                 </header><!-- .entry-header -->
                 <div class="entry-content">
-                    <p><strong>Krzysztof Cieslak</strong> is developer and consultant, founder and CEO of <a href="http://lambdafactory.io">Lambda Factory</a> - Functional Programming consulting company. In the past he used to work with C#, JavaScript and TypeScript. Nowadays, he is working mostly with Functional Programming languages - F#, Elm and Elixir.</p>
+                    <h1>Introduction</h1>
 
-<p>He is active member of F# community, and Open Source contributor. He’s creator and lead developer of <a href="http://ionide.io/">Ionide - F# package suite for Atom and VSCode</a>, author of <a href="http://forge.run">Forge - F# CLI tooling</a> and <a href="https://gitlab.com/Krzysztof-Cieslak/Fornax">Fornax - F# static site generator</a>, maintainer of <a href="https://github.com/Krzysztof-Cieslak/vscode-elm">VSCode Elm extension</a> and contributor to many other OSS projects.</p>
+<p>Azure Functions is a service that provides serverless execution model while running code in the cloud. Serverless model is getting more and more popular nowadays, being great solution for building distributed, scalable, event-driven applications. However, those are not the only use cases - compute-on-demand story, automatic, low friction scalability and great pricing model means that Azure Functions can be used to host normal (REST-ish) APIs.</p>
 
-<p><em>Thank You for reading!</em></p>
+<p>On the other hand, Saturn is new F# web framework that provides flexible, high level model of creating web applications using principles of functional programming and MVC architectural pattern. Main design goals of Saturn includes high level abstractions that lets developers focus on creating business code , and general developer experience.</p>
+
+<h1>Saturn on Functions</h1>
+
+<p>Today I want to introduce new extension to Saturn that adds ability to easily host Saturn controllers and routers inside Azure Functions HTTP triggers. Saturn is a library built on top of Giraffe and ASP.NET Core which means it can easily integrate with existing .Net ecosystem. HTTP triggers in Azure Functions as one of the input parameters are getting standard <code>HttpRequest</code> object that can be passed into Saturn’s <code>controller</code> or <code>router</code> (and any other <code>HttpHandler</code>).</p>
+
+<h1>Computation Expression</h1>
+
+<p>To reduce amount of boilerplate required to call any <code>HttpHandler</code> and provide, in Saturn’s spirit, opinionated way of hosting your controllers in Azure Functions we’ve created <code>Saturn.AzureFunctions</code> project that adds new computation expression  - <code> azureFunction</code></p>
+
+<p>Example:</p>
+
+<pre><code>let testCntl = controller {
+    index (fun ctx -&gt; Controller.text ctx "Hello world")
+    show (fun ctx id -&gt; id |&gt; sprintf "Hello world, %s" |&gt; Controller.text ctx)
+}
+let func log = azureFunction {
+    host_prefix "/api"
+    use_router testCntl
+    logger log
+    error_handler customErrorHandler
+    not_found_handler customNotFoundHandler
+}
+</code></pre>
+
+<p><code>azureFunction</code> CE provides set of custom operations that can be used to configure Azure Functions adapter:</p>
+<ul>
+  <li><code>host_prefix</code>  -  prefix of the routes used by Azure Functions. By default Functions are using <code>/api</code> prefix.</li>
+  <li><code>use_router</code>  -  plugs <code>HttpHandler</code> that will be used. Setting it is required.</li>
+  <li><code>logger </code> -  enables passing <code>TraceWriter</code> into your <code>HttpHandler</code> . It’s passed into your functions by <code>ctx.Items.["TraceWriter"]</code> property. It’s also used for logging error in default error handler.</li>
+  <li><code>error_handler</code>  -  enables plugging custom error handler for unhandled exceptions.</li>
+  <li><code>not_found_handler</code>  -  enables plugging custom handler for not matched requests.</li>
+</ul>
+
+<h1>Using it together</h1>
+
+<p><code>azureFunction</code> CE is transformed into a function that accepts <code>HttpRequest</code> as an input and returns <code>Task&lt;HttpResponse&gt; </code> -  something that is understood by Functions runtime, and as such can be easily used in normal Azure Functions endpoint.</p>
+
+<p>For example using <code>azureFunction</code> defined above would look like this:</p>
+
+<pre><code>[&lt;FunctionName("HelloWorld")&gt;]
+let helloWorld ([&lt;HttpTrigger(Extensions.Http.AuthorizationLevel.Anonymous, Route = "{route?}")&gt;]req: HttpRequest, log: TraceWriter) =
+    func log req
+</code></pre>
+
+<h1>Summary</h1>
+
+<p>In this post I’ve presented new way of hosting your Saturn applications - using Azure Functions. As you can see Saturn will provide easy to use, opinionated way to embed Saturn controllers or routers in Azure Functions providing great, alternative way of hosting your web applications. </p>
+
+<p><code>Saturn.AzureFunctions</code> is currently still developed - if you’d like to check out current implementation, test it, or provide some feedback feel free to check this PR -  https://github.com/SaturnFramework/Saturn/pull/121</p>
 
                 </div><!-- .entry-content -->
+                <footer class="entry-footer">
+                    <div class="share-post">
+                        <span>Share</span>
+                        <a class="fa-twitter" target="_blank" href="https://twitter.com/intent/tweet?text=Introducing%20Saturn%20on%20Functions&amp;url=http://kcieslak.io/Introducing-Saturn-on-Functions"><span class="screen-reader-text">Twitter</span></a>
+                        <a class="fa-facebook" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://kcieslak.io/Introducing-Saturn-on-Functions&amp;t=Introducing%20Saturn%20on%20Functions"><span class="screen-reader-text">Facebook</span></a>
+                        <a class="fa-google-plus" target="_blank" href="http://plus.google.com/share?url=http://kcieslak.io/Introducing-Saturn-on-Functions"><span class="screen-reader-text">Google+</span></a>
+                    </div><!-- .share-post -->
+                    
+                    <div class="tag-links">
+                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#Saturn" title="Pages tagged Saturn" rel="tag">Saturn</a><a href="/tags/index.html#Web" title="Pages tagged Web" rel="tag">Web</a><a href="/tags/index.html#Azure+Functions" title="Pages tagged Azure Functions" rel="tag">Azure Functions</a>
+                    </div>
+                    
+                </footer><!-- .entry-footer -->
             </article><!-- .post -->
+            <div class="author-box">
+                <div class="author-info">
+                    <a href="http://kcieslak.io/about" target="_blank"> <div class="author-avatar" style="background-image: url(/images/authorimage.jpg)"><span class="screen-reader-text">Krzysztof Cieslak's Picture</span></div> </a>
+                    <div class="author-details">
+                        <h2 class="author-title">About Krzysztof Cieslak</h2>
+                        <p class="author-bio">Krzysztof is a F# developer and consultant, open source contributor, conference speaker</p>
+                        <span class="author-location"><i class="fa-map-marker" aria-hidden="true"></i> Lodz, Poland</span>
+                        <span class="author-website"><i class="fa-chain" aria-hidden="true"></i> <a href="http://kcieslak.io" target="_blank"> http://kcieslak.io</a></span>
+                    </div><!-- .author-details -->
+                </div><!-- .author-info -->
+            </div><!-- .author-box -->
+            <nav class="post-navigation">
+                <h2 class="screen-reader-text">Post navigation</h2>
+                
+                <div class="nav-previous">
+                    <div class="nav-inside">
+                        
+                        <a href="/Magic-of-Saturn-controllers" class="nav-thumb" style="background-image: url(/images/posts/landscape_10.jpg)"></a>
+                        
+                        <div class="nav-before">Previous</div>
+                        <div class="nav-title"><a href="/Magic-of-Saturn-controllers">Magic of Saturn controllers</a></div>
+                        <div class="nav-date">July 20, 2018</div>
+                    </div><!-- .nav-inside -->
+                </div><!-- .nav-previous -->
+                
+                
+            </nav><!-- .post-navigation -->
+            
         </main><!-- .site-main -->
         <aside class="sidebar">
 

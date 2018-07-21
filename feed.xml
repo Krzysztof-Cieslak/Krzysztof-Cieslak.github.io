@@ -5,9 +5,81 @@
         <description>Blog about F# and FP Programming</description>
         <link>http://kcieslak.io/</link>
         <atom:link href="http://kcieslak.io/feed.xml" rel="self" type="application/rss+xml"/>
-        <pubDate>Fri, 20 Jul 2018 22:19:07 +0200</pubDate>
-        <lastBuildDate>Fri, 20 Jul 2018 22:19:07 +0200</lastBuildDate>
+        <pubDate>Sat, 21 Jul 2018 18:28:16 +0200</pubDate>
+        <lastBuildDate>Sat, 21 Jul 2018 18:28:16 +0200</lastBuildDate>
         <generator>Jekyll v3.3.1</generator>
+        
+            <item>
+                <title>Introducing Saturn on Functions</title>
+                <description>&lt;h1&gt;Introduction&lt;/h1&gt;
+
+&lt;p&gt;Azure Functions is a service that provides serverless execution model while running code in the cloud. Serverless model is getting more and more popular nowadays, being great solution for building distributed, scalable, event-driven applications. However, those are not the only use cases - compute-on-demand story, automatic, low friction scalability and great pricing model means that Azure Functions can be used to host normal (REST-ish) APIs.&lt;/p&gt;
+
+&lt;p&gt;On the other hand, Saturn is new F# web framework that provides flexible, high level model of creating web applications using principles of functional programming and MVC architectural pattern. Main design goals of Saturn includes high level abstractions that lets developers focus on creating business code , and general developer experience.&lt;/p&gt;
+
+&lt;h1&gt;Saturn on Functions&lt;/h1&gt;
+
+&lt;p&gt;Today I want to introduce new extension to Saturn that adds ability to easily host Saturn controllers and routers inside Azure Functions HTTP triggers. Saturn is a library built on top of Giraffe and ASP.NET Core which means it can easily integrate with existing .Net ecosystem. HTTP triggers in Azure Functions as one of the input parameters are getting standard &lt;code&gt;HttpRequest&lt;/code&gt; object that can be passed into Saturn’s &lt;code&gt;controller&lt;/code&gt; or &lt;code&gt;router&lt;/code&gt; (and any other &lt;code&gt;HttpHandler&lt;/code&gt;).&lt;/p&gt;
+
+&lt;h1&gt;Computation Expression&lt;/h1&gt;
+
+&lt;p&gt;To reduce amount of boilerplate required to call any &lt;code&gt;HttpHandler&lt;/code&gt; and provide, in Saturn’s spirit, opinionated way of hosting your controllers in Azure Functions we’ve created &lt;code&gt;Saturn.AzureFunctions&lt;/code&gt; project that adds new computation expression  - &lt;code&gt; azureFunction&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;Example:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;let testCntl = controller {
+    index (fun ctx -&amp;gt; Controller.text ctx &quot;Hello world&quot;)
+    show (fun ctx id -&amp;gt; id |&amp;gt; sprintf &quot;Hello world, %s&quot; |&amp;gt; Controller.text ctx)
+}
+let func log = azureFunction {
+    host_prefix &quot;/api&quot;
+    use_router testCntl
+    logger log
+    error_handler customErrorHandler
+    not_found_handler customNotFoundHandler
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;azureFunction&lt;/code&gt; CE provides set of custom operations that can be used to configure Azure Functions adapter:&lt;/p&gt;
+&lt;ul&gt;
+  &lt;li&gt;&lt;code&gt;host_prefix&lt;/code&gt;  -  prefix of the routes used by Azure Functions. By default Functions are using &lt;code&gt;/api&lt;/code&gt; prefix.&lt;/li&gt;
+  &lt;li&gt;&lt;code&gt;use_router&lt;/code&gt;  -  plugs &lt;code&gt;HttpHandler&lt;/code&gt; that will be used. Setting it is required.&lt;/li&gt;
+  &lt;li&gt;&lt;code&gt;logger &lt;/code&gt; -  enables passing &lt;code&gt;TraceWriter&lt;/code&gt; into your &lt;code&gt;HttpHandler&lt;/code&gt; . It’s passed into your functions by &lt;code&gt;ctx.Items.[&quot;TraceWriter&quot;]&lt;/code&gt; property. It’s also used for logging error in default error handler.&lt;/li&gt;
+  &lt;li&gt;&lt;code&gt;error_handler&lt;/code&gt;  -  enables plugging custom error handler for unhandled exceptions.&lt;/li&gt;
+  &lt;li&gt;&lt;code&gt;not_found_handler&lt;/code&gt;  -  enables plugging custom handler for not matched requests.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1&gt;Using it together&lt;/h1&gt;
+
+&lt;p&gt;&lt;code&gt;azureFunction&lt;/code&gt; CE is transformed into a function that accepts &lt;code&gt;HttpRequest&lt;/code&gt; as an input and returns &lt;code&gt;Task&amp;lt;HttpResponse&amp;gt; &lt;/code&gt; -  something that is understood by Functions runtime, and as such can be easily used in normal Azure Functions endpoint.&lt;/p&gt;
+
+&lt;p&gt;For example using &lt;code&gt;azureFunction&lt;/code&gt; defined above would look like this:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;[&amp;lt;FunctionName(&quot;HelloWorld&quot;)&amp;gt;]
+let helloWorld ([&amp;lt;HttpTrigger(Extensions.Http.AuthorizationLevel.Anonymous, Route = &quot;{route?}&quot;)&amp;gt;]req: HttpRequest, log: TraceWriter) =
+    func log req
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h1&gt;Summary&lt;/h1&gt;
+
+&lt;p&gt;In this post I’ve presented new way of hosting your Saturn applications - using Azure Functions. As you can see Saturn will provide easy to use, opinionated way to embed Saturn controllers or routers in Azure Functions providing great, alternative way of hosting your web applications. &lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;Saturn.AzureFunctions&lt;/code&gt; is currently still developed - if you’d like to check out current implementation, test it, or provide some feedback feel free to check this PR -  https://github.com/SaturnFramework/Saturn/pull/121&lt;/p&gt;
+</description>
+                <pubDate>Sat, 21 Jul 2018 00:00:00 +0200</pubDate>
+                <link>http://kcieslak.io/Introducing-Saturn-on-Functions</link>
+                <guid isPermaLink="true">http://kcieslak.io/Introducing-Saturn-on-Functions</guid>
+                
+                <category>F#</category>
+                
+                <category>Saturn</category>
+                
+                <category>Web</category>
+                
+                <category>Azure Functions</category>
+                
+                
+            </item>
         
             <item>
                 <title>Magic of Saturn controllers</title>
@@ -1278,133 +1350,6 @@ We can run those task usign &lt;code&gt;Tasks: Run Task&lt;/code&gt; command (&l
                 <category>Webpack</category>
                 
                 <category>JS</category>
-                
-                
-            </item>
-        
-            <item>
-                <title>Creating VS Code plugins with F# and Fable</title>
-                <description>&lt;h1&gt;Introduction&lt;/h1&gt;
-
-&lt;p&gt;&lt;em&gt;EDIT 22.03.2016&lt;/em&gt; Thanks to Alfonso’s help I was able to remove postbuild step fixing JS.&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://code.visualstudio.com/&quot;&gt;VS Code&lt;/a&gt; is new text editor (or rather lightweight IDE) created by Microsoft. Because it is product based on &lt;a href=&quot;http://electron.atom.io/&quot;&gt;Electron&lt;/a&gt; - cross platform engine allowing developers to write desktop applications using web technologies - its plugin system supports JavaScript (and TypeScript). Unfortunately both those languages are not nice choice for someone using statically typed functional programming languages like F#. Up to this moment in my VS Code extensions I was using F# library called &lt;a href=&quot;http://funscript.info/&quot;&gt;FunScript&lt;/a&gt; which compiles F# code to JavaScript. Whereas it sounds nice, library has some problems which makes writing code using it not nice experience. Fortunately recently, &lt;a href=&quot;https://twitter.com/alfonsogcnunez&quot;&gt;Alfonso Garcia-Caro&lt;/a&gt;, one of contributors to FunScript, has decided to create new project compiling F# to JS (with &lt;a href=&quot;https://babeljs.io/&quot;&gt;Babel&lt;/a&gt; as middle step) called &lt;a href=&quot;http://fable.io&quot;&gt;Fable&lt;/a&gt; which hopefully will solve some of the FunScript’s problems. I have decided to investigate how this new library can be used to create VS Code plugins… using VS Code to code and compile those plugins.&lt;/p&gt;
-
-&lt;!--more--&gt;
-
-&lt;h1&gt;Requirements&lt;/h1&gt;
-
-&lt;p&gt;You need to have &lt;a href=&quot;http://fsharp.org/&quot;&gt;F# 4&lt;/a&gt; and &lt;a href=&quot;https://nodejs.org/en/&quot;&gt;node.js&lt;/a&gt; installed. Node has to be included in your &lt;code&gt;$PATH&lt;/code&gt;.&lt;/p&gt;
-
-&lt;h1&gt;Initial steps&lt;/h1&gt;
-
-&lt;p&gt;The simplest way to start building own VS Code plugin is using &lt;a href=&quot;http://yeoman.io/&quot;&gt;Yeoman&lt;/a&gt; to scaffold plugin project. Install Yeoman and &lt;a href=&quot;https://code.visualstudio.com/docs/tools/yocode&quot;&gt;VS Code Plugin Generator&lt;/a&gt; using following commands:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;npm install -g yo
-npm install -g generator-code
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;The Yeoman generator will walk you through the steps required to create your customization or extension prompting for the required information. To launch the generator type the following in a command prompt:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;yo code
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;We pick &lt;code&gt;New Extension (JavaScript)&lt;/code&gt; option, go through all questions, and let Yeoman do its magic. After process is finished we enter newly created folder.Here we have to remove some unnecessary things generated by Yeoman - &lt;code&gt;extension.js&lt;/code&gt; file, and &lt;code&gt;typing&lt;/code&gt; and &lt;code&gt;tests&lt;/code&gt; folders (who need tests anyway ;) ). We add &lt;code&gt;out/&lt;/code&gt; entry to &lt;code&gt;.gitignore&lt;/code&gt; files - all output files will be generated as part of our build process and shouldn’t be commited to GitHub. Final step is creating empty &lt;code&gt;src&lt;/code&gt; folder - it will contain our F# source files.&lt;/p&gt;
-
-&lt;h1&gt;Installing Fable and setting project.&lt;/h1&gt;
-
-&lt;p&gt;Installing Fable and VS Code bindings for it is easy - all things are published as npm modules. So we can just run following commands to add those tools to our project&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;npm install --save-dev fable-compiler fable-import-vscode
-npm install --save fable-core
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Next step is updating our &lt;code&gt;package.json&lt;/code&gt; file to include changes we have done and to create build targets which will compile F# code to JS.First of all we update &lt;code&gt;main&lt;/code&gt; entry - it defines where is our entry file of plugin.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-json&quot;&gt;{
-...  
-&quot;main&quot;: &quot;./out/extension&quot;,
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Second, we update &lt;code&gt;scripts&lt;/code&gt; part - here we define possible build targets which can be used for our project.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-json&quot;&gt;{
-...
-&quot;scripts&quot;: {
-    &quot;build&quot;: &quot;fable src/extension.fsx --outDir ../out -s -m commonjs&quot;
-  },
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;For more details about Fable and compiler options please check &lt;a href=&quot;http://fable.io/docs/compiling.html&quot;&gt;Fable documentation&lt;/a&gt;&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;&lt;code&gt;build&lt;/code&gt; target runs fable compiler to generate JS from our F# file.&lt;/p&gt;
-
-&lt;h1&gt;Writing F# Code&lt;/h1&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;For more details about VS Code extension API please visit &lt;a href=&quot;https://code.visualstudio.com/docs/extensions/overview&quot;&gt;extension documentation&lt;/a&gt;&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;At last we can write some F# code. Our sample extension will be simple - it will be just Hello World.To start in &lt;code&gt;src&lt;/code&gt; folder we create F# script file called &lt;code&gt;extension.fs&lt;/code&gt;. First step is referencing Fable core library and VS Code bindings&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-fsharp&quot;&gt;#r &quot;../node_modules/fable-core/Fable.Core.dll&quot;
- 
-open Fable.Core
-open Fable.Core.JsInterop
-open Fable.Import
-open Fable.Import.vscode
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Entry point of any VS Code plugin is activate function placed in file defined as entry point in &lt;code&gt;package.json&lt;/code&gt;.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-fsharp&quot;&gt;open Fable.Import.vscode.commands.Globals
-
-let activate (context : vscode.ExtensionContext) = 
-  registerCommand(&quot;extension.sayHello&quot;, fun _ -&amp;gt;
-    showInformationMessage &quot;Hello world!&quot; |&amp;gt; unbox )
-  |&amp;gt; context.subscriptions.Add    
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;As we can see we can use both standard F# construct like &lt;code&gt;printfn&lt;/code&gt; function (which is mapped to JS &lt;code&gt;console.log&lt;/code&gt;) and functions defined in VS Code bindings. Here we print “Hello world” to console and register command which will display Hello World information in the popup. Now from console, we can run &lt;code&gt;npm build&lt;/code&gt; and compile our F# script to JavaScript. We shall see result in &lt;code&gt;out&lt;/code&gt; directory.&lt;/p&gt;
-
-&lt;h1&gt;Integration with VS Code&lt;/h1&gt;
-
-&lt;p&gt;Now, when we have set up project and can compile it, we need to integrate our solution with VS Code - first we define Task to run our build script from inside editor.
-In &lt;code&gt;.vscode&lt;/code&gt; folder we create &lt;code&gt;tasks.json&lt;/code&gt; file and put there:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-json&quot;&gt;{
-  &quot;version&quot;: &quot;0.1.0&quot;,
-  &quot;command&quot;: &quot;npm&quot;,
-  &quot;isShellCommand&quot;: true,
-  &quot;tasks&quot;: [
-    {
-     &quot;taskName&quot;: &quot;run&quot;,
-      &quot;isBuildCommand&quot;: true,
-      &quot;args&quot;: [ &quot;build&quot; ]
-    }
-  ]
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;It’s just simple task running &lt;code&gt;npm run build&lt;/code&gt; - it is defined as build command which means it can be run using &lt;code&gt;Ctrl+Shift+B&lt;/code&gt; command. Next step is setting this target as task we want to invoke before we start debugging. To do this, we open &lt;code&gt;launch.json&lt;/code&gt; file and append &lt;code&gt;&quot;preLaunchTask&quot;: &quot;run&quot;&lt;/code&gt; to &lt;code&gt;Lanunch Extension&lt;/code&gt; configuration (we can remove &lt;code&gt;Launch test&lt;/code&gt; entry, we do not need tests anyway ;) ). Pressing F5 will run our extension - we can try it out by running &lt;code&gt;Hello World&lt;/code&gt; command in Command Palette.&lt;/p&gt;
-
-&lt;h1&gt;Summary&lt;/h1&gt;
-
-&lt;p&gt;In this post we have shortly moved all steps necessary to create VS Code extension using F# and Fable. From my short experience with this tool it looks like it is much nicer option than FunScript, hopefully I will be able to port my other extensions to it! Whole source code of this sample application is on &lt;a href=&quot;https://github.com/Krzysztof-Cieslak/vscode-fable-demo&quot;&gt;GitHub&lt;/a&gt;&lt;/p&gt;
-</description>
-                <pubDate>Mon, 21 Mar 2016 00:00:00 +0100</pubDate>
-                <link>http://kcieslak.io/Creating-VS-Code-plugins-with-F-and-Fable</link>
-                <guid isPermaLink="true">http://kcieslak.io/Creating-VS-Code-plugins-with-F-and-Fable</guid>
-                
-                <category>F#</category>
-                
-                <category>Fable</category>
-                
-                <category>VS Code</category>
                 
                 
             </item>
