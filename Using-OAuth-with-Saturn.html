@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Dynamically extending F# applications</title>
-    <meta name="description" content="Creating F# application which can be dynamically extended on runtime">
+    <title>Using OAuth with Saturn</title>
+    <meta name="description" content="Using OAuth with Saturn">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="/favicon/favicon.ico">
     <link rel="apple-touch-icon-precomposed" href="/favicon/lattice-optic-illusion-152-204321.png" >
@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/styles/default.min.css">
     <link rel="stylesheet" href="/css/main.css" />
     <link rel="stylesheet" href="/css/font-awesome.min.css" />
-    <link rel="canonical" href="http://kcieslak.io/Dynamically-extending-F-applications">
+    <link rel="canonical" href="http://kcieslak.io/Using-OAuth-with-Saturn">
     <link rel="alternate" type="application/rss+xml" title="F# Reflections Feed" href="http://kcieslak.io/feed.xml">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
 </head>
@@ -69,193 +69,124 @@
                     <div class="entry-header-wrap">
                         
                         <div class="post-thumbnail">
-                            <img src="/images/posts/landscape_6.jpg" alt="Dynamically extending F# applications">
+                            <img src="/images/posts/landscape_11.jpg" alt="Using OAuth with Saturn">
                         </div><!-- .post-thumbnail -->
                         
-                        <h1 class="entry-title">Dynamically extending F# applications</h1>
+                        <h1 class="entry-title">Using OAuth with Saturn</h1>
                     </div><!-- .entry-header-wrap -->
                     <div class="entry-meta">
-                        by <span class="post-author">Krzysztof Cieslak</span> on <time class="published" datetime="2016-10-03">October 3, 2016</time>
+                        by <span class="post-author">Krzysztof Cieslak</span> on <time class="published" datetime="2018-08-03">August 3, 2018</time>
                     </div><!-- .entry-meta -->
                 </header><!-- .entry-header -->
                 <div class="entry-content">
-                    <h1>Introduction</h1>
+                    <h1>Using OAuth with Saturn</h1>
 
-<p>Changing requirements, introducing different data format, extending applications with new features. All those things requires us (developers) to go to code, do changes, add API versioning system (to be backward compatible), add configuration for turning on/off new features, compile application, and at the end release new application (what itself may be complex process). It’s often lot of work required for every, even very small, change.</p>
+<p><a href="https://saturnframework.org">Saturn</a> is new F# web framework that provides flexible, high level model of creating web applications using principles of functional programming and MVC architectural pattern. Main design goals of Saturn includes high level abstractions that lets developers focus on creating business code , and general developer experience. One of the features provided by Saturn is support for popular way of authentication - OAuth</p>
 
-<p>In this post I’ll present way to add new features to our F# application - dynamically, on runtime, without any recompiling and redeployment of application. What’s more extensions will be also defined using F#… in fact they will be simple F# script files.</p>
+<blockquote>
+  <p>This blog post was created for Saturn version 0.7.5</p>
+</blockquote>
 
 <!--more-->
 
-<h1>Sample application</h1>
+<h3>OAuth intro</h3>
 
-<p>Our sample application for this blog post will be rather simple - it will be F# console application, taking user input as string, performing set of transformations on this input and just printing out result. Transformation for our input will be dynamically loaded on runtime - initially, before user add any plugins, application just returns same value as user typed in.</p>
+<p>OAuth 2 is an authorization framework that enables applications to obtain limited access to user accounts on an HTTP service, such as Twitter, GitHub, or DigitalOcean. It works by delegating user authentication to the service that hosts the user account, and authorizing third-party applications to access the user account. OAuth 2 provides authorization flows for web and desktop applications, and mobile devices.</p>
 
-<p>We can simply define our transformation as <code>type Transformation = string -&gt; string</code> and operation we perform on input as <code>let output = lstOfTransformations |&gt; List.fold (fun state transform -&gt; transform state ) input</code>.</p>
+<p>While OAuth supports multiple different types of authorization, useful for different use cases, here we will talk about authorization code flow. The authorization code grant type is the most commonly used because it is optimized for server-side applications (such as web applications using Saturn), where source code is not publicly exposed, and Client Secret confidentiality can be maintained. This is a redirection-based flow, which means that the application must be capable of interacting with the user-agent (i.e. the user’s web browser) and receiving API authorization codes that are routed through the user-agent.</p>
 
-<h1>Evaluating plugins files</h1>
+<p><img src="https://cdn-images-1.medium.com/max/2000/1*qH2SyNHvrTa8UR4d8n08pA.png" alt="Flow of Authorization Code OAuth grant" />
+<em>Flow of Authorization Code OAuth grant</em></p>
 
-<p>As I’ve mentioned our aim is to define extensions as simple F# script files. But while we can easily read text put in <code>.fsx</code> file, F# doesn’t have anything like JavaScript’s <code>eval()</code> function built-in, no way to take text containing code and evaluating its value. But this is a moment where <code>FSharp.Compiler.Services</code> enters the scene. FCS (not to confuse with FSC which is F# compiler) is fork of F# compiler that exposes additional functionality for implementing F# editor features, and additional tools based on the compiler. It also includes F# interactive service that can be used for embedding F# scripting into your applications.</p>
+<h3>First steps</h3>
+
+<p>The first step in creating application using OAuth is registering application in the OAuth provider. In this example I’ll use GitHub.</p>
+
+<p>To start off with, you will need to register an application by going to the <a href="https://github.com/settings/developers">GitHub Developer Settings</a>. Click on the button to <strong>Register a new application</strong>, and complete the information for your application. Specify http://localhost:5000/signin-github as the value for the <strong>Authorization callback URL</strong> field:</p>
+
+<p><img src="https://cdn-images-1.medium.com/max/2000/1*0Q88p6YUg0ijickJbqZD_g.png" alt="Register a new OAuth application" />
+<em>Register a new OAuth application</em></p>
+
+<p>Take note of the values for <strong>Client ID</strong> and <strong>Client Secret</strong>, that will be shown on the next screen after pressing <strong>Register application</strong> button, as you will need those shortly when registering the OAuth.</p>
+
+<p><strong>Path goes forward</strong></p>
+
+<p>Next step is creating new Saturn application. This can be easily done using dotnet CLI tool.</p>
+
+<pre><code>mkdir oauthBlogPost
+cd oauthBlogPost
+dotnet new saturn
+</code></pre>
 
 <blockquote>
-  <p>If you want learn more about <code>FSharp.Compiler.Services</code> visit <a href="https://fsharp.github.io/FSharp.Compiler.Service/">FCS webpage</a> to see documentation of available features, APIs, and list of projects using FCS.</p>
+  <p>If you don’t have Saturn template installed you can get it by running <code>dotnet new -i Saturn.Template</code></p>
 </blockquote>
 
-<p>For our purpose we need two things - first we’ll create embedded in our application F# Interactive session, and then we will use it to load file with plugin and evaluate it.</p>
+<p>Next step is installing Saturn.Extensions.Authorization - NuGet package that contains additional helpers for handling authorization, including GitHub provider.</p>
 
-<p>Creating FSI session is pretty straightforward:</p>
-
-<pre><code class="language-fsharp">open Microsoft.FSharp.Compiler.Interactive.Shell
-
-let sbOut = StringBuilder()
-let sbErr = StringBuilder()
-
-let fsi =
-    let inStream = new StringReader("")
-    let outStream = new StringWriter(sbOut)
-    let errStream = new StringWriter(sbErr)
-    let fsiConfig = FsiEvaluationSession.GetDefaultConfiguration()
-    let argv = [| "/temo/fsi.exe"; |]
-    FsiEvaluationSession.Create(fsiConfig, argv, inStream, outStream, errStream)
-</code></pre>
-
-<p>Next we can use FSI session to load file with extension and evaluate it’s content.</p>
-
-<pre><code class="language-fsharp"> let evaluate path =
-    let mdl = getOpen path
-    let load = getLoad path
-
-    fsi.EvalInteractionNonThrowing(sprintf "#load \"%s\";;" load)
-    fsi.EvalInteractionNonThrowing(sprintf "open %s;;" mdl)
-    fsi.EvalExpressionNonThrowing "map"
-
-    match res with
-    | Choice1Of2 (Some f) -&gt;
-        f.ReflectionValue :?&gt; Transformation |&gt; Some
-    | _ -&gt; None
-</code></pre>
-
-<p>First we find full path to file we want to load, and name of default module for this file (it’s name of the file with first character uppercase).</p>
-
-<p>We execute in FSI <code>#load</code> statement to load content of extension file, and then we open default module. Last operation is executing <code>map</code> in FSI which will return value of this expression (so function).</p>
+<p>Open <code>paket.dependencies</code> and <code>src\oauthBlogPost\paket.references</code> file and add Saturn.Extensions.Authorization in there. After it’s done run <code>.paket\paket.exe</code> install and <code>dotnet restore</code>.</p>
 
 <blockquote>
-  <p>For sake of simplicity in sample, we make several assumptions about extensions files - we don’t define modules inside of <code>.fsx</code> files and they contain only single function  <code>map : string -&gt; string</code>.</p>
+  <p>If you’re on Linux / MacOS you will need <code>mono</code> to run <code>paket.exe</code></p>
 </blockquote>
 
-<p>If everything is working we can now load F# script file and get from it normal F# function which we can execute somewhere else in our code!</p>
+<h3>Diving deep</h3>
 
-<h1>Loading plugins on runtime</h1>
+<p>Now, at last, it’s time to look at some code. Open Program.fs file that contains basic configuration of your Saturn application. Firstly, edit URL to use port 5000. Secondly add new entry in the application block - <code>use_github_oauth</code>. This custom operation takes couple of input parameters - Client ID, Client Secret, Callback URL, and the list of tuples used to mapping from GitHub’s JSON response to the claims that Saturn understands.</p>
 
-<p>Next important feature of our application is dynamically loading (and unloading) scripts when users creates (or removes) them. For this we will use built-in .Net FileSystemWatcher class which let developer to perform operations whenever new file is created, file is removed etc. in given directory.</p>
+<script src="https://gist.github.com/Krzysztof-Cieslak/d32be21f6f55e52ddd09569cd3d5a35e.js"></script>
 
-<p>We just create really simple functions which takes 2 functions (one executed when file is added, second one when file is removed) and directory to watch for changes:</p>
+<p>Second step is creating pipelines that will handle or require authentication. Create <code>User.fs</code> file, and add it to <code>.fsproj</code> file above the <code>Router.fs</code>.</p>
 
-<pre><code class="language-fsharp">let create addCb rmCb dir =
-    if Directory.Exists dir |&gt; not then Directory.CreateDirectory dir |&gt; ignore
+<script src="https://gist.github.com/Krzysztof-Cieslak/5b53a1ff47edf5d323d788cce4913934.js"></script>
 
-    let watcher = new FileSystemWatcher()
-    watcher.Filter &lt;- "*.fsx"
-    watcher.Path &lt;- dir
-    watcher.Created.Add (fun n -&gt; n.FullPath |&gt; addCb)
-    watcher.Deleted.Add (fun n -&gt; n.FullPath |&gt; rmCb)
-    watcher.Renamed.Add (fun n -&gt; n.OldFullPath |&gt; rmCb; n.FullPath |&gt; addCb)
-    watcher.Changed.Add (fun n -&gt; n.FullPath |&gt; rmCb; n.FullPath |&gt; addCb)
-    watcher.SynchronizingObject &lt;- null
-    watcher.EnableRaisingEvents &lt;- true
+<p>The <code>matchUpUsers</code> function mock ups check of the data coming from GitHub with your real users database, <code>loggedIn</code> pipeline forces authentication on the request, and <code>isAdmin</code> pipeline checks if the request is done by someone with Admin role.</p>
 
-    watcher
-</code></pre>
+<p>Now, it’s time to plug it into our routing. Open <code>Router.fs</code> file. We will create additional router that will display two views - one for logged in user, second one for the admin. Now you need to plug this new router into our top level router - <code>browserRouter</code> . The last thing you need to do here is also handling the URL that will be called by GitHub after successful authentication. We will redirect it into logged user view.</p>
 
-<h1>Plugins register</h1>
+<script src="https://gist.github.com/Krzysztof-Cieslak/0018080f31ac43ed9e9050a72381973d.js"></script>
 
-<p>The last important part is storing list of the transformations in memory when application is running. Since FileWatcher is running asynchronously in background of our applications we are afraid of any potential race conditions so we won’t use any global mutable state to do so. Instead we will encapsulate state of our application in agent.</p>
+<p>Last step is creating some HTML views that we will return to user. Under Templates folder, create <code>UserView.fs</code> file and add it to <code>.fsproj</code> as last file in <code>Template/</code> group.</p>
+
+<script src="https://gist.github.com/Krzysztof-Cieslak/71776217054f1f7c935debee60bcb8fe.js"></script>
+
+<h3>Light at the end</h3>
+
+<p>It’s time to run our application. But there is one small step you still need to do. Go to <code>src\oauthBlogPost</code> folder and run from terminal<code> dotnet saturn migration</code></p>
 
 <blockquote>
-  <p>To learn more about F# Agents visit Scott Wlaschin’s <a href="https://fsharpforfunandprofit.com/posts/concurrency-actor-model/">post about them</a></p>
+  <p>This step is necessary because <code>dotnet new saturn</code> creates pretty complex application scaffold including connection to local database</p>
 </blockquote>
 
-<pre><code class="language-fsharp">type private Msg =
-    | Add of string * Transformation
-    | Remove of string
-    | Get of AsyncReplyChannel&lt;Transformation list&gt;
+<p>Now, from root of your repository, you can run <code>.\build.sh</code> Run which will start the application. You can go to <a href="http://localhost:5000/">http://localhost:5000/</a> to see standard startup page of the scaffolded application</p>
 
-let private register =
-    MailboxProcessor.Start (fun inbox -&gt;
-        let rec loop lst = async {
-            let! msg = inbox.Receive()
-            match msg with
-            | Add (n,f) -&gt;
-                return! loop ((n,f)::lst)
-            | Remove n -&gt;
-                return! loop (lst |&gt; List.filter(fun (f,_) -&gt; f &lt;&gt; n))
-            | Get rc -&gt;
-                let l = lst |&gt; List.map snd
-                rc.Reply l
-                return! loop lst
-        }
-        loop [] )
+<p><img src="https://cdn-images-1.medium.com/max/4170/1*IdS_PnUyC_1PRt4C9KpvDw.png" alt="" /></p>
 
-let add name fnc =
-    (name, fnc) |&gt; Add |&gt; register.Post
+<p>If you will try to go to <a href="http://localhost:5000/">http://localhost:5000/members-only</a> URL, you will get redirected to GitHub authorization page.</p>
 
-let remove name =
-    name |&gt; Remove |&gt; register.Post
+<p><img src="https://cdn-images-1.medium.com/max/2000/1*uJQi6z3zOloSuEpyW9Xl5A.png" alt="" /></p>
 
-let get () =
-    register.PostAndReply Get
-</code></pre>
+<p>And after authorization, you’ll get redirected back to our application.</p>
 
-<p>Our agent can perform 3 operations - add transformation, remove it, or return list of all transformations.</p>
+<p><img src="https://cdn-images-1.medium.com/max/2636/1*u8QOBaA-MVyjrLUB6kSL5A.png" alt="" /></p>
 
-<h1>Putting things together</h1>
+<p>You can also try going to <a href="http://localhost:5000/">http://localhost:5000/members-only/admin</a> . If you are me (or you’ve updated the code ;-) ) you should see the admin page.</p>
 
-<p>The last step is putting whole application together:</p>
+<h3>End of the way</h3>
 
-<pre><code>[&lt;EntryPoint&gt;]
-let main argv =
-    let remove path =
-        let fn = Path.GetFileNameWithoutExtension path
-        Register.remove fn
-
-    let add path =
-        let fn = Path.GetFileNameWithoutExtension path
-        match Evaluator.evaluate path |&gt; Option.map (fun ev -&gt; Register.add fn ev ) with
-        | Some _ -&gt; ()
-        | None -&gt; printfn "File `%s` couldn't be parsed" path
-
-    let watcher = Watcher.create add remove "scripts"
-
-    while true do
-        let input = System.Console.ReadLine ()
-        let lst = Register.get ()
-        let res = lst |&gt; List.fold (fun s e -&gt; e s ) input
-        printfn "Result: %s" res
-</code></pre>
-
-<p>First we define callbacks for file watcher - on file remove we just send message to extensions register to remove it, when file is added we try to evaluate it and if it was successful we send message to agent to add it to list.</p>
-
-<p>Then we create watcher using those 2 functions watching <code>scripts</code> directory.</p>
-
-<p>Last step is loop which waits for user input, gets all transformations, apply them to input, and print out result at the end. Here is small demo:</p>
-
-<p><img src="images/gifs/FunctionLoader.gif" alt="Function Loader demo" /></p>
-
-<h1>Summary</h1>
-
-<p>In this post I’ve shown how to use <code>FSharp.Compiler.Services</code> to add dynamic extensibility mechanism to F# applications. Sample presented in this blog post was really simple, but I believe that this technique can be also used for more complex, real world applications (hopefully, I’ll be able to create some more complex project using this method soon ;) ). Full code for sample application can be found on <a href="https://gitlab.com/Krzysztof-Cieslak/FunctionLoader">GitLab (!)</a></p>
+<p>In this post I’ve shown how to introduce OAuth authorization to your Saturn application. As you could see Saturn is using high level, declarative syntax that enables you to plug features like that easily into your application. Currently Saturn.Extensions.Authorization provides predefined authorization providers for Google and GitHub, but more will come to it soon. Feel free to PR your favorite OAuth provider!</p>
 
                 </div><!-- .entry-content -->
                 <footer class="entry-footer">
                     <div class="share-post">
                         <span>Share</span>
-                        <a class="fa-twitter" target="_blank" href="https://twitter.com/intent/tweet?text=Dynamically%20extending%20F%23%20applications&amp;url=http://kcieslak.io/Dynamically-extending-F-applications"><span class="screen-reader-text">Twitter</span></a>
-                        <a class="fa-facebook" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://kcieslak.io/Dynamically-extending-F-applications&amp;t=Dynamically%20extending%20F%23%20applications"><span class="screen-reader-text">Facebook</span></a>
-                        <a class="fa-google-plus" target="_blank" href="http://plus.google.com/share?url=http://kcieslak.io/Dynamically-extending-F-applications"><span class="screen-reader-text">Google+</span></a>
+                        <a class="fa-twitter" target="_blank" href="https://twitter.com/intent/tweet?text=Using%20OAuth%20with%20Saturn&amp;url=http://kcieslak.io/Using-OAuth-with-Saturn"><span class="screen-reader-text">Twitter</span></a>
+                        <a class="fa-facebook" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://kcieslak.io/Using-OAuth-with-Saturn&amp;t=Using%20OAuth%20with%20Saturn"><span class="screen-reader-text">Facebook</span></a>
+                        <a class="fa-google-plus" target="_blank" href="http://plus.google.com/share?url=http://kcieslak.io/Using-OAuth-with-Saturn"><span class="screen-reader-text">Google+</span></a>
                     </div><!-- .share-post -->
                     
                     <div class="tag-links">
-                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#FSharp.Compiler.Services" title="Pages tagged FSharp.Compiler.Services" rel="tag">FSharp.Compiler.Services</a>
+                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#Saturn" title="Pages tagged Saturn" rel="tag">Saturn</a><a href="/tags/index.html#Web" title="Pages tagged Web" rel="tag">Web</a><a href="/tags/index.html#OAuth" title="Pages tagged OAuth" rel="tag">OAuth</a>
                     </div>
                     
                 </footer><!-- .entry-footer -->
@@ -277,11 +208,11 @@ let main argv =
                 <div class="nav-previous">
                     <div class="nav-inside">
                         
-                        <a href="/Working-with-F-Projects-In-VSCode" class="nav-thumb" style="background-image: url(/images/posts/landscape_5.jpg)"></a>
+                        <a href="/Introducing-Saturn-on-Functions" class="nav-thumb" style="background-image: url(/images/posts/landscape_3.jpg)"></a>
                         
                         <div class="nav-before">Previous</div>
-                        <div class="nav-title"><a href="/Working-with-F-Projects-In-VSCode">Working with F# projects in VSCode</a></div>
-                        <div class="nav-date">July 27, 2016</div>
+                        <div class="nav-title"><a href="/Introducing-Saturn-on-Functions">Introducing Saturn on Functions</a></div>
+                        <div class="nav-date">July 21, 2018</div>
                     </div><!-- .nav-inside -->
                 </div><!-- .nav-previous -->
                 
@@ -289,11 +220,11 @@ let main argv =
                 <div class="nav-next">
                     <div class="nav-inside">
                         
-                        <a href="/Using-Paket-with-Azure-Functions" class="nav-thumb" style="background-image: url(/images/posts/landscape_7.jpg)"></a>
+                        <a href="/Challenges-of-post-OSS-world" class="nav-thumb" style="background-image: url(/images/posts/landscape_12.jpg)"></a>
                         
                         <div class="nav-before">Next</div>
-                        <div class="nav-title"><a href="/Using-Paket-with-Azure-Functions">Using Paket with Azure Functions</a></div>
-                        <div class="nav-date">November 22, 2016</div>
+                        <div class="nav-title"><a href="/Challenges-of-post-OSS-world">Challenges of post-OSS world</a></div>
+                        <div class="nav-date">August 11, 2018</div>
                     </div><!-- .nav-inside -->
                 </div><!-- .nav-next -->
                 

@@ -85,6 +85,8 @@
 
 <p>On the other hand, Saturn is new F# web framework that provides flexible, high level model of creating web applications using principles of functional programming and MVC architectural pattern. Main design goals of Saturn includes high level abstractions that lets developers focus on creating business code , and general developer experience.</p>
 
+<!--more-->
+
 <h1>Saturn on Functions</h1>
 
 <p>Today I want to introduce new extension to Saturn that adds ability to easily host Saturn controllers and routers inside Azure Functions HTTP triggers. Saturn is a library built on top of Giraffe and ASP.NET Core which means it can easily integrate with existing .Net ecosystem. HTTP triggers in Azure Functions as one of the input parameters are getting standard <code>HttpRequest</code> object that can be passed into Saturn’s <code>controller</code> or <code>router</code> (and any other <code>HttpHandler</code>).</p>
@@ -175,6 +177,17 @@ let helloWorld ([&lt;HttpTrigger(Extensions.Http.AuthorizationLevel.Anonymous, R
                 </div><!-- .nav-previous -->
                 
                 
+                <div class="nav-next">
+                    <div class="nav-inside">
+                        
+                        <a href="/Using-OAuth-with-Saturn" class="nav-thumb" style="background-image: url(/images/posts/landscape_11.jpg)"></a>
+                        
+                        <div class="nav-before">Next</div>
+                        <div class="nav-title"><a href="/Using-OAuth-with-Saturn">Using OAuth with Saturn</a></div>
+                        <div class="nav-date">August 3, 2018</div>
+                    </div><!-- .nav-inside -->
+                </div><!-- .nav-next -->
+                
             </nav><!-- .post-navigation -->
             
         </main><!-- .site-main -->
@@ -200,15 +213,15 @@ let helloWorld ([&lt;HttpTrigger(Extensions.Http.AuthorizationLevel.Anonymous, R
         <h2 class="widget-title">Latest Posts</h2>
         <ul class="recent-posts">
             
+            <li class="recent-item"><a href="/Introducing-F-Analyzers">Introducing F# Analyzers</a> <span>September 14, 2018</span></li>
+            
+            <li class="recent-item"><a href="/Building-an-MVP-with-F-and-Saturn">Building an MVP with F# and Saturn</a> <span>August 16, 2018</span></li>
+            
+            <li class="recent-item"><a href="/Challenges-of-post-OSS-world">Challenges of post-OSS world</a> <span>August 11, 2018</span></li>
+            
+            <li class="recent-item"><a href="/Using-OAuth-with-Saturn">Using OAuth with Saturn</a> <span>August 3, 2018</span></li>
+            
             <li class="recent-item"><a href="/Introducing-Saturn-on-Functions">Introducing Saturn on Functions</a> <span>July 21, 2018</span></li>
-            
-            <li class="recent-item"><a href="/Magic-of-Saturn-controllers">Magic of Saturn controllers</a> <span>July 20, 2018</span></li>
-            
-            <li class="recent-item"><a href="/OSS-The-Story">OSS and Community. The Story</a> <span>February 23, 2018</span></li>
-            
-            <li class="recent-item"><a href="/Reinventing-MVC-for-web-programming-with-F">Reinventing MVC pattern for web programming with F#</a> <span>January 25, 2018</span></li>
-            
-            <li class="recent-item"><a href="/Path-to-community-based-OSS">Path to Community based Open Source Software</a> <span>June 12, 2017</span></li>
             
         </ul><!-- .recent-posts -->
     </section><!-- .widget-recent-posts -->
@@ -233,6 +246,10 @@ let helloWorld ([&lt;HttpTrigger(Extensions.Http.AuthorizationLevel.Anonymous, R
             <a href="/tags/#Fable">Fable</a>
             
             <a href="/tags/#JS">JS</a>
+            
+            <a href="/tags/#MVP">MVP</a>
+            
+            <a href="/tags/#OAuth">OAuth</a>
             
             <a href="/tags/#Open+Source">Open Source</a>
             

@@ -5,9 +5,422 @@
         <description>Blog about F# and FP Programming</description>
         <link>http://kcieslak.io/</link>
         <atom:link href="http://kcieslak.io/feed.xml" rel="self" type="application/rss+xml"/>
-        <pubDate>Sat, 21 Jul 2018 18:28:16 +0200</pubDate>
-        <lastBuildDate>Sat, 21 Jul 2018 18:28:16 +0200</lastBuildDate>
+        <pubDate>Fri, 14 Dec 2018 21:21:47 +0100</pubDate>
+        <lastBuildDate>Fri, 14 Dec 2018 21:21:47 +0100</lastBuildDate>
         <generator>Jekyll v3.3.1</generator>
+        
+            <item>
+                <title>Introducing F# Analyzers</title>
+                <description>&lt;h1&gt;Introducing F# Analyzers&lt;/h1&gt;
+
+&lt;p&gt;One of the most exciting features of Roslyn (modern C# compiler) is ability to plug into it custom extensions called &lt;a href=&quot;https://docs.microsoft.com/en-us/visualstudio/extensibility/getting-started-with-roslyn-analyzers?view=vs-2017&quot;&gt;Roslyn Analyzers&lt;/a&gt;. They are live, real-time, project based plugins that enables to diagnose source code and surface custom errors, warnings and code fixes into Visual Studio. What’s really important is fact that there are project based, and distributed through NuGet which means they are easy to install, and ensure that all developers working on the project have exactly same analyzers installed. This is really useful if you want to ensure common best practices, style etc while working on the project.&lt;/p&gt;
+
+&lt;p&gt;Today I’d like to introduce preview of the project called F# Analyzers which adds similar capabilities to &lt;a href=&quot;http://ionide.io&quot;&gt;Ionide&lt;/a&gt; (F# support in VS Code). Project is still in the early days, so design and technical details can change in time, but I’m really excited to share it with users even in its current state.&lt;/p&gt;
+
+&lt;!--more--&gt;
+
+&lt;h3&gt;Architecture overview&lt;/h3&gt;
+
+&lt;p&gt;Before diving deeper into Analyzers themselves, it’s important to understand general architecture of Ionide, and where Analyzers fits into this architecture. This has really important impact on the Analyzers capabilities and limitations.&lt;/p&gt;
+
+&lt;p&gt;On the one hand we have Ionide itself. It’s &lt;a href=&quot;https://code.visualstudio.com/docs/extensions/overview&quot;&gt;VS Code plugin&lt;/a&gt; which means it’s using NodeJS runtime, running as a child process of the editor, communicating with VS Code using set of APIs provided by VS Code. On the other hand we have F# compiler, or exactly speaking &lt;a href=&quot;https://fsharp.github.io/FSharp.Compiler.Service/index.html&quot;&gt;FSharp.Compiler.Service&lt;/a&gt; which is library version of F# compiler, exposing some additional APIs useful for creating tooling for F#. Of course, &lt;code&gt;FSharp.Compiler.Service&lt;/code&gt; is .Net library which means it can’t be used directly by NodeJS process.&lt;/p&gt;
+
+&lt;p&gt;Last important part of the architecture is &lt;a href=&quot;https://github.com/fsharp/FsAutoComplete&quot;&gt;FsAutoComplete&lt;/a&gt;. It’s a project that provides communication layer and high level API between FCS and external world. It’s used by vim, emacs and Ionide as all those plugins are hosted in non .Net environments.&lt;/p&gt;
+
+&lt;p&gt;The F# Analyzers are using extension point provided by the FsAutoComplete which means that in current shape they can be supported only by the editors using it (and they requires some work on the plugin side of things - currently only Ionide supports them). And it means that diagnostics provided by them are visible only in the editor, not during compilation.&lt;/p&gt;
+
+&lt;h3&gt;Analyzers basics&lt;/h3&gt;
+
+&lt;p&gt;Analyzer is normal F# function. As an input it takes Context object which contains current information about the file - Parse Tree, Type Abstract Syntax Tree, Symbols information, and returns list of the Diagnostics - records containing diagnostic message, type, description, and potentially list of fixes that can be used to fix the problem.&lt;/p&gt;
+
+&lt;p&gt;F# Analyzer contains 3 parts - first one is an extension point in FSAC which is responsible for loading and running analyzers, second one is a editor handler (part of Ionide, in this case) that displays diagnostics and fixes. Last part is &lt;a href=&quot;https://github.com/Krzysztof-Cieslak/FSharp.Analyzers.SDK&quot;&gt;FSharp.Analayzers.SDK&lt;/a&gt; project that’s used to create analyzers.&lt;/p&gt;
+
+&lt;h3&gt;Building your first analyzer&lt;/h3&gt;
+
+&lt;p&gt;From infrastructure point of view, creating analyzer is simple - you need to create normal F# project, &lt;code&gt;netstandard2.0&lt;/code&gt; , add reference to &lt;code&gt;FSharp.Analyzers.SDK&lt;/code&gt; (avaliable on NuGet - &lt;a href=&quot;https://www.nuget.org/packages/FSharp.Analyzers.SDK/&quot;&gt;https://www.nuget.org/packages/FSharp.Analyzers.SDK&lt;/a&gt;) and create analyzer functions - normal F# functions taking Context returning list of diagnostics, and marked with Analyzer attribute.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Due to unresolved technical limitations your Analyzer must contain “Analyzer” in the name of output dll.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;However, from technical point of view creating analyzer is fairly difficult task - you need to be familiar with processing typed or untyped abstract syntax tree, or accessing FSharp Symbols information. Currently SDK doesn’t provide any helper functions, but we hope to add some higher level abstractions in the future. Currently, I recommend going through &lt;a href=&quot;http://fsharp.github.io/FSharp.Compiler.Service/&quot;&gt;FCS documentation&lt;/a&gt;, to get more familiar with the concepts&lt;/p&gt;
+
+&lt;p&gt;Generally speaking processing Abstract Syntax Trees is usually done by recursive pattern matching on the DU representing syntax nodes. The following snippet shows how to travers Type Abstract Syntax Tree and call some function on every node that represents call of the member. While it looks bit scary, and complex if you take a look on it bit longer you will notice that it’s just big recursive pattern matching. Also, similar pattern matching will be base for most analyzers, which means you can reuse the code pretty easily.&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/Krzysztof-Cieslak/34c2a43c52119fde8d55315c7831244d.js&quot;&gt;&lt;/script&gt;
+
+&lt;p&gt;Having this bit of infrastructure code, let’s now move to the analyzer itself. As I’ve mentioned before, analyzers are normal functions that have particular signature and are marked with attribute.&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/Krzysztof-Cieslak/42829ce7b5dcc937bece698a5af9ff2b.js&quot;&gt;&lt;/script&gt;
+
+&lt;p&gt;In the above snippet we create analyzer that will detect any call of &lt;code&gt;x.Value&lt;/code&gt; where x is an F# Option. As you probably know calling &lt;code&gt;.Value&lt;/code&gt; on an &lt;code&gt;option&lt;/code&gt; is not total function and can throw exception if an &lt;code&gt;option&lt;/code&gt; instance is &lt;code&gt;None&lt;/code&gt;, so checking for it may be good idea.&lt;/p&gt;
+
+&lt;p&gt;The handler function in above example is executed for every member call. In it we check if the name of the function we call, and if it’s &lt;code&gt;Option.Value&lt;/code&gt; we add the range of the symbol into the state. After we’ve processed whole tree we map all ranges into the warnings that will be displayed in the editor. There also exist possibility of providing set of code fixes, but we don’t use it in this example.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Whole code of the sample analyzer is available on GitHub - &lt;a href=&quot;https://github.com/Krzysztof-Cieslak/FSharp.Analyzers.Sample&quot;&gt;https://github.com/Krzysztof-Cieslak/FSharp.Analyzers.Sample&lt;/a&gt;, and analyzer is published on NuGet - &lt;a href=&quot;https://www.nuget.org/packages/FSharp.Analyzers.Sample/&quot;&gt;https://www.nuget.org/packages/FSharp.Analyzers.Sample/&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3&gt;Using analyzer&lt;/h3&gt;
+
+&lt;p&gt;Analyzers are enabled by &lt;code&gt;FSharp.enableAnalyzers&lt;/code&gt; setting inside VSCode. By default it’s disabled, so you need to edit settings to enable analyzers support. Using analyzers is as simple as adding Analyzer NuGet package with Paket - for out of the box support in Iondie you need to use Analyzer group for it.&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/Krzysztof-Cieslak/dc71359d81354129187584c502cc60e6.js&quot;&gt;&lt;/script&gt;
+
+&lt;p&gt;After the package is added to &lt;code&gt;paket.dependencies&lt;/code&gt; and restored, Ionide will automatically detect and load analyzers. It may require editor restart as analyzers are loaded on plugin startup.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Ionide also contains setting &lt;code&gt;FSharp.analyzersPath&lt;/code&gt; that will enable you to configure paths from which Ionide loads analyzers, by default it’s using &lt;code&gt;packages/Analyzers&lt;/code&gt; and &lt;code&gt;analyzers&lt;/code&gt; folders.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;For example let’s test our new analyzer on the following snippet.&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/Krzysztof-Cieslak/c1962db70231ec9d2581955324f6ac82.js&quot;&gt;&lt;/script&gt;
+
+&lt;p&gt;This will result in underlying &lt;code&gt;x.Value&lt;/code&gt; with a warning saying that Option.Value shouldn’t be used&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://cdn-images-1.medium.com/max/2000/1*axoWiRB3EPANiOljA_PWzg.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Sample project using analyzer can be found on GitHub - &lt;a href=&quot;https://github.com/Krzysztof-Cieslak/FSharp.Analyzers.Sample.Usage&quot;&gt;https://github.com/Krzysztof-Cieslak/FSharp.Analyzers.Sample.Usage&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3&gt;So what’s next?&lt;/h3&gt;
+
+&lt;p&gt;Currently there are several important limitation of the F# Analyzers. First of all they’re supported only by Ionide. Secondly to write analyzer you need to be familiar with F# (T)AST pretty well. And in the end writing fixes requires providing new version of code in textual form (unlike in case of Roslyn Analyzers where fixes can be provided as AST transformation), what may be difficult and error prone. Also, whole mechanism is currently in an experimental phase, relies on Reflection etc. so it can be bit unstable.&lt;/p&gt;
+
+&lt;p&gt;However, I treat this as an experiment and proof of concept, that may be used as a base for discussing similar functionalities being added to F# compiler or other IDEs. Also I’m super excited to see what potentially great things can F# Community create having such extension point in the editor (Evil Hint: You can use this feature to run any code inside of the language server and return some information to editor… which sounds awesome and crazy at the same time)&lt;/p&gt;
+
+&lt;h3&gt;Summary&lt;/h3&gt;
+
+&lt;p&gt;In this post I’ve introduced preview of new tooling related project that enables users to add custom analyzers to your editor, bringing functionality similar to Roslyn Analyzers. While this is only experiment, and proof-of-concept I’m looking forward to seeing all innovative things it can enable. Analyzers support has been released in new Ionide version - &lt;code&gt;3.27.0&lt;/code&gt; - so it’s out there and ready for experimenting!&lt;/p&gt;
+</description>
+                <pubDate>Fri, 14 Sep 2018 00:00:00 +0200</pubDate>
+                <link>http://kcieslak.io/Introducing-F-Analyzers</link>
+                <guid isPermaLink="true">http://kcieslak.io/Introducing-F-Analyzers</guid>
+                
+                <category>F#</category>
+                
+                <category>VS Code</category>
+                
+                <category>Tooling</category>
+                
+                
+            </item>
+        
+            <item>
+                <title>Building an MVP with F# and Saturn</title>
+                <description>&lt;h1&gt;Building an MVP with F# and Saturn&lt;/h1&gt;
+
+&lt;p&gt;Creating an MVP (minimum viable product) is one of the best way of bootstrapping your startup. As a new company getting a quick feedback from the application users, bringing an application to users as fast as possible, being able to adapt as quickly as possible to the market changes, and providing frequent application updates is crucial for the initial success of the product. But it’s also important to understand that an MVP software development is not synonymous with unfinished or a primitive product that was created in a hurry.&lt;/p&gt;
+
+&lt;!--more--&gt;
+
+&lt;h3&gt;What is an MVP?&lt;/h3&gt;
+
+&lt;p&gt;Minimum Viable Product (MVP) is the smallest, most concise version of your product you can initially release for feedback. It enables a full turn of the feedback loop with the least amount of development time and effort. This allows the targeted users to try a product and evaluate it to make the complete version better. It is a frequently updated environment with the new features that could be seen and tested by clients. New registration page, an admin management panel, as well as email notifications, and any other new features you can imagine.&lt;/p&gt;
+
+&lt;p&gt;MVP development allows early adopters to understand the vision or promise of the final product and provide valuable feedback to guide developers moving forward. The main advantages of the MVP software development are:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;MVP has enough value that people can already use or buy it&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;It demonstrates enough features to hook and retain early users&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;It provides feedback loop to guide future development&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;It shows enough future potential to start marketing around the project&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;What’s important - MVP development is not only the strategy for startups. When you already have well-established company and customers, you also need to have some way to experiment with new potential products or features. In a lot of cases, the minimum viable product really is just a way to do that.&lt;/p&gt;
+
+&lt;h3&gt;Few words about F&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://fsharp.org&quot;&gt;F# is a functional-first programming language&lt;/a&gt; running on the .Net platform. Paired with &lt;a href=&quot;https://www.microsoft.com/net&quot;&gt;.Net Core&lt;/a&gt; - modern, cross platform implementation of the .Net Framework - it is fantastic tool for writing modern applications. .Net Core provides industrial level of the performance, security, huge ecosystem of the libraries, and always growing open source community. F#, itself an open source language with fantastic community , thanks to expressiveness, functional-first approach, great developers tooling and advanced language features provides unmatched developer experience and fast development speed, so important for building MVPs. It can also be your secret weapon that makes you stand out from many different companies, and that let you hire more talented people that just want to work with more niche technology.&lt;/p&gt;
+
+&lt;h3&gt;Introducing Saturn&lt;/h3&gt;
+
+&lt;p&gt;F# due to its functional nature is perfect fit for the web applications. In the end HTTP web server may be treated as a function that takes Request and returns Response.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://saturnframework.org&quot;&gt;Saturn&lt;/a&gt; is a modern web framework for the F# focusing on high level abstractions and great developer experience, allowing developers focus on the things that matters for your business. Influenced by the popular frameworks such as Rails or Phoenix it comes with all the batteries included. Its ecosystem includes development tools that allows developers to quickly create new applications, add new features to existing applications, and test new features; it integrates with existing &lt;a href=&quot;https://docs.microsoft.com/en-us/aspnet/core/?view=aspnetcore-2.1&quot;&gt;ASP.NET Core&lt;/a&gt; ecosystem that provides huge set of existing modules that you can use in your application; it provides pre-defined configurations that limits the number of decisions that developers need to make. And all this while using highly expressive and modern programming language.&lt;/p&gt;
+
+&lt;h3&gt;Typical difficulties&lt;/h3&gt;
+
+&lt;p&gt;While MVP development is really powerful technique, just like every other methodology it has its own drawbacks. First of all you need to understand it’s not about delivering product as fast as possible so customers can try it out. MVP development is about refined and validated learning. This simple fact must be understood by everyone - stakeholders, developers, customers. You have to understand that final product may drastically change due to user’s feedback. And this is something that must be embraced by the development team, and should impact the way in which they work. Developers needs to have regular feedback session, learn from them, prioritise features.&lt;/p&gt;
+
+&lt;p&gt;As a result, this should have an impact on the technologies chosen for developing MVP:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;refactoring plays the key roles, when you see that some part of the product is not scalable or flexible enough, or that it just need changes based on the user’s feedback you need to be able to quickly change an existing code base&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;correctness is important, especially the one you can get for free. Using static type checking, code linting, and code quality tools is crucial to provide product that’s working well enough, without spending much development time on it&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;flexible but simple design - design of your product must be flexible enough to provide ability to change the product based on the feedback, but at the same time it must be relatively simple - for MVP development you want to get to the market as fast as possible, and you don’t want to spend time building sophisticated architecture that may not work after all changes that will happen in the future&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Fortunately, F# and .Net Core are great solutions for all those problems - functional first approach naturally pushes you toward pit of success, and simple, flexible architecture, static typing with powerful type inference enables you to create correct software without much overhead, best in class editor tooling helps you to quickly refactor existing code.&lt;/p&gt;
+
+&lt;h3&gt;Commercial support&lt;/h3&gt;
+
+&lt;p&gt;The last important factor in choosing right technology is having an ability to hire someone to develop the product, or just get help. F# ecosystem is including wide range of the options for getting commercial support - starting from the established companies providing support for &lt;a href=&quot;https://safe-stack.github.io&quot;&gt;SAFE Stack&lt;/a&gt; through multiple independent consultants to &lt;a href=&quot;https://lambdafactory.io&quot;&gt;Lambda Factory&lt;/a&gt;. Lambda Factory specialises in creating web applications, F# training and consulting, MVP development, and developer relationships. We provide everything you need to transform your startup into prospecting business - help with creating MVP, iterating over the feedback loop, hiring talented developers, and DevRel marketing.&lt;/p&gt;
+</description>
+                <pubDate>Thu, 16 Aug 2018 00:00:00 +0200</pubDate>
+                <link>http://kcieslak.io/Building-an-MVP-with-F-and-Saturn</link>
+                <guid isPermaLink="true">http://kcieslak.io/Building-an-MVP-with-F-and-Saturn</guid>
+                
+                <category>F#</category>
+                
+                <category>Saturn</category>
+                
+                <category>Web</category>
+                
+                <category>MVP</category>
+                
+                
+            </item>
+        
+            <item>
+                <title>Challenges of post-OSS world</title>
+                <description>&lt;h1&gt;Challenges of post-OSS world&lt;/h1&gt;
+
+&lt;p&gt;Open Source Software has won. After years of convincing people to use open source software, fighting with false dichotomy between OSS and industrial, commercial software, and defending against negative biases, position of OSS is no longer disputed - it’s been used by vast majority of companies around the world, it has become default choice when choosing technologies, it powers the internet, our PCs, mobile phones and most devices we use every day, it’s been accepted by huge, conservative companies that were against whole concept few years ago.&lt;/p&gt;
+
+&lt;p&gt;But have we really been ready for that? For most of its history OSS community was busy fighting for survival. And we created strategy, methodologies, and public relations attitudes that were helping us fight for this survival. But the times have changed and now we face totally different set of problems that we need to solve.&lt;/p&gt;
+
+&lt;!--more--&gt;
+
+&lt;h3&gt;Outdated foundations&lt;/h3&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;93% - percentage of npm packages with just one maintainer&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;General understanding of the mechanism ruling the OSS ecosystem is relatively outdated. As mentioned above - our knowledge about foundation of community based software was shaped when OSS was treated as something bad and undesirable by mainstream programming industry. Organisations like Free Software Foundation, licenses like GPL have their roots in 80s and 90s. The amazing essay *“The Cathedral and the Bazaar” *that has shaped how we understand the community based software was published in 1999. Those were totally different times - when the software market was dominated by companies like IBM, Oracle and Microsoft that were clearly against any ideas of free software. And back then we need different ways of speaking about OSS - the Bazaar analogy was designed to win hearts of the developers, to show that they don’t need to be afraid of the open source software. And it has done that really, really well. However it shouldn’t be used in 2018 as a way of describing how OSS works - we now face different set of issues.&lt;/p&gt;
+
+&lt;p&gt;While many of the ideas from *The Cathedral and the Bazaar” *have aged really well, and still apply to any kind of software development, OSS nowadays is not about creating huge communities, applying “given enough eyeballs, all bugs are shallow” law, or in principle following Bazaar model. On the contrary, given all the success that OSS has achieved the Bazaar model has been unsuccessful - only 3% of popular OSS projects are using such development model. Of course those 3% contains some hugely popular and impactful projects - such as Rails or Linux - but one could argue that they’re using this model as a result of their success and not other way round. In the end, no project starts as a community, there is always someone in charge, and communities around the projects are created only after they are successful.&lt;/p&gt;
+
+&lt;h3&gt;Unlimited growth&lt;/h3&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;28 millions of developers - number of registered users at GitHub.com&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;No-one in the 90s could predict the scale of the success that OSS will achieve. The number of developers doing OSS, number of projects, and number of users has raised by several orders of magnitude over last 20 years. The Bazaar model was created when huge percentage of the people using OSS were people developing OSS. But current state of the world is bit different. Let’s just compare some numbers.&lt;/p&gt;
+
+&lt;p&gt;The number of downloads per 2 weeks:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;1998 - 180K downloads of Netscape (most popular OSS project at the time)&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;2017 - 21M downloads of Loadash (random JS library)&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The number of registered users:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;2001 - 208K on SourceForge&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;2018 - 28M on GitHub&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;The number of active projects:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;
+    &lt;p&gt;2008 - 150K on SourceForge&lt;/p&gt;
+  &lt;/li&gt;
+  &lt;li&gt;
+    &lt;p&gt;2017 - 29M on GitHub&lt;/p&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;As we can see, OSS nowadays is massive, global and popular. But there are main 2 issues here. First one is yet increasing fragmentation of the ecosystem - unlike what was presented as big advantage of the Bazaar model, modern OSS is not about creating those singular points of focus for the communities. We don’t get “enough eyeballs”, instead we all rely on the projects that are very often driven forward by single maintainer and one or two other contributors. Second one is that growth of the user-base doesn’t resulted in proportional growth of contributors of the projects. And what’s even more important the growth of the contributors hasn’t resulted in the proportional growth of the maintainers - which results in more and more pressure put on the focal parts of our communities which itself is really huge issue.&lt;/p&gt;
+
+&lt;h3&gt;Maintainers struggle&lt;/h3&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;“The more successful you are, the more you get punished with GitHub notifications.” - &lt;a href=&quot;https://nolanlawson.com/2017/03/05/what-it-feels-like-to-be-an-open-source-maintainer/&quot;&gt;What it feels like to be an open-source maintainer&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Maintainers are the focal points of the community of any OSS project. Not only they’re often main developers behind the project but also they have many other responsibilities - they need to keep users happy, they need to handle contributors to create good workflow that will enable new code contributions, they need to help first time contributors, they need to review PRs, handle releases, and keep general direction of the project.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;“Current status - anxious and depressed whenever I open my GitHub notifications. Programming is so much fun”&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;However we don’t really get new maintainers too often. The number of users growth really fast, the number of developers grows - and while those 2 things are great, they create huge pressure on the maintainers. And the Bazaar analogy is part of the problem here - we expect someone to always step up, we expect contributors to become more and more involved. But the reality is bit different - 1/2 contributors contributes only once, and they account for around 2% of the commits. And every contribution is additional work for the maintainer, additional PR to review, and additional code to maintain later. Of course, every contribution is valuable, and welcomed but in general OSS community has huge “second time contribution” problem - we put lot of emphasis and work to optimise first contribution experience - but it unfortunately is not resulting in many long standing members of the community.&lt;/p&gt;
+
+&lt;h3&gt;Sustainability&lt;/h3&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;$143,000,000 - Estimated value of open source software in $1B Instagram acquisition&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;OSS movement was shaped in the times were most mainstream software was proprietary, it was not vastly used, and no business depended on it. But nowadays, OSS is everywhere - it powers internet, operating systems, software and products we use everyday. It’s hard to imagine building new software without using any OSS technologies and OSS is used by the biggest, most conservative (In terms of technological choices) companies of the world - 100% of Fortune 500 companies are using npm.&lt;/p&gt;
+
+&lt;p&gt;And yet, even some most popular OSS projects ever struggle to get any founding, and build any notion of sustainability. But we continue to build businesses using those tools and libraries. One would hope that in the future we will start to think about open source software in terms of digital infrastructure - that, just like our normal infrastructure, requires constant funding to function properly.&lt;/p&gt;
+
+&lt;h3&gt;How we talk about OSS&lt;/h3&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;“Just like physical infrastructure, digital infrastructure needs regular upkeep and maintenance.” - &lt;a href=&quot;https://www.fordfoundation.org/about/library/reports-and-studies/roads-and-bridges-the-unseen-labor-behind-our-digital-infrastructure/&quot;&gt;Roads and Bridges: The Unseen Labor Behind Our Digital Infrastructure&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Probably to solve some of those problems we need to change a way we talk about OSS - instead of convincing our managers that we need to contribute because it is “good” behavior, or because it will improve “morale” of the team we should talk in business terms - risk and opportunity. Contributing to the projects decrease our risk as a business - it decrease risk that project maintainer will rage quit and we will be stuck with unmaintained project, it decrease risk of needing help of other people if we have some problems with the project. Contributing to the project is also opportunity - we can shape project, add new features that will enable us to make our business solutions better.&lt;/p&gt;
+
+&lt;p&gt;And the other interesting value proposition for contributing to OSS is just plain marketing value - especially if your product targets technical communities. We know live in the times of Developers Relationships movement, were any company building software projects for developers spends lot of resources for promotion. Contributing to OSS is great way of such promotion. And even if your business is not building tools for developers - it will make hiring talented developers way easier.&lt;/p&gt;
+
+&lt;h3&gt;Solutions? I have none&lt;/h3&gt;
+
+&lt;p&gt;I don’t know how to solve the problems of the current OSS world. But it is pretty clear that OSS needs evolve - we need new definitions, new solutions and new leaders for the movement that already changed the world. OSS nowadays struggle with totally different set of the problems than it did 20 years ago, so using the analogies that were used 20 years ago, may not be the way forward. And I do believe that we need to find those solutions pretty fast… or it will turn out that we’ve built our great castle on the sand.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;This blog post is adaptation of my “Challenges of post-OSS world” talk I’ve presented on couple of events. If you’d like to have me talk about OSS on your conference and your company feel free to reach me at krzysztof_cieslak@windowslive.com&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Both talk and this blog post has been deeply influenced by the work of &lt;a href=&quot;https://nadiaeghbal.com/&quot;&gt;Nadia Eghbal&lt;/a&gt;.&lt;/p&gt;
+&lt;/blockquote&gt;
+</description>
+                <pubDate>Sat, 11 Aug 2018 00:00:00 +0200</pubDate>
+                <link>http://kcieslak.io/Challenges-of-post-OSS-world</link>
+                <guid isPermaLink="true">http://kcieslak.io/Challenges-of-post-OSS-world</guid>
+                
+                <category>Open Source</category>
+                
+                <category>Community</category>
+                
+                
+            </item>
+        
+            <item>
+                <title>Using OAuth with Saturn</title>
+                <description>&lt;h1&gt;Using OAuth with Saturn&lt;/h1&gt;
+
+&lt;p&gt;&lt;a href=&quot;https://saturnframework.org&quot;&gt;Saturn&lt;/a&gt; is new F# web framework that provides flexible, high level model of creating web applications using principles of functional programming and MVC architectural pattern. Main design goals of Saturn includes high level abstractions that lets developers focus on creating business code , and general developer experience. One of the features provided by Saturn is support for popular way of authentication - OAuth&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;This blog post was created for Saturn version 0.7.5&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;!--more--&gt;
+
+&lt;h3&gt;OAuth intro&lt;/h3&gt;
+
+&lt;p&gt;OAuth 2 is an authorization framework that enables applications to obtain limited access to user accounts on an HTTP service, such as Twitter, GitHub, or DigitalOcean. It works by delegating user authentication to the service that hosts the user account, and authorizing third-party applications to access the user account. OAuth 2 provides authorization flows for web and desktop applications, and mobile devices.&lt;/p&gt;
+
+&lt;p&gt;While OAuth supports multiple different types of authorization, useful for different use cases, here we will talk about authorization code flow. The authorization code grant type is the most commonly used because it is optimized for server-side applications (such as web applications using Saturn), where source code is not publicly exposed, and Client Secret confidentiality can be maintained. This is a redirection-based flow, which means that the application must be capable of interacting with the user-agent (i.e. the user’s web browser) and receiving API authorization codes that are routed through the user-agent.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://cdn-images-1.medium.com/max/2000/1*qH2SyNHvrTa8UR4d8n08pA.png&quot; alt=&quot;Flow of Authorization Code OAuth grant&quot; /&gt;
+&lt;em&gt;Flow of Authorization Code OAuth grant&lt;/em&gt;&lt;/p&gt;
+
+&lt;h3&gt;First steps&lt;/h3&gt;
+
+&lt;p&gt;The first step in creating application using OAuth is registering application in the OAuth provider. In this example I’ll use GitHub.&lt;/p&gt;
+
+&lt;p&gt;To start off with, you will need to register an application by going to the &lt;a href=&quot;https://github.com/settings/developers&quot;&gt;GitHub Developer Settings&lt;/a&gt;. Click on the button to &lt;strong&gt;Register a new application&lt;/strong&gt;, and complete the information for your application. Specify http://localhost:5000/signin-github as the value for the &lt;strong&gt;Authorization callback URL&lt;/strong&gt; field:&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://cdn-images-1.medium.com/max/2000/1*0Q88p6YUg0ijickJbqZD_g.png&quot; alt=&quot;Register a new OAuth application&quot; /&gt;
+&lt;em&gt;Register a new OAuth application&lt;/em&gt;&lt;/p&gt;
+
+&lt;p&gt;Take note of the values for &lt;strong&gt;Client ID&lt;/strong&gt; and &lt;strong&gt;Client Secret&lt;/strong&gt;, that will be shown on the next screen after pressing &lt;strong&gt;Register application&lt;/strong&gt; button, as you will need those shortly when registering the OAuth.&lt;/p&gt;
+
+&lt;p&gt;&lt;strong&gt;Path goes forward&lt;/strong&gt;&lt;/p&gt;
+
+&lt;p&gt;Next step is creating new Saturn application. This can be easily done using dotnet CLI tool.&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;mkdir oauthBlogPost
+cd oauthBlogPost
+dotnet new saturn
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;If you don’t have Saturn template installed you can get it by running &lt;code&gt;dotnet new -i Saturn.Template&lt;/code&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Next step is installing Saturn.Extensions.Authorization - NuGet package that contains additional helpers for handling authorization, including GitHub provider.&lt;/p&gt;
+
+&lt;p&gt;Open &lt;code&gt;paket.dependencies&lt;/code&gt; and &lt;code&gt;src\oauthBlogPost\paket.references&lt;/code&gt; file and add Saturn.Extensions.Authorization in there. After it’s done run &lt;code&gt;.paket\paket.exe&lt;/code&gt; install and &lt;code&gt;dotnet restore&lt;/code&gt;.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;If you’re on Linux / MacOS you will need &lt;code&gt;mono&lt;/code&gt; to run &lt;code&gt;paket.exe&lt;/code&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3&gt;Diving deep&lt;/h3&gt;
+
+&lt;p&gt;Now, at last, it’s time to look at some code. Open Program.fs file that contains basic configuration of your Saturn application. Firstly, edit URL to use port 5000. Secondly add new entry in the application block - &lt;code&gt;use_github_oauth&lt;/code&gt;. This custom operation takes couple of input parameters - Client ID, Client Secret, Callback URL, and the list of tuples used to mapping from GitHub’s JSON response to the claims that Saturn understands.&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/Krzysztof-Cieslak/d32be21f6f55e52ddd09569cd3d5a35e.js&quot;&gt;&lt;/script&gt;
+
+&lt;p&gt;Second step is creating pipelines that will handle or require authentication. Create &lt;code&gt;User.fs&lt;/code&gt; file, and add it to &lt;code&gt;.fsproj&lt;/code&gt; file above the &lt;code&gt;Router.fs&lt;/code&gt;.&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/Krzysztof-Cieslak/5b53a1ff47edf5d323d788cce4913934.js&quot;&gt;&lt;/script&gt;
+
+&lt;p&gt;The &lt;code&gt;matchUpUsers&lt;/code&gt; function mock ups check of the data coming from GitHub with your real users database, &lt;code&gt;loggedIn&lt;/code&gt; pipeline forces authentication on the request, and &lt;code&gt;isAdmin&lt;/code&gt; pipeline checks if the request is done by someone with Admin role.&lt;/p&gt;
+
+&lt;p&gt;Now, it’s time to plug it into our routing. Open &lt;code&gt;Router.fs&lt;/code&gt; file. We will create additional router that will display two views - one for logged in user, second one for the admin. Now you need to plug this new router into our top level router - &lt;code&gt;browserRouter&lt;/code&gt; . The last thing you need to do here is also handling the URL that will be called by GitHub after successful authentication. We will redirect it into logged user view.&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/Krzysztof-Cieslak/0018080f31ac43ed9e9050a72381973d.js&quot;&gt;&lt;/script&gt;
+
+&lt;p&gt;Last step is creating some HTML views that we will return to user. Under Templates folder, create &lt;code&gt;UserView.fs&lt;/code&gt; file and add it to &lt;code&gt;.fsproj&lt;/code&gt; as last file in &lt;code&gt;Template/&lt;/code&gt; group.&lt;/p&gt;
+
+&lt;script src=&quot;https://gist.github.com/Krzysztof-Cieslak/71776217054f1f7c935debee60bcb8fe.js&quot;&gt;&lt;/script&gt;
+
+&lt;h3&gt;Light at the end&lt;/h3&gt;
+
+&lt;p&gt;It’s time to run our application. But there is one small step you still need to do. Go to &lt;code&gt;src\oauthBlogPost&lt;/code&gt; folder and run from terminal&lt;code&gt; dotnet saturn migration&lt;/code&gt;&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;This step is necessary because &lt;code&gt;dotnet new saturn&lt;/code&gt; creates pretty complex application scaffold including connection to local database&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Now, from root of your repository, you can run &lt;code&gt;.\build.sh&lt;/code&gt; Run which will start the application. You can go to &lt;a href=&quot;http://localhost:5000/&quot;&gt;http://localhost:5000/&lt;/a&gt; to see standard startup page of the scaffolded application&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://cdn-images-1.medium.com/max/4170/1*IdS_PnUyC_1PRt4C9KpvDw.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;If you will try to go to &lt;a href=&quot;http://localhost:5000/&quot;&gt;http://localhost:5000/members-only&lt;/a&gt; URL, you will get redirected to GitHub authorization page.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://cdn-images-1.medium.com/max/2000/1*uJQi6z3zOloSuEpyW9Xl5A.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;And after authorization, you’ll get redirected back to our application.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://cdn-images-1.medium.com/max/2636/1*u8QOBaA-MVyjrLUB6kSL5A.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;You can also try going to &lt;a href=&quot;http://localhost:5000/&quot;&gt;http://localhost:5000/members-only/admin&lt;/a&gt; . If you are me (or you’ve updated the code ;-) ) you should see the admin page.&lt;/p&gt;
+
+&lt;h3&gt;End of the way&lt;/h3&gt;
+
+&lt;p&gt;In this post I’ve shown how to introduce OAuth authorization to your Saturn application. As you could see Saturn is using high level, declarative syntax that enables you to plug features like that easily into your application. Currently Saturn.Extensions.Authorization provides predefined authorization providers for Google and GitHub, but more will come to it soon. Feel free to PR your favorite OAuth provider!&lt;/p&gt;
+</description>
+                <pubDate>Fri, 03 Aug 2018 00:00:00 +0200</pubDate>
+                <link>http://kcieslak.io/Using-OAuth-with-Saturn</link>
+                <guid isPermaLink="true">http://kcieslak.io/Using-OAuth-with-Saturn</guid>
+                
+                <category>F#</category>
+                
+                <category>Saturn</category>
+                
+                <category>Web</category>
+                
+                <category>OAuth</category>
+                
+                
+            </item>
         
             <item>
                 <title>Introducing Saturn on Functions</title>
@@ -16,6 +429,8 @@
 &lt;p&gt;Azure Functions is a service that provides serverless execution model while running code in the cloud. Serverless model is getting more and more popular nowadays, being great solution for building distributed, scalable, event-driven applications. However, those are not the only use cases - compute-on-demand story, automatic, low friction scalability and great pricing model means that Azure Functions can be used to host normal (REST-ish) APIs.&lt;/p&gt;
 
 &lt;p&gt;On the other hand, Saturn is new F# web framework that provides flexible, high level model of creating web applications using principles of functional programming and MVC architectural pattern. Main design goals of Saturn includes high level abstractions that lets developers focus on creating business code , and general developer experience.&lt;/p&gt;
+
+&lt;!--more--&gt;
 
 &lt;h1&gt;Saturn on Functions&lt;/h1&gt;
 
@@ -87,11 +502,11 @@ let helloWorld ([&amp;lt;HttpTrigger(Extensions.Http.AuthorizationLevel.Anonymou
 
 &lt;p&gt;&lt;a href=&quot;https://saturnframework.org&quot;&gt;Saturn&lt;/a&gt; is new F# web framework that implements well know design pattern - MVC - in more functional way. Despite Saturn being fairly young project it’s getting more and more popular among F# community and industrial users. One of the main Saturn’s goals is to create high level abstractions that will enable developers to focus on writing domain, business code instead of focusing on creating correct routing for your application or setting right response headers. One of such abstractions, that I want to talk about today, is &lt;code&gt;controller&lt;/code&gt;.&lt;/p&gt;
 
-&lt;!--more--&gt;
-
 &lt;blockquote&gt;
   &lt;p&gt;This article was created for Saturn version 0.7.x&lt;/p&gt;
 &lt;/blockquote&gt;
+
+&lt;!--more--&gt;
 
 &lt;h1&gt;Basic usage&lt;/h1&gt;
 
@@ -644,712 +1059,6 @@ SCM_POST_DEPLOYMENT_ACTIONS_PATH = ../wwwroot
                 <category>Paket</category>
                 
                 <category>Azure Functions</category>
-                
-                
-            </item>
-        
-            <item>
-                <title>Dynamically extending F# applications</title>
-                <description>&lt;h1&gt;Introduction&lt;/h1&gt;
-
-&lt;p&gt;Changing requirements, introducing different data format, extending applications with new features. All those things requires us (developers) to go to code, do changes, add API versioning system (to be backward compatible), add configuration for turning on/off new features, compile application, and at the end release new application (what itself may be complex process). It’s often lot of work required for every, even very small, change.&lt;/p&gt;
-
-&lt;p&gt;In this post I’ll present way to add new features to our F# application - dynamically, on runtime, without any recompiling and redeployment of application. What’s more extensions will be also defined using F#… in fact they will be simple F# script files.&lt;/p&gt;
-
-&lt;!--more--&gt;
-
-&lt;h1&gt;Sample application&lt;/h1&gt;
-
-&lt;p&gt;Our sample application for this blog post will be rather simple - it will be F# console application, taking user input as string, performing set of transformations on this input and just printing out result. Transformation for our input will be dynamically loaded on runtime - initially, before user add any plugins, application just returns same value as user typed in.&lt;/p&gt;
-
-&lt;p&gt;We can simply define our transformation as &lt;code&gt;type Transformation = string -&amp;gt; string&lt;/code&gt; and operation we perform on input as &lt;code&gt;let output = lstOfTransformations |&amp;gt; List.fold (fun state transform -&amp;gt; transform state ) input&lt;/code&gt;.&lt;/p&gt;
-
-&lt;h1&gt;Evaluating plugins files&lt;/h1&gt;
-
-&lt;p&gt;As I’ve mentioned our aim is to define extensions as simple F# script files. But while we can easily read text put in &lt;code&gt;.fsx&lt;/code&gt; file, F# doesn’t have anything like JavaScript’s &lt;code&gt;eval()&lt;/code&gt; function built-in, no way to take text containing code and evaluating its value. But this is a moment where &lt;code&gt;FSharp.Compiler.Services&lt;/code&gt; enters the scene. FCS (not to confuse with FSC which is F# compiler) is fork of F# compiler that exposes additional functionality for implementing F# editor features, and additional tools based on the compiler. It also includes F# interactive service that can be used for embedding F# scripting into your applications.&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;If you want learn more about &lt;code&gt;FSharp.Compiler.Services&lt;/code&gt; visit &lt;a href=&quot;https://fsharp.github.io/FSharp.Compiler.Service/&quot;&gt;FCS webpage&lt;/a&gt; to see documentation of available features, APIs, and list of projects using FCS.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;For our purpose we need two things - first we’ll create embedded in our application F# Interactive session, and then we will use it to load file with plugin and evaluate it.&lt;/p&gt;
-
-&lt;p&gt;Creating FSI session is pretty straightforward:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-fsharp&quot;&gt;open Microsoft.FSharp.Compiler.Interactive.Shell
-
-let sbOut = StringBuilder()
-let sbErr = StringBuilder()
-
-let fsi =
-    let inStream = new StringReader(&quot;&quot;)
-    let outStream = new StringWriter(sbOut)
-    let errStream = new StringWriter(sbErr)
-    let fsiConfig = FsiEvaluationSession.GetDefaultConfiguration()
-    let argv = [| &quot;/temo/fsi.exe&quot;; |]
-    FsiEvaluationSession.Create(fsiConfig, argv, inStream, outStream, errStream)
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Next we can use FSI session to load file with extension and evaluate it’s content.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-fsharp&quot;&gt; let evaluate path =
-    let mdl = getOpen path
-    let load = getLoad path
-
-    fsi.EvalInteractionNonThrowing(sprintf &quot;#load \&quot;%s\&quot;;;&quot; load)
-    fsi.EvalInteractionNonThrowing(sprintf &quot;open %s;;&quot; mdl)
-    fsi.EvalExpressionNonThrowing &quot;map&quot;
-
-    match res with
-    | Choice1Of2 (Some f) -&amp;gt;
-        f.ReflectionValue :?&amp;gt; Transformation |&amp;gt; Some
-    | _ -&amp;gt; None
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;First we find full path to file we want to load, and name of default module for this file (it’s name of the file with first character uppercase).&lt;/p&gt;
-
-&lt;p&gt;We execute in FSI &lt;code&gt;#load&lt;/code&gt; statement to load content of extension file, and then we open default module. Last operation is executing &lt;code&gt;map&lt;/code&gt; in FSI which will return value of this expression (so function).&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;For sake of simplicity in sample, we make several assumptions about extensions files - we don’t define modules inside of &lt;code&gt;.fsx&lt;/code&gt; files and they contain only single function  &lt;code&gt;map : string -&amp;gt; string&lt;/code&gt;.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;If everything is working we can now load F# script file and get from it normal F# function which we can execute somewhere else in our code!&lt;/p&gt;
-
-&lt;h1&gt;Loading plugins on runtime&lt;/h1&gt;
-
-&lt;p&gt;Next important feature of our application is dynamically loading (and unloading) scripts when users creates (or removes) them. For this we will use built-in .Net FileSystemWatcher class which let developer to perform operations whenever new file is created, file is removed etc. in given directory.&lt;/p&gt;
-
-&lt;p&gt;We just create really simple functions which takes 2 functions (one executed when file is added, second one when file is removed) and directory to watch for changes:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-fsharp&quot;&gt;let create addCb rmCb dir =
-    if Directory.Exists dir |&amp;gt; not then Directory.CreateDirectory dir |&amp;gt; ignore
-
-    let watcher = new FileSystemWatcher()
-    watcher.Filter &amp;lt;- &quot;*.fsx&quot;
-    watcher.Path &amp;lt;- dir
-    watcher.Created.Add (fun n -&amp;gt; n.FullPath |&amp;gt; addCb)
-    watcher.Deleted.Add (fun n -&amp;gt; n.FullPath |&amp;gt; rmCb)
-    watcher.Renamed.Add (fun n -&amp;gt; n.OldFullPath |&amp;gt; rmCb; n.FullPath |&amp;gt; addCb)
-    watcher.Changed.Add (fun n -&amp;gt; n.FullPath |&amp;gt; rmCb; n.FullPath |&amp;gt; addCb)
-    watcher.SynchronizingObject &amp;lt;- null
-    watcher.EnableRaisingEvents &amp;lt;- true
-
-    watcher
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h1&gt;Plugins register&lt;/h1&gt;
-
-&lt;p&gt;The last important part is storing list of the transformations in memory when application is running. Since FileWatcher is running asynchronously in background of our applications we are afraid of any potential race conditions so we won’t use any global mutable state to do so. Instead we will encapsulate state of our application in agent.&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;To learn more about F# Agents visit Scott Wlaschin’s &lt;a href=&quot;https://fsharpforfunandprofit.com/posts/concurrency-actor-model/&quot;&gt;post about them&lt;/a&gt;&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-fsharp&quot;&gt;type private Msg =
-    | Add of string * Transformation
-    | Remove of string
-    | Get of AsyncReplyChannel&amp;lt;Transformation list&amp;gt;
-
-let private register =
-    MailboxProcessor.Start (fun inbox -&amp;gt;
-        let rec loop lst = async {
-            let! msg = inbox.Receive()
-            match msg with
-            | Add (n,f) -&amp;gt;
-                return! loop ((n,f)::lst)
-            | Remove n -&amp;gt;
-                return! loop (lst |&amp;gt; List.filter(fun (f,_) -&amp;gt; f &amp;lt;&amp;gt; n))
-            | Get rc -&amp;gt;
-                let l = lst |&amp;gt; List.map snd
-                rc.Reply l
-                return! loop lst
-        }
-        loop [] )
-
-let add name fnc =
-    (name, fnc) |&amp;gt; Add |&amp;gt; register.Post
-
-let remove name =
-    name |&amp;gt; Remove |&amp;gt; register.Post
-
-let get () =
-    register.PostAndReply Get
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Our agent can perform 3 operations - add transformation, remove it, or return list of all transformations.&lt;/p&gt;
-
-&lt;h1&gt;Putting things together&lt;/h1&gt;
-
-&lt;p&gt;The last step is putting whole application together:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;[&amp;lt;EntryPoint&amp;gt;]
-let main argv =
-    let remove path =
-        let fn = Path.GetFileNameWithoutExtension path
-        Register.remove fn
-
-    let add path =
-        let fn = Path.GetFileNameWithoutExtension path
-        match Evaluator.evaluate path |&amp;gt; Option.map (fun ev -&amp;gt; Register.add fn ev ) with
-        | Some _ -&amp;gt; ()
-        | None -&amp;gt; printfn &quot;File `%s` couldn't be parsed&quot; path
-
-    let watcher = Watcher.create add remove &quot;scripts&quot;
-
-    while true do
-        let input = System.Console.ReadLine ()
-        let lst = Register.get ()
-        let res = lst |&amp;gt; List.fold (fun s e -&amp;gt; e s ) input
-        printfn &quot;Result: %s&quot; res
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;First we define callbacks for file watcher - on file remove we just send message to extensions register to remove it, when file is added we try to evaluate it and if it was successful we send message to agent to add it to list.&lt;/p&gt;
-
-&lt;p&gt;Then we create watcher using those 2 functions watching &lt;code&gt;scripts&lt;/code&gt; directory.&lt;/p&gt;
-
-&lt;p&gt;Last step is loop which waits for user input, gets all transformations, apply them to input, and print out result at the end. Here is small demo:&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;images/gifs/FunctionLoader.gif&quot; alt=&quot;Function Loader demo&quot; /&gt;&lt;/p&gt;
-
-&lt;h1&gt;Summary&lt;/h1&gt;
-
-&lt;p&gt;In this post I’ve shown how to use &lt;code&gt;FSharp.Compiler.Services&lt;/code&gt; to add dynamic extensibility mechanism to F# applications. Sample presented in this blog post was really simple, but I believe that this technique can be also used for more complex, real world applications (hopefully, I’ll be able to create some more complex project using this method soon ;) ). Full code for sample application can be found on &lt;a href=&quot;https://gitlab.com/Krzysztof-Cieslak/FunctionLoader&quot;&gt;GitLab (!)&lt;/a&gt;&lt;/p&gt;
-</description>
-                <pubDate>Mon, 03 Oct 2016 00:00:00 +0200</pubDate>
-                <link>http://kcieslak.io/Dynamically-extending-F-applications</link>
-                <guid isPermaLink="true">http://kcieslak.io/Dynamically-extending-F-applications</guid>
-                
-                <category>F#</category>
-                
-                <category>FSharp.Compiler.Services</category>
-                
-                
-            </item>
-        
-            <item>
-                <title>Working with F# projects in VSCode</title>
-                <description>&lt;h1&gt;Introduction&lt;/h1&gt;
-
-&lt;p&gt;Visual Studio Code is a lightweight but powerful source code editor which runs on your desktop and is available for Windows, OS X and Linux. It comes with built-in support for JavaScript, TypeScript and Node.js and has a rich ecosystem of extensions for other languages (C++, C#, Python, PHP) and runtimes. The F# support for VSCode is provided by &lt;a href=&quot;http://ionide.io&quot;&gt;Ionide&lt;/a&gt; - set of extensions adding F# support, as well as Paket and FAKE.&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;If you’re new VSCode user installing extensions is pretty easy - press extensions button on left panel, search for Ionide, press install for all Ionide extensions, wait untill all are installed and restart VSCode.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;Ionide-FSharp provides wide set of features useful for F# developer - from simple autocomplete and tooltips, through F# Interactive integration, to navigating to symbols or finding all usages of symbol.&lt;/p&gt;
-
-&lt;p&gt;It also comes with decent support for F# projects (defined using &lt;code&gt;.fsproj&lt;/code&gt; file).&lt;/p&gt;
-
-&lt;!--more--&gt;
-
-&lt;h1&gt;Working with existing projects&lt;/h1&gt;
-
-&lt;p&gt;Working with existing projects (created using Visual Studio or other IDE) should be pretty straightforward - opening root of your repository / solution will start Ionide. Plugin should find all project files in repository and parse them.&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;Warning - this process can take some time, especially on huge solutions. You can still edit files without any problem, but it make take a while before are features are started - the priority is put on providing features like tooltips, autocomplete or error highlighting for currently opened files. Solution level features (finding all errors in solution, navigating to any symbol in solution, rename, etc ) take bit longer to start.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h1&gt;Creating new projects&lt;/h1&gt;
-
-&lt;p&gt;Ionide thanks to &lt;a href=&quot;https://github.com/fsprojects/Forge&quot;&gt;Forge&lt;/a&gt; integration provides ability to create new F# projects without using full IDE. Creating new project is as simple as running &lt;code&gt;F#: New Project&lt;/code&gt; command.&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;All VSCode commands can be run using command palette, it can be started using &lt;code&gt;Ctrl(Cmd)+Shift+P&lt;/code&gt; keybord shortcut.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;Ionide will ask about project name, directory where place new project, and project template. Currently there are about 15 different project templates, hopefully more will come in the future thanks to Community contributions to Forge.&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;Warning - even if you just create new project, you should have VS Code open in empty directory. It does not create “solution” directory, and assumes that is run from repository root.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;Creating new project will also initialize Paket and FAKE, and create sample build script in repository root. This won’t happen if you’re just adding new project to existing solution with Paket and FAKE.&lt;/p&gt;
-
-&lt;h1&gt;Handling files in project&lt;/h1&gt;
-
-&lt;p&gt;As you probably know, &lt;code&gt;fsproj&lt;/code&gt; files contain list of F# (&lt;code&gt;.fs&lt;/code&gt;) files which will be compiled during build process. What’s important is that ordering of those files matters… and it’s huge F# feature. But this topic was already covered in amazing &lt;a href=&quot;https://fsharpforfunandprofit.com/series/dependency-cycles.html&quot;&gt;Scott Wlaschin’s blog&lt;/a&gt;. So, back to the topic.&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;Warning - Forge tends to do some additional changes to project file, so for first few times (unless you’re already comfortable with usual Forge changes) I recommend doing git commit before running Forge commands - it will make easier for you to check what changes Forge makes.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;There are few commands which makes handling files easier. First of all, you can add or remove currently open file from project using &lt;code&gt;F#: Add Current File To Project&lt;/code&gt; and &lt;code&gt;F#: Remove Current File To Project&lt;/code&gt;. Forge will try to find appropriate project file and add or remove file there.&lt;/p&gt;
-
-&lt;p&gt;Another important operation is file ordering - to control it &lt;code&gt;F#: Move File Up&lt;/code&gt; and &lt;code&gt;F#: Move File Down&lt;/code&gt; commands exist.&lt;/p&gt;
-
-&lt;h1&gt;Handling references&lt;/h1&gt;
-
-&lt;p&gt;&lt;code&gt;fsproj&lt;/code&gt; files contain also list of used references. Generally there are 3 types of those - external references from NuGet (this type is handled by Paket), project references and GAC references. To handle 2 later cases Ionide provides two commands.&lt;/p&gt;
-
-&lt;p&gt;&lt;code&gt;F#: Add Project Reference&lt;/code&gt; command will ask you which project you want to edit (there will be list of all projects found in current workspace), and after which project you want to reference. For GAC references Ionide provides &lt;code&gt;F#: Add Reference&lt;/code&gt; command which works in very similar way.&lt;/p&gt;
-
-&lt;h1&gt;Solution-wide editor features&lt;/h1&gt;
-
-&lt;p&gt;Ionide’s editor features are probably good topic for another post, but let’s quickly go through some features which works on solution level:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;On file save, Ionide parse all projects and find all error in solution. They can be viewed in error panel (&lt;code&gt;Ctrl(Cmd) + Shift + M&lt;/code&gt;).&lt;/li&gt;
-  &lt;li&gt;Go-to-Definition (&lt;code&gt;F12&lt;/code&gt;), Find all references (&lt;code&gt;Shift+F12&lt;/code&gt;), Peek definition (&lt;code&gt;Alt + F12&lt;/code&gt;) works across all projects in solution&lt;/li&gt;
-  &lt;li&gt;Rename (&lt;code&gt;F2&lt;/code&gt;) works across all projects in solution&lt;/li&gt;
-  &lt;li&gt;Same for navigating to symbol (&lt;code&gt;Ctrl(Cmd)+T&lt;/code&gt;)&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h1&gt;Summary&lt;/h1&gt;
-
-&lt;p&gt;In this post, I’ve presented some Ionide’s features which makes supporting and handling F# projects in Visual Studio Code. There are still not as many project editing features as in Visual Studio or Xamarin Studio, but I belive that it’s good start point, and nice set of features for lightweight editor.&lt;/p&gt;
-</description>
-                <pubDate>Wed, 27 Jul 2016 00:00:00 +0200</pubDate>
-                <link>http://kcieslak.io/Working-with-F-Projects-In-VSCode</link>
-                <guid isPermaLink="true">http://kcieslak.io/Working-with-F-Projects-In-VSCode</guid>
-                
-                <category>F#</category>
-                
-                <category>VS Code</category>
-                
-                <category>Tooling</category>
-                
-                
-            </item>
-        
-            <item>
-                <title>Creating custom project file for F#</title>
-                <description>&lt;h1&gt;Introduction&lt;/h1&gt;
-
-&lt;p&gt;Let’s imagine a world where F# is independent language, with cross-platform tooling making life of every F# developer easier. In this world, after we’ve fixed dependency management problem with Paket, we could go one step further… and fix project file format and building. We would use same principles as Paket - very simple, human readable, file format which can be edited without any other tooling, and command line tool responsible for building such project.&lt;/p&gt;
-
-&lt;p&gt;In such world I’ve decided to create new open-source project called &lt;code&gt;Chris&lt;/code&gt;&lt;/p&gt;
-
-&lt;h1&gt;File format&lt;/h1&gt;
-
-&lt;p&gt;For our hypothetical project file (called &lt;code&gt;project.chris&lt;/code&gt;) I’ve decided to use &lt;code&gt;toml&lt;/code&gt;. In this very simple file we would just specify few properties, files of our project, GAC references and external NuGet packages. It would look like as follows:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-toml&quot;&gt;[Info]
-Name = &quot;Fancy_Test_Project&quot;
-Author = &quot;Lambda Factory&quot;
-Git = &quot;&quot;
-
-[Stuff]
-References = [&quot;mscorlib&quot;, &quot;System&quot;, &quot;System.Core&quot;, &quot;System.Numerics&quot;]
-Files = [&quot;Message.fs&quot;, &quot;Test.fs&quot;]
-Packages = []
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;!--more--&gt;
-
-&lt;h1&gt;Build&lt;/h1&gt;
-
-&lt;p&gt;Most important feature of every project system is ability to build project to executable version. As I’ve mentioned earlier one of the important points I’d like to address is ability to build project with command line with very simple commands. To build any F# project, in the end - no matter which project system we use, we have to execute F# Compiler with &lt;a href=&quot;https://msdn.microsoft.com/en-us/visualfsharpdocs/conceptual/compiler-options-%5bfsharp%5d&quot;&gt;appropriate arguments&lt;/a&gt; (defining references, different build options, and source files).&lt;/p&gt;
-
-&lt;p&gt;In this case I’ve created really simple console application which user runs in project directory and it builds project, and produce &lt;code&gt;.exe&lt;/code&gt; file. To parse &lt;code&gt;toml&lt;/code&gt; I’ve decided to use &lt;a href=&quot;https://github.com/paiden/Nett&quot;&gt;Nett library&lt;/a&gt;.&lt;/p&gt;
-
-&lt;p&gt;First step is defining model representing our project, what is rather straightforward:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-fsharp&quot;&gt;type Info = {
-    Name : string
-    Author : string
-    Git : string
-}
-
-type Stuff = {
-    Files : string []
-    References : string []
-    Packages : string []
-}
-
-type Project = {
-    Info : Info
-    Stuff : Stuff
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Next step is creating 2 helper functions - one loading &lt;code&gt;project.chris&lt;/code&gt; and parsing it to our model, second one transforming this model to right F# Compiler arguments. Again, nothing complex.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-fsharp&quot;&gt;let load (path : string) =
-    let tmp = Toml.ReadFile path
-    let info = tmp.Get&amp;lt;TomlTable&amp;gt; &quot;Info&quot;
-    let stuff = tmp.Get&amp;lt;TomlTable&amp;gt; &quot;Stuff&quot;
-    {
-        Info = {
-                Name = info.Get&amp;lt;string&amp;gt;(&quot;Name&quot;)
-                Author = info.Get&amp;lt;string&amp;gt;(&quot;Author&quot;)
-                Git = info.Get&amp;lt;string&amp;gt;(&quot;Git&quot;) }
-        Stuff = {
-                Files = stuff.Get&amp;lt;string []&amp;gt;(&quot;Files&quot;)
-                References = stuff.Get&amp;lt;string []&amp;gt;(&quot;References&quot;)
-                Packages = stuff.Get&amp;lt;string []&amp;gt;(&quot;Packages&quot;) }
-    }, path
-
-let toFSCParams (project, path) =
-    let folder = Path.GetDirectoryName path
-    let output = sprintf &quot;%s.exe&quot; project.Info.Name
-    [|
-        yield &quot;-out:&quot; + output
-        yield @&quot;-r:C:\Program Files (x86)\Reference Assemblies\Microsoft\FSharp\.NETFramework\v4.0\4.3.1.0\FSharp.Core.dll&quot;
-        for r in project.Stuff.References do
-            yield sprintf @&quot;-r:C:\Program Files (x86)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.5\%s.dll&quot; r
-
-        yield &quot;--noframework&quot;
-        for f in project.Stuff.Files do
-            yield  Path.Combine (folder, f)
-    |]
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Last step is creating function which runs F# Compiler. To do so we will use &lt;a href=&quot;https://fsharp.github.io/FSharp.Compiler.Service/&quot;&gt;FSharp.Compiler.Service&lt;/a&gt; - .Net library that exposes functionality for implementing F# language bindings, additional tools based on the compiler or refactoring tools. What’s most important in this case it also let’s &lt;a href=&quot;https://fsharp.github.io/FSharp.Compiler.Service/compiler.html&quot;&gt;host F# compiler inside other application&lt;/a&gt;.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-fsharp&quot;&gt;open Microsoft.FSharp.Compiler
-open Microsoft.FSharp.Compiler.SourceCodeServices
-open Microsoft.FSharp.Compiler.SimpleSourceCodeServices
-
-let build (project,path) =
-    let scs = SimpleSourceCodeServices()
-    let parm =  (project, path) |&amp;gt; toFSCParams
-    parm |&amp;gt; scs.Compile
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;And at the end we pipe it together:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-fsharp&quot;&gt;[&amp;lt;EntryPoint&amp;gt;]
-let main argv =
-    let errors, exit =
-        &quot;project.chris&quot;
-        |&amp;gt; Path.GetFullPath
-        |&amp;gt; load
-        |&amp;gt; build
-    exit // return an integer exit code
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Now we can build our project!&lt;/p&gt;
-
-&lt;p&gt;&lt;img src=&quot;images/gifs/chris_build.gif&quot; alt=&quot;Build with Chris&quot; /&gt;&lt;/p&gt;
-
-&lt;h1&gt;Editor support&lt;/h1&gt;
-
-&lt;p&gt;Another important part of project system is providing information for F# Language Services which lets us to create rich editing environment across many different editors. Fortunatly FSharp.Compiler.Service is designed to be totally decoupled from project file format and requires its &lt;a href=&quot;https://fsharp.github.io/FSharp.Compiler.Service/reference/microsoft-fsharp-compiler-sourcecodeservices-fsharpprojectoptions.html&quot;&gt;custom type&lt;/a&gt; to provide all nice &lt;a href=&quot;https://fsharp.github.io/FSharp.Compiler.Service/editor.html&quot;&gt;Language Services features&lt;/a&gt;. Since we already have function loading &lt;code&gt;project.chris&lt;/code&gt; to memory all we need to do is creating function which maps our type to type required by FCS.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-fsharp&quot;&gt;let toFSharpProjectOptions (project, path) =
-    let rsp = (project, path) |&amp;gt; toFSCParams
-    {
-      ProjectFileName = path
-      ProjectFileNames = [||]
-      OtherOptions = rsp
-      ReferencedProjects = [||]
-      IsIncompleteTypeCheckEnvironment = false
-      UseScriptResolutionRules = false
-      LoadTime = System.DateTime.Now
-      UnresolvedReferences = None;
-    }
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Next step is actually adding support for &lt;code&gt;project.chris&lt;/code&gt; to our editor of choice. It’s pretty easy for all editors and tools using FSharp.Compiler.Service in the background, but for sake of simplicity I’ve chosen &lt;a href=&quot;https://code.visualstudio.com/&quot;&gt;VS Code&lt;/a&gt; with &lt;a href=&quot;https://ionide.io&quot;&gt;Ionide&lt;/a&gt;. As you may know, VS Code is editor created using &lt;a href=&quot;http://electron.atom.io/&quot;&gt;Electron&lt;/a&gt; which is framework for building cross-platform, desktop applications using HTML, JS, and CSS. Such choice has many advantages, but one bug important drawback from F# editor tooling point of view - we can’t directly use .Net libraries in VS Code. To communicate with .Net libraries (and especially with FSharp.Compiler.Service) we are using &lt;a href=&quot;https://github.com/fsharp/FsAutoComplete&quot;&gt;FsAutoComplete&lt;/a&gt; - F# compiler service API exposed via a console application and HTTP server.&lt;/p&gt;
-
-&lt;p&gt;Adding &lt;code&gt;project.chris&lt;/code&gt; support to FsAutoComplete is, again, fairly easy. First step is adding Chris project as reference to FsAutoComplete. Next we create helper function which will be executed if we try to load &lt;code&gt;project.chris&lt;/code&gt; file - it’s basically copy-paste of &lt;a href=&quot;https://github.com/fsharp/FsAutoComplete/blob/master/src/FsAutoComplete.Core/CompilerServiceInterface.fs#L189-L222&quot;&gt;same functions&lt;/a&gt; for &lt;code&gt;.fsproj&lt;/code&gt; and &lt;code&gt;project.json&lt;/code&gt;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-fsharp&quot;&gt;  member x.TryGetChrisProjectOption (file : string) : Result&amp;lt;_&amp;gt; =
-    if not (File.Exists file) then
-      Failure (sprintf &quot;File '%s' does not exist&quot; file)
-    else
-      try
-        let po = file |&amp;gt; Chris.load |&amp;gt; Chris.toFSharpProjectOptions
-        let compileFiles = Seq.filter (fun (s:string) -&amp;gt; s.EndsWith(&quot;.fs&quot;)) po.OtherOptions
-        let outputFile = Seq.tryPick (chooseByPrefix &quot;--out:&quot;) po.OtherOptions
-        let references = Seq.choose (chooseByPrefix &quot;-r:&quot;) po.OtherOptions
-        Success (po, Seq.toList compileFiles, outputFile, Seq.toList references, Map&amp;lt;string,string&amp;gt;([||]))
-      with e -&amp;gt;
-        Failure e.Message
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Last step is modifying &lt;a href=&quot;https://github.com/fsharp/FsAutoComplete/blob/master/src/FsAutoComplete.Core/FsAutoComplete.Core.fs#L51-L55&quot;&gt;handler for project request&lt;/a&gt;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-fsharp&quot;&gt;let options =
-    if file.EndsWith &quot;fsproj&quot; then
-        checker.TryGetProjectOptions(file, verbose)
-    elif file.EndsWith &quot;chris&quot; then
-        checker.TryGetChrisProjectOption file
-    else
-        checker.TryGetCoreProjectOptions file
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Compile FSAC, copy modified version to Iondie plugin folder… and that’s all. Everything is working as always, just with &lt;code&gt;project.chris&lt;/code&gt;.
-&lt;img src=&quot;images/gifs/chris_editor.gif&quot; alt=&quot;Editor with Chris&quot; /&gt;&lt;/p&gt;
-
-&lt;h1&gt;Frequently Asked Question&lt;/h1&gt;
-
-&lt;p&gt;&lt;em&gt;Q: You haven’t mentioned VS at all, it surely means you hate it and ignore, right?&lt;/em&gt;&lt;/p&gt;
-
-&lt;p&gt;A: No, VS (with VFPT installed) is best F# IDE, but I don’t use it too much. Adding custom project file support to VS is definitely possible, it just requires knowledge I don’t have. Thus, I haven’t mentioned it in post.&lt;/p&gt;
-
-&lt;p&gt;&lt;em&gt;Q: What about C# / F# interoperability, compatibility with existing F# projects?&lt;/em&gt;&lt;/p&gt;
-
-&lt;p&gt;A: In worst case scenario - we have compatibility on compiled code / package level ( I can imagine some workflow using Paket which would make it not too problematic). In “best” case - custom MsBuild task, but again, I don’t have enough knowledge to judge how possible it is.&lt;/p&gt;
-
-&lt;p&gt;&lt;em&gt;Q: You’re just one of those elitist, arrogant guys thinking they are better because they use this new-overhyped thing - functional programming. You just hate MsBuild because it’s C#!&lt;/em&gt;&lt;/p&gt;
-
-&lt;p&gt;A: Yes, indeed. Move along. Nothing to see here.&lt;/p&gt;
-
-&lt;p&gt;&lt;em&gt;Q: What about support for any other F# tooling such as FSharpLint?&lt;/em&gt;&lt;/p&gt;
-
-&lt;p&gt;A: Any tool using FSharp.Compiler.Service should be very easy to port, as presented above on FsAutoComplete example.&lt;/p&gt;
-
-&lt;p&gt;&lt;em&gt;Q: Where is code, I want to use it now!&lt;/em&gt;&lt;/p&gt;
-
-&lt;p&gt;A: Code of this experiment is not published anywhere on purpose - I don’t want anyone to use it by any chance. It was just very simple proof of concept. Hopefully, one day F# Community will be ready for new project system.&lt;/p&gt;
-
-&lt;p&gt;&lt;em&gt;Q: I &lt;strong&gt;really&lt;/strong&gt; want to use something like that&lt;/em&gt;&lt;/p&gt;
-
-&lt;p&gt;A: Ask &lt;a href=&quot;https://twitter.com/7sharp9_exhumed&quot;&gt;Dave Thomas&lt;/a&gt; about his Xebec project, and support &lt;a href=&quot;https://twitter.com/7sharp9_exhumed/status/745995222178480128&quot;&gt;fsprojexit&lt;/a&gt;&lt;/p&gt;
-
-&lt;h1&gt;Summary&lt;/h1&gt;
-
-&lt;p&gt;In this post I’ve presented possible ways of expanding F# development environment with new project system. I haven’t shown here any ready solutions for the problem but I hope that this post shows that having new, better project system is possible. We just need as Community to start reasonable discussion about such possibility.&lt;/p&gt;
-</description>
-                <pubDate>Thu, 23 Jun 2016 00:00:00 +0200</pubDate>
-                <link>http://kcieslak.io/Creating-custom-project-file-for-F</link>
-                <guid isPermaLink="true">http://kcieslak.io/Creating-custom-project-file-for-F</guid>
-                
-                <category>F#</category>
-                
-                <category>VS Code</category>
-                
-                <category>Tooling</category>
-                
-                
-            </item>
-        
-            <item>
-                <title>Getting started with Fable and Webpack</title>
-                <description>&lt;h1&gt;Introduction&lt;/h1&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://github.com/fsprojects/Fable&quot;&gt;Fable&lt;/a&gt; is new F# to JavaScript compiler created by &lt;a href=&quot;https://twitter.com/alfonsogcnunez&quot;&gt;Alfonso Garcia-Caro&lt;/a&gt;. In this post I’ll go, step by step, through process of creating client-side (browser) applications using it.&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;This post is targeted at F# developers without lot of knowladge about Node.js and JS ecosystem and it should let any F# developer to get started with Fable.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h3&gt;Requirements&lt;/h3&gt;
-
-&lt;p&gt;Fable requires having both &lt;a href=&quot;http://fsharp.org&quot;&gt;F# 4&lt;/a&gt; and &lt;a href=&quot;https://nodejs.org/en/&quot;&gt;node 4.4&lt;/a&gt; or bigger installed in your computer.&lt;/p&gt;
-
-&lt;!--more--&gt;
-
-&lt;h1&gt;Setting up project&lt;/h1&gt;
-
-&lt;p&gt;The first thing we need to do is creating new directory and initializing node project:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;mkdir fable-test
-cd fable-test
-npm init
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;&lt;a href=&quot;https://www.npmjs.com/&quot;&gt;Npm&lt;/a&gt; is is the package manager for JavaScript. It lets users to find, share, and reuse packages of code or install additional tools&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;&lt;code&gt;npm init&lt;/code&gt; will create &lt;code&gt;package.json&lt;/code&gt; file. This file is project file for any Node.js based project (both client and server side). At start it will contain only basic information about a project, something like that:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-json&quot;&gt;{
-  &quot;name&quot;: &quot;fable-test&quot;,
-  &quot;version&quot;: &quot;1.0.0&quot;,
-  &quot;description&quot;: &quot;&quot;,
-  &quot;scripts&quot;: {
-    &quot;test&quot;: &quot;...&quot;
-  },
-  &quot;author&quot;: &quot;&quot;,
-  &quot;license&quot;: &quot;MIT&quot;,
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h3&gt;Installing development tools.&lt;/h3&gt;
-
-&lt;p&gt;Next step is installing all development dependencies (tools) which we’ll be using for our project. To do so we are using &lt;code&gt;npm install&lt;/code&gt; command:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;npm install --save-dev fable-compiler
-npm install --save-dev webpack
-npm install --save-dev source-map-loader
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;First line installs Fable compiler for our project. Second command installs &lt;a href=&quot;https://webpack.github.io/&quot;&gt;Webpack&lt;/a&gt;. Webpack is a module bundler - it takes modules with dependencies and generates static assets representing those modules. In our case it would take generated by Fable files together with other JS libraries we will depend upon and create single file output which can be easily added to page. Last dependency is plugin to Webpack which will enable nice debugging story for our application (debugging F# files in the browser)&lt;/p&gt;
-
-&lt;p&gt;It’s also worth noticing that those commands modified &lt;code&gt;package.json&lt;/code&gt; file, now it contains also following block:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-json&quot;&gt;&quot;devDependencies&quot;: {
-  &quot;fable-compiler&quot;: &quot;^0.2.12&quot;,
-  &quot;source-map-loader&quot;: &quot;^0.1.5&quot;,
-  &quot;webpack&quot;: &quot;^1.13.0&quot;
-},
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h3&gt;Installing dependencies&lt;/h3&gt;
-
-&lt;p&gt;Now we will install our code dependencies using also &lt;code&gt;npm install&lt;/code&gt;.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;npm install --save core-js
-npm install --save fable-core
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;code&gt;core-js&lt;/code&gt; is polyfill ensuring that code generated by Fable will run in any browser. &lt;code&gt;fable-core&lt;/code&gt; is standard Fable library.&lt;/p&gt;
-
-&lt;p&gt;Those commands again modified &lt;code&gt;package.json&lt;/code&gt; file, this time adding following information:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-json&quot;&gt;&quot;dependencies&quot;: {
-    &quot;core-js&quot;: &quot;^2.4.0&quot;,
-    &quot;fable-core&quot;: &quot;0.0.21&quot;
-  }
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h3&gt;Creating F# script and HTML file&lt;/h3&gt;
-
-&lt;p&gt;Fable supports both &lt;code&gt;fsproj&lt;/code&gt; and plain &lt;code&gt;fsx&lt;/code&gt; files. For simplicity in this example let’s use &lt;code&gt;fsx&lt;/code&gt; file. Create &lt;code&gt;source\code.fsx&lt;/code&gt; with follwing content:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-fsharp&quot;&gt;#r &quot;../node_modules/fable-core/Fable.Core.dll&quot;
-
-open Fable.Core 
-open Fable.Import
- 
-Node.require.Invoke(&quot;core-js&quot;) |&amp;gt; ignore
-
-let element = Browser.document.getElementById &quot;sample&quot;
-element.innerText &amp;lt;- &quot;Hello, world !!&quot;
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;This code should be pretty straightforward, only tricky part is &lt;code&gt;Node.require.Invoke(&quot;core-js&quot;)&lt;/code&gt; which is importing Node.js module (installed by &lt;code&gt;npm&lt;/code&gt;).&lt;/p&gt;
-
-&lt;p&gt;Let’s also create very simple HTML file &lt;code&gt;public\index.html&lt;/code&gt; ( &lt;code&gt;public&lt;/code&gt; will be our output folder):&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-html&quot;&gt;&amp;lt;!doctype html&amp;gt;
-&amp;lt;html&amp;gt;
-&amp;lt;head&amp;gt;
-  &amp;lt;meta http-equiv='Content-Type' content='text/html; charset=utf-8'&amp;gt;
-&amp;lt;/head&amp;gt;
-&amp;lt;body&amp;gt;
-  &amp;lt;div id='sample'&amp;gt;&amp;lt;/div&amp;gt;
-  &amp;lt;script src=&quot;bundle.js&quot;&amp;gt;&amp;lt;/script&amp;gt;
-&amp;lt;/body&amp;gt;
-&amp;lt;/html&amp;gt;
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h1&gt;Configuration&lt;/h1&gt;
-
-&lt;p&gt;First step is creating configuration for Fable compiler. It’s done by creating &lt;code&gt;fableconfig.json&lt;/code&gt; file.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-json&quot;&gt;{
-  &quot;module&quot;: &quot;commonjs&quot;,
-  &quot;sourceMaps&quot;: true,
-  &quot;projFile&quot;: &quot;./src/code.fsx&quot;,
-  &quot;outDir&quot;: &quot;temp&quot;,
-  &quot;scripts&quot;: {
-    &quot;prebuild&quot;: &quot;npm install&quot;,
-    &quot;postbuild&quot;: &quot;webpack&quot;
-  },
-  &quot;targets&quot;: {
-    &quot;watch&quot;: {
-      &quot;scripts&quot;: {
-        &quot;postbuild&quot;: &quot;webpack --watch&quot;
-      }
-    }
-  }
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;First we define module type - in our case it’s &lt;code&gt;commonjs&lt;/code&gt; (as it’s working well with &lt;code&gt;Webpack&lt;/code&gt;). Next we define that we want to use soruce maps (it allows F# file debugging), entry point of application, and output directory for compiled JS files.
-Next step is defining some small scripts which will be run before and after every build - before we want to run &lt;code&gt;npm install&lt;/code&gt; to restore all dependencies, after build we run &lt;code&gt;webpack&lt;/code&gt; to create bundled output file. Last part defines additional target which will be executed in &lt;code&gt;watch&lt;/code&gt; mode. In such case we want to run &lt;code&gt;webpack&lt;/code&gt; also in &lt;code&gt;watch&lt;/code&gt; mode.&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;&lt;code&gt;watch&lt;/code&gt; mode will make Fable and Webpack to recompile project after every file save without need to execute any additional commands.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h3&gt;Webpack configuration&lt;/h3&gt;
-
-&lt;p&gt;Second step is to create &lt;code&gt;webpack&lt;/code&gt; configuration. Let’s create &lt;code&gt;webpack.config.js&lt;/code&gt; file:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-js&quot;&gt;var path = require(&quot;path&quot;);
-var webpack = require(&quot;webpack&quot;);
-
-var cfg = {
-  devtool: &quot;source-map&quot;,
-  entry: &quot;./temp/code.js&quot;,
-  output: {
-    path: path.join(__dirname, &quot;public&quot;),
-    filename: &quot;bundle.js&quot;
-  },
-  module: {
-    preLoaders: [
-      {
-        test: /\.js$/,
-        exclude: /node_modules/,
-        loader: &quot;source-map-loader&quot;
-      }
-    ]
-  }
-};
-
-module.exports = cfg;
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;In this file we define that we want to use source maps, entry point for webpack ( so file generated by Fable), output path, and usage of any additional plugins (in our case it will be &lt;code&gt;source-map-loader&lt;/code&gt; installed before)&lt;/p&gt;
-
-&lt;h3&gt;Npm scripts&lt;/h3&gt;
-
-&lt;p&gt;Easiest way to run tools installed by &lt;code&gt;npm&lt;/code&gt; is by using scripts section in &lt;code&gt;packages.json&lt;/code&gt; file. Let’s put there following scripts:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-json&quot;&gt;&quot;scripts&quot;: {
-  &quot;build&quot;: &quot;fable&quot;,
-  &quot;watch&quot;: &quot;fable -w --target watch&quot;
-},
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;code&gt;build&lt;/code&gt; just starts Fable. &lt;code&gt;watch&lt;/code&gt;, as name suggests, starts Fable in &lt;code&gt;watch&lt;/code&gt; mode, so code is regenerated every time we save F# file. We can run those scripts using &lt;code&gt;npm run &amp;lt;script_name&amp;gt;&lt;/code&gt; command.&lt;/p&gt;
-
-&lt;h3&gt;VSCode configuration&lt;/h3&gt;
-
-&lt;p&gt;Last, optional step is creating &lt;a href=&quot;https://code.visualstudio.com/&quot;&gt;VSCode&lt;/a&gt; configuration. It’s fairly easy since editor has decent integration with &lt;code&gt;npm&lt;/code&gt;. All we need to do is create &lt;code&gt;.vscode\tasks.json&lt;/code&gt; file and put there following code:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-json&quot;&gt;{
-  &quot;version&quot;: &quot;0.1.0&quot;,
-  &quot;command&quot;: &quot;npm&quot;,
-  &quot;isShellCommand&quot;: true,
-  &quot;showOutput&quot;: &quot;always&quot;,
-  &quot;suppressTaskName&quot;: true,
-  &quot;tasks&quot;: [
-    {
-      &quot;taskName&quot;: &quot;install&quot;,
-      &quot;args&quot;: [&quot;install&quot;]
-    },
-    {
-      &quot;taskName&quot;: &quot;build&quot;,
-      &quot;args&quot;: [&quot;run&quot;, &quot;build&quot;],
-      &quot;isBuildCommand&quot;: true
-    },
-    {
-      &quot;taskName&quot;: &quot;watch&quot;,
-      &quot;args&quot;: [&quot;run&quot;, &quot;watch&quot;],
-      &quot;isWatching&quot;: true
-    }
-  ]
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Here we define that our tasks are using &lt;code&gt;npm&lt;/code&gt; and we define arguments send to &lt;code&gt;npm&lt;/code&gt; with every task. 
-We can run those task usign &lt;code&gt;Tasks: Run Task&lt;/code&gt; command (&lt;code&gt;build&lt;/code&gt; task can be also run using &lt;code&gt;Tasks: Run Build Command&lt;/code&gt; command or &lt;code&gt;Ctrl + Shift + B&lt;/code&gt;)&lt;/p&gt;
-
-&lt;h1&gt;Summary&lt;/h1&gt;
-
-&lt;p&gt;In this post we have shortly moved all steps necessary to create browser, client-side applications using F#, Fable and Webpack. Whole source code of this sample application is on GitHub - https://github.com/Krzysztof-Cieslak/fable-webpack-demo&lt;/p&gt;
-</description>
-                <pubDate>Mon, 16 May 2016 00:00:00 +0200</pubDate>
-                <link>http://kcieslak.io/Getting-Started-with-Fable-and-Webpack</link>
-                <guid isPermaLink="true">http://kcieslak.io/Getting-Started-with-Fable-and-Webpack</guid>
-                
-                <category>F#</category>
-                
-                <category>Fable</category>
-                
-                <category>VS Code</category>
-                
-                <category>Webpack</category>
-                
-                <category>JS</category>
                 
                 
             </item>

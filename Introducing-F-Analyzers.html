@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Working with F# projects in VSCode</title>
-    <meta name="description" content="Working with F# projects in VSCode using Ionide extension">
+    <title>Introducing F# Analyzers</title>
+    <meta name="description" content="Introducing F# Analyzers">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="/favicon/favicon.ico">
     <link rel="apple-touch-icon-precomposed" href="/favicon/lattice-optic-illusion-152-204321.png" >
@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/styles/default.min.css">
     <link rel="stylesheet" href="/css/main.css" />
     <link rel="stylesheet" href="/css/font-awesome.min.css" />
-    <link rel="canonical" href="http://kcieslak.io/Working-with-F-Projects-In-VSCode">
+    <link rel="canonical" href="http://kcieslak.io/Introducing-F-Analyzers">
     <link rel="alternate" type="application/rss+xml" title="F# Reflections Feed" href="http://kcieslak.io/feed.xml">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
 </head>
@@ -69,94 +69,107 @@
                     <div class="entry-header-wrap">
                         
                         <div class="post-thumbnail">
-                            <img src="/images/posts/landscape_5.jpg" alt="Working with F# projects in VSCode">
+                            <img src="/images/posts/landscape_6.jpg" alt="Introducing F# Analyzers">
                         </div><!-- .post-thumbnail -->
                         
-                        <h1 class="entry-title">Working with F# projects in VSCode</h1>
+                        <h1 class="entry-title">Introducing F# Analyzers</h1>
                     </div><!-- .entry-header-wrap -->
                     <div class="entry-meta">
-                        by <span class="post-author">Krzysztof Cieslak</span> on <time class="published" datetime="2016-07-27">July 27, 2016</time>
+                        by <span class="post-author">Krzysztof Cieslak</span> on <time class="published" datetime="2018-09-14">September 14, 2018</time>
                     </div><!-- .entry-meta -->
                 </header><!-- .entry-header -->
                 <div class="entry-content">
-                    <h1>Introduction</h1>
+                    <h1>Introducing F# Analyzers</h1>
 
-<p>Visual Studio Code is a lightweight but powerful source code editor which runs on your desktop and is available for Windows, OS X and Linux. It comes with built-in support for JavaScript, TypeScript and Node.js and has a rich ecosystem of extensions for other languages (C++, C#, Python, PHP) and runtimes. The F# support for VSCode is provided by <a href="http://ionide.io">Ionide</a> - set of extensions adding F# support, as well as Paket and FAKE.</p>
+<p>One of the most exciting features of Roslyn (modern C# compiler) is ability to plug into it custom extensions called <a href="https://docs.microsoft.com/en-us/visualstudio/extensibility/getting-started-with-roslyn-analyzers?view=vs-2017">Roslyn Analyzers</a>. They are live, real-time, project based plugins that enables to diagnose source code and surface custom errors, warnings and code fixes into Visual Studio. What’s really important is fact that there are project based, and distributed through NuGet which means they are easy to install, and ensure that all developers working on the project have exactly same analyzers installed. This is really useful if you want to ensure common best practices, style etc while working on the project.</p>
 
-<blockquote>
-  <p>If you’re new VSCode user installing extensions is pretty easy - press extensions button on left panel, search for Ionide, press install for all Ionide extensions, wait untill all are installed and restart VSCode.</p>
-</blockquote>
-
-<p>Ionide-FSharp provides wide set of features useful for F# developer - from simple autocomplete and tooltips, through F# Interactive integration, to navigating to symbols or finding all usages of symbol.</p>
-
-<p>It also comes with decent support for F# projects (defined using <code>.fsproj</code> file).</p>
+<p>Today I’d like to introduce preview of the project called F# Analyzers which adds similar capabilities to <a href="http://ionide.io">Ionide</a> (F# support in VS Code). Project is still in the early days, so design and technical details can change in time, but I’m really excited to share it with users even in its current state.</p>
 
 <!--more-->
 
-<h1>Working with existing projects</h1>
+<h3>Architecture overview</h3>
 
-<p>Working with existing projects (created using Visual Studio or other IDE) should be pretty straightforward - opening root of your repository / solution will start Ionide. Plugin should find all project files in repository and parse them.</p>
+<p>Before diving deeper into Analyzers themselves, it’s important to understand general architecture of Ionide, and where Analyzers fits into this architecture. This has really important impact on the Analyzers capabilities and limitations.</p>
 
-<blockquote>
-  <p>Warning - this process can take some time, especially on huge solutions. You can still edit files without any problem, but it make take a while before are features are started - the priority is put on providing features like tooltips, autocomplete or error highlighting for currently opened files. Solution level features (finding all errors in solution, navigating to any symbol in solution, rename, etc ) take bit longer to start.</p>
-</blockquote>
+<p>On the one hand we have Ionide itself. It’s <a href="https://code.visualstudio.com/docs/extensions/overview">VS Code plugin</a> which means it’s using NodeJS runtime, running as a child process of the editor, communicating with VS Code using set of APIs provided by VS Code. On the other hand we have F# compiler, or exactly speaking <a href="https://fsharp.github.io/FSharp.Compiler.Service/index.html">FSharp.Compiler.Service</a> which is library version of F# compiler, exposing some additional APIs useful for creating tooling for F#. Of course, <code>FSharp.Compiler.Service</code> is .Net library which means it can’t be used directly by NodeJS process.</p>
 
-<h1>Creating new projects</h1>
+<p>Last important part of the architecture is <a href="https://github.com/fsharp/FsAutoComplete">FsAutoComplete</a>. It’s a project that provides communication layer and high level API between FCS and external world. It’s used by vim, emacs and Ionide as all those plugins are hosted in non .Net environments.</p>
 
-<p>Ionide thanks to <a href="https://github.com/fsprojects/Forge">Forge</a> integration provides ability to create new F# projects without using full IDE. Creating new project is as simple as running <code>F#: New Project</code> command.</p>
+<p>The F# Analyzers are using extension point provided by the FsAutoComplete which means that in current shape they can be supported only by the editors using it (and they requires some work on the plugin side of things - currently only Ionide supports them). And it means that diagnostics provided by them are visible only in the editor, not during compilation.</p>
 
-<blockquote>
-  <p>All VSCode commands can be run using command palette, it can be started using <code>Ctrl(Cmd)+Shift+P</code> keybord shortcut.</p>
-</blockquote>
+<h3>Analyzers basics</h3>
 
-<p>Ionide will ask about project name, directory where place new project, and project template. Currently there are about 15 different project templates, hopefully more will come in the future thanks to Community contributions to Forge.</p>
+<p>Analyzer is normal F# function. As an input it takes Context object which contains current information about the file - Parse Tree, Type Abstract Syntax Tree, Symbols information, and returns list of the Diagnostics - records containing diagnostic message, type, description, and potentially list of fixes that can be used to fix the problem.</p>
 
-<blockquote>
-  <p>Warning - even if you just create new project, you should have VS Code open in empty directory. It does not create “solution” directory, and assumes that is run from repository root.</p>
-</blockquote>
+<p>F# Analyzer contains 3 parts - first one is an extension point in FSAC which is responsible for loading and running analyzers, second one is a editor handler (part of Ionide, in this case) that displays diagnostics and fixes. Last part is <a href="https://github.com/Krzysztof-Cieslak/FSharp.Analyzers.SDK">FSharp.Analayzers.SDK</a> project that’s used to create analyzers.</p>
 
-<p>Creating new project will also initialize Paket and FAKE, and create sample build script in repository root. This won’t happen if you’re just adding new project to existing solution with Paket and FAKE.</p>
+<h3>Building your first analyzer</h3>
 
-<h1>Handling files in project</h1>
-
-<p>As you probably know, <code>fsproj</code> files contain list of F# (<code>.fs</code>) files which will be compiled during build process. What’s important is that ordering of those files matters… and it’s huge F# feature. But this topic was already covered in amazing <a href="https://fsharpforfunandprofit.com/series/dependency-cycles.html">Scott Wlaschin’s blog</a>. So, back to the topic.</p>
+<p>From infrastructure point of view, creating analyzer is simple - you need to create normal F# project, <code>netstandard2.0</code> , add reference to <code>FSharp.Analyzers.SDK</code> (avaliable on NuGet - <a href="https://www.nuget.org/packages/FSharp.Analyzers.SDK/">https://www.nuget.org/packages/FSharp.Analyzers.SDK</a>) and create analyzer functions - normal F# functions taking Context returning list of diagnostics, and marked with Analyzer attribute.</p>
 
 <blockquote>
-  <p>Warning - Forge tends to do some additional changes to project file, so for first few times (unless you’re already comfortable with usual Forge changes) I recommend doing git commit before running Forge commands - it will make easier for you to check what changes Forge makes.</p>
+  <p>Due to unresolved technical limitations your Analyzer must contain “Analyzer” in the name of output dll.</p>
 </blockquote>
 
-<p>There are few commands which makes handling files easier. First of all, you can add or remove currently open file from project using <code>F#: Add Current File To Project</code> and <code>F#: Remove Current File To Project</code>. Forge will try to find appropriate project file and add or remove file there.</p>
+<p>However, from technical point of view creating analyzer is fairly difficult task - you need to be familiar with processing typed or untyped abstract syntax tree, or accessing FSharp Symbols information. Currently SDK doesn’t provide any helper functions, but we hope to add some higher level abstractions in the future. Currently, I recommend going through <a href="http://fsharp.github.io/FSharp.Compiler.Service/">FCS documentation</a>, to get more familiar with the concepts</p>
 
-<p>Another important operation is file ordering - to control it <code>F#: Move File Up</code> and <code>F#: Move File Down</code> commands exist.</p>
+<p>Generally speaking processing Abstract Syntax Trees is usually done by recursive pattern matching on the DU representing syntax nodes. The following snippet shows how to travers Type Abstract Syntax Tree and call some function on every node that represents call of the member. While it looks bit scary, and complex if you take a look on it bit longer you will notice that it’s just big recursive pattern matching. Also, similar pattern matching will be base for most analyzers, which means you can reuse the code pretty easily.</p>
 
-<h1>Handling references</h1>
+<script src="https://gist.github.com/Krzysztof-Cieslak/34c2a43c52119fde8d55315c7831244d.js"></script>
 
-<p><code>fsproj</code> files contain also list of used references. Generally there are 3 types of those - external references from NuGet (this type is handled by Paket), project references and GAC references. To handle 2 later cases Ionide provides two commands.</p>
+<p>Having this bit of infrastructure code, let’s now move to the analyzer itself. As I’ve mentioned before, analyzers are normal functions that have particular signature and are marked with attribute.</p>
 
-<p><code>F#: Add Project Reference</code> command will ask you which project you want to edit (there will be list of all projects found in current workspace), and after which project you want to reference. For GAC references Ionide provides <code>F#: Add Reference</code> command which works in very similar way.</p>
+<script src="https://gist.github.com/Krzysztof-Cieslak/42829ce7b5dcc937bece698a5af9ff2b.js"></script>
 
-<h1>Solution-wide editor features</h1>
+<p>In the above snippet we create analyzer that will detect any call of <code>x.Value</code> where x is an F# Option. As you probably know calling <code>.Value</code> on an <code>option</code> is not total function and can throw exception if an <code>option</code> instance is <code>None</code>, so checking for it may be good idea.</p>
 
-<p>Ionide’s editor features are probably good topic for another post, but let’s quickly go through some features which works on solution level:</p>
+<p>The handler function in above example is executed for every member call. In it we check if the name of the function we call, and if it’s <code>Option.Value</code> we add the range of the symbol into the state. After we’ve processed whole tree we map all ranges into the warnings that will be displayed in the editor. There also exist possibility of providing set of code fixes, but we don’t use it in this example.</p>
 
-<ul>
-  <li>On file save, Ionide parse all projects and find all error in solution. They can be viewed in error panel (<code>Ctrl(Cmd) + Shift + M</code>).</li>
-  <li>Go-to-Definition (<code>F12</code>), Find all references (<code>Shift+F12</code>), Peek definition (<code>Alt + F12</code>) works across all projects in solution</li>
-  <li>Rename (<code>F2</code>) works across all projects in solution</li>
-  <li>Same for navigating to symbol (<code>Ctrl(Cmd)+T</code>)</li>
-</ul>
+<blockquote>
+  <p>Whole code of the sample analyzer is available on GitHub - <a href="https://github.com/Krzysztof-Cieslak/FSharp.Analyzers.Sample">https://github.com/Krzysztof-Cieslak/FSharp.Analyzers.Sample</a>, and analyzer is published on NuGet - <a href="https://www.nuget.org/packages/FSharp.Analyzers.Sample/">https://www.nuget.org/packages/FSharp.Analyzers.Sample/</a></p>
+</blockquote>
 
-<h1>Summary</h1>
+<h3>Using analyzer</h3>
 
-<p>In this post, I’ve presented some Ionide’s features which makes supporting and handling F# projects in Visual Studio Code. There are still not as many project editing features as in Visual Studio or Xamarin Studio, but I belive that it’s good start point, and nice set of features for lightweight editor.</p>
+<p>Analyzers are enabled by <code>FSharp.enableAnalyzers</code> setting inside VSCode. By default it’s disabled, so you need to edit settings to enable analyzers support. Using analyzers is as simple as adding Analyzer NuGet package with Paket - for out of the box support in Iondie you need to use Analyzer group for it.</p>
+
+<script src="https://gist.github.com/Krzysztof-Cieslak/dc71359d81354129187584c502cc60e6.js"></script>
+
+<p>After the package is added to <code>paket.dependencies</code> and restored, Ionide will automatically detect and load analyzers. It may require editor restart as analyzers are loaded on plugin startup.</p>
+
+<blockquote>
+  <p>Ionide also contains setting <code>FSharp.analyzersPath</code> that will enable you to configure paths from which Ionide loads analyzers, by default it’s using <code>packages/Analyzers</code> and <code>analyzers</code> folders.</p>
+</blockquote>
+
+<p>For example let’s test our new analyzer on the following snippet.</p>
+
+<script src="https://gist.github.com/Krzysztof-Cieslak/c1962db70231ec9d2581955324f6ac82.js"></script>
+
+<p>This will result in underlying <code>x.Value</code> with a warning saying that Option.Value shouldn’t be used</p>
+
+<p><img src="https://cdn-images-1.medium.com/max/2000/1*axoWiRB3EPANiOljA_PWzg.png" alt="" /></p>
+
+<blockquote>
+  <p>Sample project using analyzer can be found on GitHub - <a href="https://github.com/Krzysztof-Cieslak/FSharp.Analyzers.Sample.Usage">https://github.com/Krzysztof-Cieslak/FSharp.Analyzers.Sample.Usage</a></p>
+</blockquote>
+
+<h3>So what’s next?</h3>
+
+<p>Currently there are several important limitation of the F# Analyzers. First of all they’re supported only by Ionide. Secondly to write analyzer you need to be familiar with F# (T)AST pretty well. And in the end writing fixes requires providing new version of code in textual form (unlike in case of Roslyn Analyzers where fixes can be provided as AST transformation), what may be difficult and error prone. Also, whole mechanism is currently in an experimental phase, relies on Reflection etc. so it can be bit unstable.</p>
+
+<p>However, I treat this as an experiment and proof of concept, that may be used as a base for discussing similar functionalities being added to F# compiler or other IDEs. Also I’m super excited to see what potentially great things can F# Community create having such extension point in the editor (Evil Hint: You can use this feature to run any code inside of the language server and return some information to editor… which sounds awesome and crazy at the same time)</p>
+
+<h3>Summary</h3>
+
+<p>In this post I’ve introduced preview of new tooling related project that enables users to add custom analyzers to your editor, bringing functionality similar to Roslyn Analyzers. While this is only experiment, and proof-of-concept I’m looking forward to seeing all innovative things it can enable. Analyzers support has been released in new Ionide version - <code>3.27.0</code> - so it’s out there and ready for experimenting!</p>
 
                 </div><!-- .entry-content -->
                 <footer class="entry-footer">
                     <div class="share-post">
                         <span>Share</span>
-                        <a class="fa-twitter" target="_blank" href="https://twitter.com/intent/tweet?text=Working%20with%20F%23%20projects%20in%20VSCode&amp;url=http://kcieslak.io/Working-with-F-Projects-In-VSCode"><span class="screen-reader-text">Twitter</span></a>
-                        <a class="fa-facebook" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://kcieslak.io/Working-with-F-Projects-In-VSCode&amp;t=Working%20with%20F%23%20projects%20in%20VSCode"><span class="screen-reader-text">Facebook</span></a>
-                        <a class="fa-google-plus" target="_blank" href="http://plus.google.com/share?url=http://kcieslak.io/Working-with-F-Projects-In-VSCode"><span class="screen-reader-text">Google+</span></a>
+                        <a class="fa-twitter" target="_blank" href="https://twitter.com/intent/tweet?text=Introducing%20F%23%20Analyzers&amp;url=http://kcieslak.io/Introducing-F-Analyzers"><span class="screen-reader-text">Twitter</span></a>
+                        <a class="fa-facebook" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://kcieslak.io/Introducing-F-Analyzers&amp;t=Introducing%20F%23%20Analyzers"><span class="screen-reader-text">Facebook</span></a>
+                        <a class="fa-google-plus" target="_blank" href="http://plus.google.com/share?url=http://kcieslak.io/Introducing-F-Analyzers"><span class="screen-reader-text">Google+</span></a>
                     </div><!-- .share-post -->
                     
                     <div class="tag-links">
@@ -182,25 +195,14 @@
                 <div class="nav-previous">
                     <div class="nav-inside">
                         
-                        <a href="/Creating-custom-project-file-for-F" class="nav-thumb" style="background-image: url(/images/posts/landscape_4.jpg)"></a>
+                        <a href="/Building-an-MVP-with-F-and-Saturn" class="nav-thumb" style="background-image: url(/images/posts/landscape_13.jpg)"></a>
                         
                         <div class="nav-before">Previous</div>
-                        <div class="nav-title"><a href="/Creating-custom-project-file-for-F">Creating custom project file for F#</a></div>
-                        <div class="nav-date">June 23, 2016</div>
+                        <div class="nav-title"><a href="/Building-an-MVP-with-F-and-Saturn">Building an MVP with F# and Saturn</a></div>
+                        <div class="nav-date">August 16, 2018</div>
                     </div><!-- .nav-inside -->
                 </div><!-- .nav-previous -->
                 
-                
-                <div class="nav-next">
-                    <div class="nav-inside">
-                        
-                        <a href="/Dynamically-extending-F-applications" class="nav-thumb" style="background-image: url(/images/posts/landscape_6.jpg)"></a>
-                        
-                        <div class="nav-before">Next</div>
-                        <div class="nav-title"><a href="/Dynamically-extending-F-applications">Dynamically extending F# applications</a></div>
-                        <div class="nav-date">October 3, 2016</div>
-                    </div><!-- .nav-inside -->
-                </div><!-- .nav-next -->
                 
             </nav><!-- .post-navigation -->
             

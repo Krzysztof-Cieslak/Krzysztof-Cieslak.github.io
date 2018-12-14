@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Dynamically extending F# applications</title>
-    <meta name="description" content="Creating F# application which can be dynamically extended on runtime">
+    <title>Building an MVP with F# and Saturn</title>
+    <meta name="description" content="Building an MVP with F# and Saturn">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="/favicon/favicon.ico">
     <link rel="apple-touch-icon-precomposed" href="/favicon/lattice-optic-illusion-152-204321.png" >
@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/styles/default.min.css">
     <link rel="stylesheet" href="/css/main.css" />
     <link rel="stylesheet" href="/css/font-awesome.min.css" />
-    <link rel="canonical" href="http://kcieslak.io/Dynamically-extending-F-applications">
+    <link rel="canonical" href="http://kcieslak.io/Building-an-MVP-with-F-and-Saturn">
     <link rel="alternate" type="application/rss+xml" title="F# Reflections Feed" href="http://kcieslak.io/feed.xml">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
 </head>
@@ -69,193 +69,90 @@
                     <div class="entry-header-wrap">
                         
                         <div class="post-thumbnail">
-                            <img src="/images/posts/landscape_6.jpg" alt="Dynamically extending F# applications">
+                            <img src="/images/posts/landscape_13.jpg" alt="Building an MVP with F# and Saturn">
                         </div><!-- .post-thumbnail -->
                         
-                        <h1 class="entry-title">Dynamically extending F# applications</h1>
+                        <h1 class="entry-title">Building an MVP with F# and Saturn</h1>
                     </div><!-- .entry-header-wrap -->
                     <div class="entry-meta">
-                        by <span class="post-author">Krzysztof Cieslak</span> on <time class="published" datetime="2016-10-03">October 3, 2016</time>
+                        by <span class="post-author">Krzysztof Cieslak</span> on <time class="published" datetime="2018-08-16">August 16, 2018</time>
                     </div><!-- .entry-meta -->
                 </header><!-- .entry-header -->
                 <div class="entry-content">
-                    <h1>Introduction</h1>
+                    <h1>Building an MVP with F# and Saturn</h1>
 
-<p>Changing requirements, introducing different data format, extending applications with new features. All those things requires us (developers) to go to code, do changes, add API versioning system (to be backward compatible), add configuration for turning on/off new features, compile application, and at the end release new application (what itself may be complex process). It’s often lot of work required for every, even very small, change.</p>
-
-<p>In this post I’ll present way to add new features to our F# application - dynamically, on runtime, without any recompiling and redeployment of application. What’s more extensions will be also defined using F#… in fact they will be simple F# script files.</p>
+<p>Creating an MVP (minimum viable product) is one of the best way of bootstrapping your startup. As a new company getting a quick feedback from the application users, bringing an application to users as fast as possible, being able to adapt as quickly as possible to the market changes, and providing frequent application updates is crucial for the initial success of the product. But it’s also important to understand that an MVP software development is not synonymous with unfinished or a primitive product that was created in a hurry.</p>
 
 <!--more-->
 
-<h1>Sample application</h1>
+<h3>What is an MVP?</h3>
 
-<p>Our sample application for this blog post will be rather simple - it will be F# console application, taking user input as string, performing set of transformations on this input and just printing out result. Transformation for our input will be dynamically loaded on runtime - initially, before user add any plugins, application just returns same value as user typed in.</p>
+<p>Minimum Viable Product (MVP) is the smallest, most concise version of your product you can initially release for feedback. It enables a full turn of the feedback loop with the least amount of development time and effort. This allows the targeted users to try a product and evaluate it to make the complete version better. It is a frequently updated environment with the new features that could be seen and tested by clients. New registration page, an admin management panel, as well as email notifications, and any other new features you can imagine.</p>
 
-<p>We can simply define our transformation as <code>type Transformation = string -&gt; string</code> and operation we perform on input as <code>let output = lstOfTransformations |&gt; List.fold (fun state transform -&gt; transform state ) input</code>.</p>
+<p>MVP development allows early adopters to understand the vision or promise of the final product and provide valuable feedback to guide developers moving forward. The main advantages of the MVP software development are:</p>
 
-<h1>Evaluating plugins files</h1>
+<ul>
+  <li>
+    <p>MVP has enough value that people can already use or buy it</p>
+  </li>
+  <li>
+    <p>It demonstrates enough features to hook and retain early users</p>
+  </li>
+  <li>
+    <p>It provides feedback loop to guide future development</p>
+  </li>
+  <li>
+    <p>It shows enough future potential to start marketing around the project</p>
+  </li>
+</ul>
 
-<p>As I’ve mentioned our aim is to define extensions as simple F# script files. But while we can easily read text put in <code>.fsx</code> file, F# doesn’t have anything like JavaScript’s <code>eval()</code> function built-in, no way to take text containing code and evaluating its value. But this is a moment where <code>FSharp.Compiler.Services</code> enters the scene. FCS (not to confuse with FSC which is F# compiler) is fork of F# compiler that exposes additional functionality for implementing F# editor features, and additional tools based on the compiler. It also includes F# interactive service that can be used for embedding F# scripting into your applications.</p>
+<p>What’s important - MVP development is not only the strategy for startups. When you already have well-established company and customers, you also need to have some way to experiment with new potential products or features. In a lot of cases, the minimum viable product really is just a way to do that.</p>
 
-<blockquote>
-  <p>If you want learn more about <code>FSharp.Compiler.Services</code> visit <a href="https://fsharp.github.io/FSharp.Compiler.Service/">FCS webpage</a> to see documentation of available features, APIs, and list of projects using FCS.</p>
-</blockquote>
+<h3>Few words about F</h3>
 
-<p>For our purpose we need two things - first we’ll create embedded in our application F# Interactive session, and then we will use it to load file with plugin and evaluate it.</p>
+<p><a href="https://fsharp.org">F# is a functional-first programming language</a> running on the .Net platform. Paired with <a href="https://www.microsoft.com/net">.Net Core</a> - modern, cross platform implementation of the .Net Framework - it is fantastic tool for writing modern applications. .Net Core provides industrial level of the performance, security, huge ecosystem of the libraries, and always growing open source community. F#, itself an open source language with fantastic community , thanks to expressiveness, functional-first approach, great developers tooling and advanced language features provides unmatched developer experience and fast development speed, so important for building MVPs. It can also be your secret weapon that makes you stand out from many different companies, and that let you hire more talented people that just want to work with more niche technology.</p>
 
-<p>Creating FSI session is pretty straightforward:</p>
+<h3>Introducing Saturn</h3>
 
-<pre><code class="language-fsharp">open Microsoft.FSharp.Compiler.Interactive.Shell
+<p>F# due to its functional nature is perfect fit for the web applications. In the end HTTP web server may be treated as a function that takes Request and returns Response.</p>
 
-let sbOut = StringBuilder()
-let sbErr = StringBuilder()
+<p><a href="https://saturnframework.org">Saturn</a> is a modern web framework for the F# focusing on high level abstractions and great developer experience, allowing developers focus on the things that matters for your business. Influenced by the popular frameworks such as Rails or Phoenix it comes with all the batteries included. Its ecosystem includes development tools that allows developers to quickly create new applications, add new features to existing applications, and test new features; it integrates with existing <a href="https://docs.microsoft.com/en-us/aspnet/core/?view=aspnetcore-2.1">ASP.NET Core</a> ecosystem that provides huge set of existing modules that you can use in your application; it provides pre-defined configurations that limits the number of decisions that developers need to make. And all this while using highly expressive and modern programming language.</p>
 
-let fsi =
-    let inStream = new StringReader("")
-    let outStream = new StringWriter(sbOut)
-    let errStream = new StringWriter(sbErr)
-    let fsiConfig = FsiEvaluationSession.GetDefaultConfiguration()
-    let argv = [| "/temo/fsi.exe"; |]
-    FsiEvaluationSession.Create(fsiConfig, argv, inStream, outStream, errStream)
-</code></pre>
+<h3>Typical difficulties</h3>
 
-<p>Next we can use FSI session to load file with extension and evaluate it’s content.</p>
+<p>While MVP development is really powerful technique, just like every other methodology it has its own drawbacks. First of all you need to understand it’s not about delivering product as fast as possible so customers can try it out. MVP development is about refined and validated learning. This simple fact must be understood by everyone - stakeholders, developers, customers. You have to understand that final product may drastically change due to user’s feedback. And this is something that must be embraced by the development team, and should impact the way in which they work. Developers needs to have regular feedback session, learn from them, prioritise features.</p>
 
-<pre><code class="language-fsharp"> let evaluate path =
-    let mdl = getOpen path
-    let load = getLoad path
+<p>As a result, this should have an impact on the technologies chosen for developing MVP:</p>
 
-    fsi.EvalInteractionNonThrowing(sprintf "#load \"%s\";;" load)
-    fsi.EvalInteractionNonThrowing(sprintf "open %s;;" mdl)
-    fsi.EvalExpressionNonThrowing "map"
+<ul>
+  <li>
+    <p>refactoring plays the key roles, when you see that some part of the product is not scalable or flexible enough, or that it just need changes based on the user’s feedback you need to be able to quickly change an existing code base</p>
+  </li>
+  <li>
+    <p>correctness is important, especially the one you can get for free. Using static type checking, code linting, and code quality tools is crucial to provide product that’s working well enough, without spending much development time on it</p>
+  </li>
+  <li>
+    <p>flexible but simple design - design of your product must be flexible enough to provide ability to change the product based on the feedback, but at the same time it must be relatively simple - for MVP development you want to get to the market as fast as possible, and you don’t want to spend time building sophisticated architecture that may not work after all changes that will happen in the future</p>
+  </li>
+</ul>
 
-    match res with
-    | Choice1Of2 (Some f) -&gt;
-        f.ReflectionValue :?&gt; Transformation |&gt; Some
-    | _ -&gt; None
-</code></pre>
+<p>Fortunately, F# and .Net Core are great solutions for all those problems - functional first approach naturally pushes you toward pit of success, and simple, flexible architecture, static typing with powerful type inference enables you to create correct software without much overhead, best in class editor tooling helps you to quickly refactor existing code.</p>
 
-<p>First we find full path to file we want to load, and name of default module for this file (it’s name of the file with first character uppercase).</p>
+<h3>Commercial support</h3>
 
-<p>We execute in FSI <code>#load</code> statement to load content of extension file, and then we open default module. Last operation is executing <code>map</code> in FSI which will return value of this expression (so function).</p>
-
-<blockquote>
-  <p>For sake of simplicity in sample, we make several assumptions about extensions files - we don’t define modules inside of <code>.fsx</code> files and they contain only single function  <code>map : string -&gt; string</code>.</p>
-</blockquote>
-
-<p>If everything is working we can now load F# script file and get from it normal F# function which we can execute somewhere else in our code!</p>
-
-<h1>Loading plugins on runtime</h1>
-
-<p>Next important feature of our application is dynamically loading (and unloading) scripts when users creates (or removes) them. For this we will use built-in .Net FileSystemWatcher class which let developer to perform operations whenever new file is created, file is removed etc. in given directory.</p>
-
-<p>We just create really simple functions which takes 2 functions (one executed when file is added, second one when file is removed) and directory to watch for changes:</p>
-
-<pre><code class="language-fsharp">let create addCb rmCb dir =
-    if Directory.Exists dir |&gt; not then Directory.CreateDirectory dir |&gt; ignore
-
-    let watcher = new FileSystemWatcher()
-    watcher.Filter &lt;- "*.fsx"
-    watcher.Path &lt;- dir
-    watcher.Created.Add (fun n -&gt; n.FullPath |&gt; addCb)
-    watcher.Deleted.Add (fun n -&gt; n.FullPath |&gt; rmCb)
-    watcher.Renamed.Add (fun n -&gt; n.OldFullPath |&gt; rmCb; n.FullPath |&gt; addCb)
-    watcher.Changed.Add (fun n -&gt; n.FullPath |&gt; rmCb; n.FullPath |&gt; addCb)
-    watcher.SynchronizingObject &lt;- null
-    watcher.EnableRaisingEvents &lt;- true
-
-    watcher
-</code></pre>
-
-<h1>Plugins register</h1>
-
-<p>The last important part is storing list of the transformations in memory when application is running. Since FileWatcher is running asynchronously in background of our applications we are afraid of any potential race conditions so we won’t use any global mutable state to do so. Instead we will encapsulate state of our application in agent.</p>
-
-<blockquote>
-  <p>To learn more about F# Agents visit Scott Wlaschin’s <a href="https://fsharpforfunandprofit.com/posts/concurrency-actor-model/">post about them</a></p>
-</blockquote>
-
-<pre><code class="language-fsharp">type private Msg =
-    | Add of string * Transformation
-    | Remove of string
-    | Get of AsyncReplyChannel&lt;Transformation list&gt;
-
-let private register =
-    MailboxProcessor.Start (fun inbox -&gt;
-        let rec loop lst = async {
-            let! msg = inbox.Receive()
-            match msg with
-            | Add (n,f) -&gt;
-                return! loop ((n,f)::lst)
-            | Remove n -&gt;
-                return! loop (lst |&gt; List.filter(fun (f,_) -&gt; f &lt;&gt; n))
-            | Get rc -&gt;
-                let l = lst |&gt; List.map snd
-                rc.Reply l
-                return! loop lst
-        }
-        loop [] )
-
-let add name fnc =
-    (name, fnc) |&gt; Add |&gt; register.Post
-
-let remove name =
-    name |&gt; Remove |&gt; register.Post
-
-let get () =
-    register.PostAndReply Get
-</code></pre>
-
-<p>Our agent can perform 3 operations - add transformation, remove it, or return list of all transformations.</p>
-
-<h1>Putting things together</h1>
-
-<p>The last step is putting whole application together:</p>
-
-<pre><code>[&lt;EntryPoint&gt;]
-let main argv =
-    let remove path =
-        let fn = Path.GetFileNameWithoutExtension path
-        Register.remove fn
-
-    let add path =
-        let fn = Path.GetFileNameWithoutExtension path
-        match Evaluator.evaluate path |&gt; Option.map (fun ev -&gt; Register.add fn ev ) with
-        | Some _ -&gt; ()
-        | None -&gt; printfn "File `%s` couldn't be parsed" path
-
-    let watcher = Watcher.create add remove "scripts"
-
-    while true do
-        let input = System.Console.ReadLine ()
-        let lst = Register.get ()
-        let res = lst |&gt; List.fold (fun s e -&gt; e s ) input
-        printfn "Result: %s" res
-</code></pre>
-
-<p>First we define callbacks for file watcher - on file remove we just send message to extensions register to remove it, when file is added we try to evaluate it and if it was successful we send message to agent to add it to list.</p>
-
-<p>Then we create watcher using those 2 functions watching <code>scripts</code> directory.</p>
-
-<p>Last step is loop which waits for user input, gets all transformations, apply them to input, and print out result at the end. Here is small demo:</p>
-
-<p><img src="images/gifs/FunctionLoader.gif" alt="Function Loader demo" /></p>
-
-<h1>Summary</h1>
-
-<p>In this post I’ve shown how to use <code>FSharp.Compiler.Services</code> to add dynamic extensibility mechanism to F# applications. Sample presented in this blog post was really simple, but I believe that this technique can be also used for more complex, real world applications (hopefully, I’ll be able to create some more complex project using this method soon ;) ). Full code for sample application can be found on <a href="https://gitlab.com/Krzysztof-Cieslak/FunctionLoader">GitLab (!)</a></p>
+<p>The last important factor in choosing right technology is having an ability to hire someone to develop the product, or just get help. F# ecosystem is including wide range of the options for getting commercial support - starting from the established companies providing support for <a href="https://safe-stack.github.io">SAFE Stack</a> through multiple independent consultants to <a href="https://lambdafactory.io">Lambda Factory</a>. Lambda Factory specialises in creating web applications, F# training and consulting, MVP development, and developer relationships. We provide everything you need to transform your startup into prospecting business - help with creating MVP, iterating over the feedback loop, hiring talented developers, and DevRel marketing.</p>
 
                 </div><!-- .entry-content -->
                 <footer class="entry-footer">
                     <div class="share-post">
                         <span>Share</span>
-                        <a class="fa-twitter" target="_blank" href="https://twitter.com/intent/tweet?text=Dynamically%20extending%20F%23%20applications&amp;url=http://kcieslak.io/Dynamically-extending-F-applications"><span class="screen-reader-text">Twitter</span></a>
-                        <a class="fa-facebook" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://kcieslak.io/Dynamically-extending-F-applications&amp;t=Dynamically%20extending%20F%23%20applications"><span class="screen-reader-text">Facebook</span></a>
-                        <a class="fa-google-plus" target="_blank" href="http://plus.google.com/share?url=http://kcieslak.io/Dynamically-extending-F-applications"><span class="screen-reader-text">Google+</span></a>
+                        <a class="fa-twitter" target="_blank" href="https://twitter.com/intent/tweet?text=Building%20an%20MVP%20with%20F%23%20and%20Saturn&amp;url=http://kcieslak.io/Building-an-MVP-with-F-and-Saturn"><span class="screen-reader-text">Twitter</span></a>
+                        <a class="fa-facebook" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://kcieslak.io/Building-an-MVP-with-F-and-Saturn&amp;t=Building%20an%20MVP%20with%20F%23%20and%20Saturn"><span class="screen-reader-text">Facebook</span></a>
+                        <a class="fa-google-plus" target="_blank" href="http://plus.google.com/share?url=http://kcieslak.io/Building-an-MVP-with-F-and-Saturn"><span class="screen-reader-text">Google+</span></a>
                     </div><!-- .share-post -->
                     
                     <div class="tag-links">
-                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#FSharp.Compiler.Services" title="Pages tagged FSharp.Compiler.Services" rel="tag">FSharp.Compiler.Services</a>
+                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#Saturn" title="Pages tagged Saturn" rel="tag">Saturn</a><a href="/tags/index.html#Web" title="Pages tagged Web" rel="tag">Web</a><a href="/tags/index.html#MVP" title="Pages tagged MVP" rel="tag">MVP</a>
                     </div>
                     
                 </footer><!-- .entry-footer -->
@@ -277,11 +174,11 @@ let main argv =
                 <div class="nav-previous">
                     <div class="nav-inside">
                         
-                        <a href="/Working-with-F-Projects-In-VSCode" class="nav-thumb" style="background-image: url(/images/posts/landscape_5.jpg)"></a>
+                        <a href="/Challenges-of-post-OSS-world" class="nav-thumb" style="background-image: url(/images/posts/landscape_12.jpg)"></a>
                         
                         <div class="nav-before">Previous</div>
-                        <div class="nav-title"><a href="/Working-with-F-Projects-In-VSCode">Working with F# projects in VSCode</a></div>
-                        <div class="nav-date">July 27, 2016</div>
+                        <div class="nav-title"><a href="/Challenges-of-post-OSS-world">Challenges of post-OSS world</a></div>
+                        <div class="nav-date">August 11, 2018</div>
                     </div><!-- .nav-inside -->
                 </div><!-- .nav-previous -->
                 
@@ -289,11 +186,11 @@ let main argv =
                 <div class="nav-next">
                     <div class="nav-inside">
                         
-                        <a href="/Using-Paket-with-Azure-Functions" class="nav-thumb" style="background-image: url(/images/posts/landscape_7.jpg)"></a>
+                        <a href="/Introducing-F-Analyzers" class="nav-thumb" style="background-image: url(/images/posts/landscape_6.jpg)"></a>
                         
                         <div class="nav-before">Next</div>
-                        <div class="nav-title"><a href="/Using-Paket-with-Azure-Functions">Using Paket with Azure Functions</a></div>
-                        <div class="nav-date">November 22, 2016</div>
+                        <div class="nav-title"><a href="/Introducing-F-Analyzers">Introducing F# Analyzers</a></div>
+                        <div class="nav-date">September 14, 2018</div>
                     </div><!-- .nav-inside -->
                 </div><!-- .nav-next -->
                 

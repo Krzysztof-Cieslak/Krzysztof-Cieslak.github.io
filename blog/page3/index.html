@@ -69,6 +69,165 @@
                 <header class="entry-header"> 
                     <div class="entry-header-wrap">
                         
+                        <a href="/Dynamically-extending-F-applications" class="post-thumbnail"><img src="/images/posts/landscape_6.jpg" alt="Dynamically extending F# applications "></a>
+                        
+                        <h2 class="entry-title"><a href="/Dynamically-extending-F-applications" rel="bookmark" title="Permanent Link to /Dynamically-extending-F-applications">Dynamically extending F# applications</a></h2>
+                    </div><!-- .entry-header-wrap -->
+                    <div class="entry-meta">
+                        by <span class="post-author">Krzysztof Cieslak</span> on <time class="published" datetime="2016-10-03">October 3, 2016</time>
+                    </div><!-- .entry-meta -->
+                </header><!-- .entry-header -->
+                <div class="entry-content">
+                    
+                        <h1>Introduction</h1>
+
+<p>Changing requirements, introducing different data format, extending applications with new features. All those things requires us (developers) to go to code, do changes, add API versioning system (to be backward compatible), add configuration for turning on/off new features, compile application, and at the end release new application (what itself may be complex process). It’s often lot of work required for every, even very small, change.</p>
+
+<p>In this post I’ll present way to add new features to our F# application - dynamically, on runtime, without any recompiling and redeployment of application. What’s more extensions will be also defined using F#… in fact they will be simple F# script files.</p>
+
+
+                    
+                    <p class="read-more"><a href="/Dynamically-extending-F-applications" class="more-link" title="read more">read more</a></p>
+                </div><!-- .entry-content -->
+                
+                <footer class="entry-footer">
+                    <div class="tag-links">
+                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#FSharp.Compiler.Services" title="Pages tagged FSharp.Compiler.Services" rel="tag">FSharp.Compiler.Services</a>
+                    </div>
+                </footer><!-- .entry-footer -->
+                
+            </article><!-- .post -->
+            
+            <article class="post">
+                <header class="entry-header"> 
+                    <div class="entry-header-wrap">
+                        
+                        <a href="/Working-with-F-Projects-In-VSCode" class="post-thumbnail"><img src="/images/posts/landscape_5.jpg" alt="Working with F# projects in VSCode "></a>
+                        
+                        <h2 class="entry-title"><a href="/Working-with-F-Projects-In-VSCode" rel="bookmark" title="Permanent Link to /Working-with-F-Projects-In-VSCode">Working with F# projects in VSCode</a></h2>
+                    </div><!-- .entry-header-wrap -->
+                    <div class="entry-meta">
+                        by <span class="post-author">Krzysztof Cieslak</span> on <time class="published" datetime="2016-07-27">July 27, 2016</time>
+                    </div><!-- .entry-meta -->
+                </header><!-- .entry-header -->
+                <div class="entry-content">
+                    
+                        <h1>Introduction</h1>
+
+<p>Visual Studio Code is a lightweight but powerful source code editor which runs on your desktop and is available for Windows, OS X and Linux. It comes with built-in support for JavaScript, TypeScript and Node.js and has a rich ecosystem of extensions for other languages (C++, C#, Python, PHP) and runtimes. The F# support for VSCode is provided by <a href="http://ionide.io">Ionide</a> - set of extensions adding F# support, as well as Paket and FAKE.</p>
+
+<blockquote>
+  <p>If you’re new VSCode user installing extensions is pretty easy - press extensions button on left panel, search for Ionide, press install for all Ionide extensions, wait untill all are installed and restart VSCode.</p>
+</blockquote>
+
+<p>Ionide-FSharp provides wide set of features useful for F# developer - from simple autocomplete and tooltips, through F# Interactive integration, to navigating to symbols or finding all usages of symbol.</p>
+
+<p>It also comes with decent support for F# projects (defined using <code>.fsproj</code> file).</p>
+
+
+                    
+                    <p class="read-more"><a href="/Working-with-F-Projects-In-VSCode" class="more-link" title="read more">read more</a></p>
+                </div><!-- .entry-content -->
+                
+                <footer class="entry-footer">
+                    <div class="tag-links">
+                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#VS+Code" title="Pages tagged VS Code" rel="tag">VS Code</a><a href="/tags/index.html#Tooling" title="Pages tagged Tooling" rel="tag">Tooling</a>
+                    </div>
+                </footer><!-- .entry-footer -->
+                
+            </article><!-- .post -->
+            
+            <article class="post">
+                <header class="entry-header"> 
+                    <div class="entry-header-wrap">
+                        
+                        <a href="/Creating-custom-project-file-for-F" class="post-thumbnail"><img src="/images/posts/landscape_4.jpg" alt="Creating custom project file for F# "></a>
+                        
+                        <h2 class="entry-title"><a href="/Creating-custom-project-file-for-F" rel="bookmark" title="Permanent Link to /Creating-custom-project-file-for-F">Creating custom project file for F#</a></h2>
+                    </div><!-- .entry-header-wrap -->
+                    <div class="entry-meta">
+                        by <span class="post-author">Krzysztof Cieslak</span> on <time class="published" datetime="2016-06-23">June 23, 2016</time>
+                    </div><!-- .entry-meta -->
+                </header><!-- .entry-header -->
+                <div class="entry-content">
+                    
+                        <h1>Introduction</h1>
+
+<p>Let’s imagine a world where F# is independent language, with cross-platform tooling making life of every F# developer easier. In this world, after we’ve fixed dependency management problem with Paket, we could go one step further… and fix project file format and building. We would use same principles as Paket - very simple, human readable, file format which can be edited without any other tooling, and command line tool responsible for building such project.</p>
+
+<p>In such world I’ve decided to create new open-source project called <code>Chris</code></p>
+
+<h1>File format</h1>
+
+<p>For our hypothetical project file (called <code>project.chris</code>) I’ve decided to use <code>toml</code>. In this very simple file we would just specify few properties, files of our project, GAC references and external NuGet packages. It would look like as follows:</p>
+
+<pre><code class="language-toml">[Info]
+Name = "Fancy_Test_Project"
+Author = "Lambda Factory"
+Git = ""
+
+[Stuff]
+References = ["mscorlib", "System", "System.Core", "System.Numerics"]
+Files = ["Message.fs", "Test.fs"]
+Packages = []
+</code></pre>
+
+
+                    
+                    <p class="read-more"><a href="/Creating-custom-project-file-for-F" class="more-link" title="read more">read more</a></p>
+                </div><!-- .entry-content -->
+                
+                <footer class="entry-footer">
+                    <div class="tag-links">
+                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#VS+Code" title="Pages tagged VS Code" rel="tag">VS Code</a><a href="/tags/index.html#Tooling" title="Pages tagged Tooling" rel="tag">Tooling</a>
+                    </div>
+                </footer><!-- .entry-footer -->
+                
+            </article><!-- .post -->
+            
+            <article class="post">
+                <header class="entry-header"> 
+                    <div class="entry-header-wrap">
+                        
+                        <a href="/Getting-Started-with-Fable-and-Webpack" class="post-thumbnail"><img src="/images/posts/landscape_3.jpg" alt="Getting started with Fable and Webpack "></a>
+                        
+                        <h2 class="entry-title"><a href="/Getting-Started-with-Fable-and-Webpack" rel="bookmark" title="Permanent Link to /Getting-Started-with-Fable-and-Webpack">Getting started with Fable and Webpack</a></h2>
+                    </div><!-- .entry-header-wrap -->
+                    <div class="entry-meta">
+                        by <span class="post-author">Krzysztof Cieslak</span> on <time class="published" datetime="2016-05-16">May 16, 2016</time>
+                    </div><!-- .entry-meta -->
+                </header><!-- .entry-header -->
+                <div class="entry-content">
+                    
+                        <h1>Introduction</h1>
+
+<p><a href="https://github.com/fsprojects/Fable">Fable</a> is new F# to JavaScript compiler created by <a href="https://twitter.com/alfonsogcnunez">Alfonso Garcia-Caro</a>. In this post I’ll go, step by step, through process of creating client-side (browser) applications using it.</p>
+
+<blockquote>
+  <p>This post is targeted at F# developers without lot of knowladge about Node.js and JS ecosystem and it should let any F# developer to get started with Fable.</p>
+</blockquote>
+
+<h3>Requirements</h3>
+
+<p>Fable requires having both <a href="http://fsharp.org">F# 4</a> and <a href="https://nodejs.org/en/">node 4.4</a> or bigger installed in your computer.</p>
+
+
+                    
+                    <p class="read-more"><a href="/Getting-Started-with-Fable-and-Webpack" class="more-link" title="read more">read more</a></p>
+                </div><!-- .entry-content -->
+                
+                <footer class="entry-footer">
+                    <div class="tag-links">
+                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#Fable" title="Pages tagged Fable" rel="tag">Fable</a><a href="/tags/index.html#VS+Code" title="Pages tagged VS Code" rel="tag">VS Code</a><a href="/tags/index.html#Webpack" title="Pages tagged Webpack" rel="tag">Webpack</a><a href="/tags/index.html#JS" title="Pages tagged JS" rel="tag">JS</a>
+                    </div>
+                </footer><!-- .entry-footer -->
+                
+            </article><!-- .post -->
+            
+            <article class="post">
+                <header class="entry-header"> 
+                    <div class="entry-header-wrap">
+                        
                         <a href="/Creating-VS-Code-plugins-with-F-and-Fable" class="post-thumbnail"><img src="/images/posts/landscape_1.jpg" alt="Creating VS Code plugins with F# and Fable "></a>
                         
                         <h2 class="entry-title"><a href="/Creating-VS-Code-plugins-with-F-and-Fable" rel="bookmark" title="Permanent Link to /Creating-VS-Code-plugins-with-F-and-Fable">Creating VS Code plugins with F# and Fable</a></h2>
@@ -98,48 +257,15 @@
                 
             </article><!-- .post -->
             
-            <article class="post">
-                <header class="entry-header"> 
-                    <div class="entry-header-wrap">
-                        
-                        <a href="/Using-Node-with-Paket-and-Fake" class="post-thumbnail"><img src="/images/posts/landscape_2.jpg" alt="Using Node.js and NPM with Paket and FAKE "></a>
-                        
-                        <h2 class="entry-title"><a href="/Using-Node-with-Paket-and-Fake" rel="bookmark" title="Permanent Link to /Using-Node-with-Paket-and-Fake">Using Node.js and NPM with Paket and FAKE</a></h2>
-                    </div><!-- .entry-header-wrap -->
-                    <div class="entry-meta">
-                        by <span class="post-author">Krzysztof Cieslak</span> on <time class="published" datetime="2016-03-01">March 1, 2016</time>
-                    </div><!-- .entry-meta -->
-                </header><!-- .entry-header -->
-                <div class="entry-content">
-                    
-                        <h1>Introduction</h1>
-
-<p>Web development is great fit for F# and Functional Programming . Libraries like <a href="http://suave.io">Suave</a> or <a href="http://docs.freya.io/en/latest/">Freya</a> makes it easy to create well-architectures, composable web applications. But that’s backend part of story. Nowadays most web applications are required to have lot of user interactions and logic on the front-end side - in the browser.</p>
-
-<p>Two important tools for front-end JavaScript development are <a href="https://nodejs.org/en/">Node.js</a> (JS backend server, used for running many JS development tools) and <a href="npmjs.com">npm</a> - package manager for Node.js. Those 2 tools are often installed globally on developer PC, are used to define dependencies for front-end application, and define build pipeline for it.</p>
-
-<p>But, using different build tools for backend and front-end development in one application can get annoying and tiresome for developer, so it would be nice to use one build pipeline for all tasks. And it is possible with Paket and FAKE.</p>
-
-
-                    
-                    <p class="read-more"><a href="/Using-Node-with-Paket-and-Fake" class="more-link" title="read more">read more</a></p>
-                </div><!-- .entry-content -->
-                
-                <footer class="entry-footer">
-                    <div class="tag-links">
-                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#Paket" title="Pages tagged Paket" rel="tag">Paket</a><a href="/tags/index.html#FAKE" title="Pages tagged FAKE" rel="tag">FAKE</a>
-                    </div>
-                </footer><!-- .entry-footer -->
-                
-            </article><!-- .post -->
-            
             
             <nav class="pagination">
                 <h2 class="screen-reader-text">Posts navigation</h2>
                 
                 <a href="/blog/page2/" class="newer-posts fa-chevron-left square fill-horizontal"><span class="screen-reader-text">Newer Posts</span></a>
                 
-                <span class="page-number">Page 3 of 3</span>
+                <span class="page-number">Page 3 of 4</span>
+                
+                <a href="/blog/page4/" class="older-posts fa-chevron-right square fill-horizontal"><span class="screen-reader-text">Older Posts</span></a>
                 
             </nav><!-- .pagination -->
             
@@ -166,15 +292,15 @@
         <h2 class="widget-title">Latest Posts</h2>
         <ul class="recent-posts">
             
+            <li class="recent-item"><a href="/Introducing-F-Analyzers">Introducing F# Analyzers</a> <span>September 14, 2018</span></li>
+            
+            <li class="recent-item"><a href="/Building-an-MVP-with-F-and-Saturn">Building an MVP with F# and Saturn</a> <span>August 16, 2018</span></li>
+            
+            <li class="recent-item"><a href="/Challenges-of-post-OSS-world">Challenges of post-OSS world</a> <span>August 11, 2018</span></li>
+            
+            <li class="recent-item"><a href="/Using-OAuth-with-Saturn">Using OAuth with Saturn</a> <span>August 3, 2018</span></li>
+            
             <li class="recent-item"><a href="/Introducing-Saturn-on-Functions">Introducing Saturn on Functions</a> <span>July 21, 2018</span></li>
-            
-            <li class="recent-item"><a href="/Magic-of-Saturn-controllers">Magic of Saturn controllers</a> <span>July 20, 2018</span></li>
-            
-            <li class="recent-item"><a href="/OSS-The-Story">OSS and Community. The Story</a> <span>February 23, 2018</span></li>
-            
-            <li class="recent-item"><a href="/Reinventing-MVC-for-web-programming-with-F">Reinventing MVC pattern for web programming with F#</a> <span>January 25, 2018</span></li>
-            
-            <li class="recent-item"><a href="/Path-to-community-based-OSS">Path to Community based Open Source Software</a> <span>June 12, 2017</span></li>
             
         </ul><!-- .recent-posts -->
     </section><!-- .widget-recent-posts -->
@@ -199,6 +325,10 @@
             <a href="/tags/#Fable">Fable</a>
             
             <a href="/tags/#JS">JS</a>
+            
+            <a href="/tags/#MVP">MVP</a>
+            
+            <a href="/tags/#OAuth">OAuth</a>
             
             <a href="/tags/#Open+Source">Open Source</a>
             
