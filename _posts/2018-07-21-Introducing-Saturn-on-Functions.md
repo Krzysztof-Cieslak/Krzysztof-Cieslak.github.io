@@ -13,6 +13,8 @@ Azure Functions is a service that provides serverless execution model while runn
 
 On the other hand, Saturn is new F# web framework that provides flexible, high level model of creating web applications using principles of functional programming and MVC architectural pattern. Main design goals of Saturn includes high level abstractions that lets developers focus on creating business code , and general developer experience.
 
+<!--more-->
+
 # Saturn on Functions
 
 Today I want to introduce new extension to Saturn that adds ability to easily host Saturn controllers and routers inside Azure Functions HTTP triggers. Saturn is a library built on top of Giraffe and ASP.NET Core which means it can easily integrate with existing .Net ecosystem. HTTP triggers in Azure Functions as one of the input parameters are getting standard `HttpRequest` object that can be passed into Saturn's `controller` or `router` (and any other `HttpHandler`).

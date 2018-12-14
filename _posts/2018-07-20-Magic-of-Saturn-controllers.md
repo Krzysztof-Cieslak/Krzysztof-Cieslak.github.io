@@ -11,9 +11,9 @@ banner_image: landscape_10.jpg
 
 [Saturn](https://saturnframework.org) is new F# web framework that implements well know design pattern - MVC - in more functional way. Despite Saturn being fairly young project it's getting more and more popular among F# community and industrial users. One of the main Saturn's goals is to create high level abstractions that will enable developers to focus on writing domain, business code instead of focusing on creating correct routing for your application or setting right response headers. One of such abstractions, that I want to talk about today, is `controller`.
 
-<!--more-->
-
 > This article was created for Saturn version 0.7.x
+
+<!--more-->
 
 # Basic usage
 

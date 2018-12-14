@@ -10,3 +10,4 @@ Gemfile.lock
 .paket/paket.exe
 packages
 temp
+.ionide/
