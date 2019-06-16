@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <title>Future of F# cross-platform editor tooling</title>
+    <meta name="description" content="Future of F# cross-platform editor tooling">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="shortcut icon" href="/favicon/favicon.ico">
+    <link rel="apple-touch-icon-precomposed" href="/favicon/lattice-optic-illusion-152-204321.png" >
+    <meta name="msapplication-TileColor" content="#ffffff" />
+    <meta name="msapplication-TileImage" content="/favicon/lattice-optic-illusion-144-204321.png">
+    <link rel="stylesheet" type="text/css"  href="//fonts.googleapis.com/css?family=Lato:400,400italic,700,700italic" />
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/styles/default.min.css">
+    <link rel="stylesheet" href="/css/main.css" />
+    <link rel="stylesheet" href="/css/font-awesome.min.css" />
+    <link rel="canonical" href="http://kcieslak.io/Future-of-F-Cross-platform-editor-tooling">
+    <link rel="alternate" type="application/rss+xml" title="F# Reflections Feed" href="http://kcieslak.io/feed.xml">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
+</head>
+<body>
+    <nav id="top" class="site-navigation">
+        <div class="inner">
+            <button id="menu-toggle" aria-expanded="false">Menu</button>
+            <div class="nav-menu">
+                <ul class="menu">
+                
+                  
+                  
+                  <li class="">
+                    <a class="" href="/">Home</a>
+                  </li>
+                
+                  
+                  
+                  <li class="">
+                    <a class="" href="/about">About</a>
+                  </li>
+                
+                  
+                  
+                  <li class="">
+                    <a class="" href="/tags/">Archives</a>
+                  </li>
+                
+                  
+                  
+                  <li class="">
+                    <a class="" href="/2016">2016</a>
+                  </li>
+                
+                </ul>
+            </div><!-- .nav-menu -->
+            <div class="subscribe-button">
+                <a class="fa-feed square fill-horizontal" href="/feed.xml"><span class="screen-reader-text">RSS</span></a>
+            </div><!-- .social-links -->
+        </div><!-- .inner -->
+    </nav><!-- .site-navigation -->
+    <header class="site-header">
+        <div class="inner">
+            <h1 class="site-title"><a class="logo-text" href="/">F# Reflections</a></h1>
+            <p class="site-description">Thoughts, stories and ideas.</p>
+        </div><!-- .inner -->
+    </header>
+    <div class="site-content">
+    <div class="inner">
+        <main class="site-main">
+            <article class="post">
+                <header class="entry-header">
+                    <div class="entry-header-wrap">
+                        
+                        <div class="post-thumbnail">
+                            <img src="/images/posts/landscape_14.jpg" alt="Future of F# cross-platform editor tooling">
+                        </div><!-- .post-thumbnail -->
+                        
+                        <h1 class="entry-title">Future of F# cross-platform editor tooling</h1>
+                    </div><!-- .entry-header-wrap -->
+                    <div class="entry-meta">
+                        by <span class="post-author">Krzysztof Cieslak</span> on <time class="published" datetime="2018-12-31">December 31, 2018</time>
+                    </div><!-- .entry-meta -->
+                </header><!-- .entry-header -->
+                <div class="entry-content">
+                    <h1>Future of F# cross-platform editor tooling</h1>
+
+<p>Currently we have this beautiful moment in the year when everyone writes,
+tweets, and instagrams about their achievements in past year, and plans for the
+next one. I’ve also done <a href="http://kcieslak.io/2016">this</a>
+<a href="http://kcieslak.io/OSS-The-Story">before</a> (often being week…or month late),
+however this year I decided to write about something else. So let’s talk about
+F# cross-platform, community driven editor tooling.</p>
+
+<!--more-->
+
+<h3>Language Server Protocol</h3>
+
+<p>Before diving into F# specific things, I need to mention project that has
+changed how editor tooling is built over the past two years - <a href="https://microsoft.github.io/language-server-protocol/">Language Server
+Protocol</a> (LSP). LSP is
+specification of the communication between a client (editor) and a server that
+provides language tooling capabilities such as autocomplete, tooltips, etc. It
+reduces the* m-times-n* problem to the <em>m-plus-n</em> problem —similar to how
+Virtual Machines solve the same problem for deploying code to many platforms
+(great example here is<a href="https://en.wikipedia.org/wiki/Z-machine"> Z-machine</a>).</p>
+
+<p><img src="https://cdn-images-1.medium.com/max/1600/1*jzJVMrcgfqUJ8YTGDpE0ZA.png" alt="" /></p>
+
+<p>For example, instead of creating a Python VSCode plugin, a Python vim plugin, a
+Python Atom plugin, and Python plugins for any other potential clients, it
+allows developers to focus on single implementation of language server, this
+will be automatically supported by all clients that implement LSP.</p>
+
+<p>Of course idea of language server is not new — it’s been fairly common way to
+create language tooling. In fact, the F# language already has a language service
+called the <a href="https://fsharp.github.io/FSharp.Compiler.Service/">F# Compiler
+Service</a>. It’s an F# API into
+the internals of the F# compiler, which does all of the heavy lifting in
+determining things that are useful for editor tooling. However, it is ultimately
+just an F# (i.e., .NET) API and cannot be consumed in every environment without
+an additional interface. An additional layer that can interface between the F#
+Compiler Service and any editor (i.e., not just Visual Studio) is needed to
+allow for F# tooling to be used everywhere.</p>
+
+<h3>FsAutoComplete</h3>
+
+<p>As I’ve mentioned — the idea of a language server is not new. And F# has been
+having one for years. Initially created in 2011 (as far as I know, that was way
+before I’ve joined F# community), <a href="https://github.com/fsharp/FsAutoComplete">FsAutoComplete (FSAC)
+</a>has been used by all editors that
+aren’t Visual Studio, such as Atom, Emacs, Vim, and VSCode. The project provides
+a high level API over the F# Compiler Services, and communication layer
+(standard I/O, and HTTP web server) that enables using it from non -.Net
+platforms. It’s been long standing project, with many past iterations — in fact,
+prior to the F# Compiler Service API being made available, it used reflection
+over the F# compiler to access internal APIs! It has had many great maintainers
+and contributors over the years (I especially need to mention here <a href="https://github.com/7sharp9">Dave
+Thomas</a>, <a href="https://github.com/rneatherway">Robin
+Neatherway,</a> <a href="https://github.com/tpetricek">Tomas
+Petricek,</a> and <a href="https://github.com/enricosada">Enrico
+Sada</a>) and it has been the magic that powers
+<a href="http://ionide.io/">Ionide </a>since day-0.</p>
+
+<h3>Current status</h3>
+
+<p>When I started <a href="http://ionide.io/">Ionide </a>4 years ago, FSAC was in pretty good
+shape, providing many crucial APIs and one communication layer (stdio). Over the
+years, I started to contribute more and more to the project, and with help of
+all awesome people involved, new contributors and community support we’ve
+managed to transform FSAC into one of the best language servers I know
+(especially considering it is not a commercial language service, such as those
+authored by Microsoft or JetBrains), and I feel that it has been one of the most
+important tools created by the .NET OSS community.</p>
+
+<p><img src="https://cdn-images-1.medium.com/max/1600/1*g7fQGoPulhg0zk1oZQxHOw.png" alt="" /></p>
+
+<p>Also, what is important personally for me is the level of innovation that we’ve
+managed to achieve in FSAC and Ionide. Additional diagnostics such as unused
+opens or unused bindings, integration with a third party linter, features
+powering Ionide’s CodeLenses, background caching that enables very fast use of
+any feature that requires symbols (such as Find References, CodeLens showing
+number of references, etc.), and even custom <a href="https://medium.com/lambda-factory/introducing-f-analyzers-772487889429">F#
+Analyzers</a>.
+These are not the features that you typically see in the editor tooling created
+by independent vendors, nor especially in editor tooling for FP languages (yes,
+some of those features have been present in powerful IDEs for particular
+languages — CodeLenses for C# in VS, or famous background caches in JetBrains
+IDEs — but never for FP languages, and never provided by community driven tools)</p>
+
+<h3>Bright Future?</h3>
+
+<p><img src="https://cdn-images-1.medium.com/max/1600/0*8AbD6eEC3MzyHHVb" alt="" /></p>
+
+<p>So the title of the post promised talking about the future… but the future is
+now. Today, I’d like to show you the thing I’ve been working on over the Xmas
+break for last 2 weeks — <a href="https://github.com/fsharp/FsAutoComplete/pull/320">the LSP communication layer for the
+FSAC</a>.</p>
+
+<blockquote>
+  <p>Huge thanks goes to <a href="https://github.com/vbfox">Julien Roncaglia</a> for his initial
+work on LSP + FSAC proof of concept few months ago, and his F# LSP server
+abstraction implementation that has been used as a base for my current work.</p>
+</blockquote>
+
+<p>Being active maintainer for editor tooling for 2
+<a href="https://marketplace.visualstudio.com/items?itemName=sbrink.elm">different</a>
+<a href="https://marketplace.visualstudio.com/items?itemName=Ionide.Ionide-fsharp">languages</a>,
+a developer that created plugins for multiple editors, and someone that is
+generally interested in editor tooling, it has become obvious for me that LSP
+has won (at least in the niche of cross platform tooling provided by
+community/independent vendors). There are more and more client implementations
+(including really interesting online IDEs like
+<a href="https://www.gitpod.io/">GitPod</a>), more and more server implementations (which
+means there are more and more investments into clients) and the protocol itself
+is becoming more powerful and feature-ful. I strongly believe that it is the
+future of the F# cross platform tooling. From the F# point of view there is
+couple of important advantages:</p>
+
+<ul>
+  <li>It moves lot of code from Ionide code base to the FSAC code base — it means that
+other editors than VSCode can use some of the improvements that has been
+“hacked” in Ionide itself</li>
+  <li>It makes the contribution process easier — Ionide is a VSCode plugin written in
+F# compiled to JS with <a href="https://fable.io/">Fable</a> using FSAC (totally separate
+code base). This makes the process of contribution a bit awkward — if you want
+to contribute you need to know which code base to work in, if it’s Ionide you
+need to have the Fable toolchain set up. The idea behind using F# for Ionide was
+lowering the bar for contributors (“people interested in making F# tooling
+better are F# developers so the code should be F#”). As lot of Ionide code is
+moved to the FSAC, it makes contributions even easier by moving a lot of code to
+a normal F#/.NET Core project</li>
+  <li>It’s good news for anyone wanting to use Atom or Vim or Emacs (or maybe ST3?) —
+some of those plugins have not been maintained very actively (or have been
+deprecated like Ionide-Atom), but moving to LSP will mean that getting all new
+fancy features should be way easier or “free”.</li>
+  <li>I’ll soon start to work on Ionide 4.0 release that will be based on LSP. Lot of
+Ionide code will be removed, since Ionide provides more functionalities than
+just language features — things like solution explorer, creating new projects,
+right click -&gt; debug, and many features focused on developer experience are
+implementations specific to VSCode (and that will probably never change).As FSAC
+will take over lot of responsibilities, I hope to focus more on the UX in Ionide
+itself, which is also a very interesting problem on its own.</li>
+</ul>
+
+<blockquote>
+  <p>As a side note — we are looking for new maintainers for FSAC. <a href="https://github.com/fsharp/FsAutoComplete/issues/321">We would love
+your help</a>!</p>
+</blockquote>
+
+<h3>Grim Future?</h3>
+
+<p><img src="https://cdn-images-1.medium.com/max/1600/1*JLKpCZqiDfA80q3O7eH38w.jpeg" alt="" /></p>
+
+<p>Of course, every real life story have also bad parts. And there are couple of
+the dark clouds on the horizon. First of all, <a href="https://github.com/ionide/ionide-vscode-fsharp/issues/948">some
+</a><a href="https://github.com/ionide/ionide-vscode-fsharp/issues/938">of
+</a><a href="https://github.com/ionide/ionide-vscode-fsharp/issues/914">the
+</a><a href="https://twitter.com/TeaDrivenDev/status/1077622983383007233">problems
+</a>with Ionide/FSAC
+won’t go away with moving to LSP— they are connected to the complexity of build
+and require more knowledge and time than I have (if someone from MSFT is reading
+it — I would love to get, for late Xmas gift, open source, cross platform
+language server for the .Net project system). But that’s just a technical
+problem. The bigger one is that nothing has changed for last year and I can
+repeat my words from last years’ post. While I believe that F# ecosystem is in
+its best shape ever, it’s still building a castle on the sand — not enough
+contributors, depending on same handful of people that overproduce, no
+commercial support for OSS projects, no companies interested in investing into
+F# OSS ecosystem. Ionide and FSAC are both in unsustainable state — crucial
+projects for F# community, with thousands of users, that are used by a huge part
+of the community every day — they get no commercial support and there are not
+enough contributors to make up for this.</p>
+
+<h3>So… 2019?</h3>
+
+<p><img src="https://cdn-images-1.medium.com/max/1600/1*8KAxxVKVlP_CDXvAXWkrRw.jpeg" alt="" /></p>
+
+<p>So, how will 2019 will look like? Only time will tell. But in general I believe
+that there are more bright sides to the story than dark clouds. F# ecosystem is
+in fairly OK place — tooling is really OK, .NET Core adoption is rising which is
+a good sign, there are more and more interesting projects, community is active,
+and projects like the <a href="https://safe-stack.github.io/">SAFE</a> stack are becoming
+mature and are getting decent adoption.</p>
+
+<p>However, as a community we still haven’t solved the problem of OSS
+maintainability. One one hand, it’s nothing unusual — most communities struggle
+with those problems. On the other hand, it’s obvious that F# commercial adoption
+is very often driven by the few people building awesome OSS things, and maybe we
+should help them somehow?</p>
+
+<p>Anyway, I hope <strong>you</strong> will build great things with F# in 2019!</p>
+
+                </div><!-- .entry-content -->
+                <footer class="entry-footer">
+                    <div class="share-post">
+                        <span>Share</span>
+                        <a class="fa-twitter" target="_blank" href="https://twitter.com/intent/tweet?text=Future%20of%20F%23%20cross-platform%20editor%20tooling&amp;url=http://kcieslak.io/Future-of-F-Cross-platform-editor-tooling"><span class="screen-reader-text">Twitter</span></a>
+                        <a class="fa-facebook" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://kcieslak.io/Future-of-F-Cross-platform-editor-tooling&amp;t=Future%20of%20F%23%20cross-platform%20editor%20tooling"><span class="screen-reader-text">Facebook</span></a>
+                        <a class="fa-google-plus" target="_blank" href="http://plus.google.com/share?url=http://kcieslak.io/Future-of-F-Cross-platform-editor-tooling"><span class="screen-reader-text">Google+</span></a>
+                    </div><!-- .share-post -->
+                    
+                    <div class="tag-links">
+                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#VS+Code" title="Pages tagged VS Code" rel="tag">VS Code</a><a href="/tags/index.html#Tooling" title="Pages tagged Tooling" rel="tag">Tooling</a>
+                    </div>
+                    
+                </footer><!-- .entry-footer -->
+            </article><!-- .post -->
+            <div class="author-box">
+                <div class="author-info">
+                    <a href="http://kcieslak.io/about" target="_blank"> <div class="author-avatar" style="background-image: url(/images/authorimage.jpg)"><span class="screen-reader-text">Krzysztof Cieslak's Picture</span></div> </a>
+                    <div class="author-details">
+                        <h2 class="author-title">About Krzysztof Cieslak</h2>
+                        <p class="author-bio">Krzysztof is a F# developer and consultant, open source contributor, conference speaker</p>
+                        <span class="author-location"><i class="fa-map-marker" aria-hidden="true"></i> Lodz, Poland</span>
+                        <span class="author-website"><i class="fa-chain" aria-hidden="true"></i> <a href="http://kcieslak.io" target="_blank"> http://kcieslak.io</a></span>
+                    </div><!-- .author-details -->
+                </div><!-- .author-info -->
+            </div><!-- .author-box -->
+            <nav class="post-navigation">
+                <h2 class="screen-reader-text">Post navigation</h2>
+                
+                <div class="nav-previous">
+                    <div class="nav-inside">
+                        
+                        <a href="/Introducing-F-Analyzers" class="nav-thumb" style="background-image: url(/images/posts/landscape_6.jpg)"></a>
+                        
+                        <div class="nav-before">Previous</div>
+                        <div class="nav-title"><a href="/Introducing-F-Analyzers">Introducing F# Analyzers</a></div>
+                        <div class="nav-date">September 14, 2018</div>
+                    </div><!-- .nav-inside -->
+                </div><!-- .nav-previous -->
+                
+                
+                <div class="nav-next">
+                    <div class="nav-inside">
+                        
+                        <a href="/PureScript-on-Azure-Functions" class="nav-thumb" style="background-image: url(/images/posts/landscape_3.jpg)"></a>
+                        
+                        <div class="nav-before">Next</div>
+                        <div class="nav-title"><a href="/PureScript-on-Azure-Functions">PureScript on Azure Functions</a></div>
+                        <div class="nav-date">January 12, 2019</div>
+                    </div><!-- .nav-inside -->
+                </div><!-- .nav-next -->
+                
+            </nav><!-- .post-navigation -->
+            
+        </main><!-- .site-main -->
+        <aside class="sidebar">
+
+    
+    <section class="widget widget-text">
+        <h2 class="widget-title">About Krzysztof Cieslak</h2>
+        <p>Krzysztof is a F# developer and consultant, open source contributor, conference speaker</p>
+
+    </section><!-- .widget-text -->
+    
+
+    
+
+    
+    <section class="widget widget-text">
+        <p><a href="http://lambdafactory.io" target="_blank"><img src="/images/banner.png" alt="Optional Banner Ad" /></a></p>
+    </section><!-- .widget-text-->
+    
+
+    <section class="widget widget-recent-posts">
+        <h2 class="widget-title">Latest Posts</h2>
+        <ul class="recent-posts">
+            
+            <li class="recent-item"><a href="/Ionide-Introducing-Info-Panel">Ionide — Introducing Info Panel</a> <span>May 6, 2019</span></li>
+            
+            <li class="recent-item"><a href="/Ionide-New-Hope">Ionide — A New Hope</a> <span>March 24, 2019</span></li>
+            
+            <li class="recent-item"><a href="/PureScript-on-Azure-Functions">PureScript on Azure Functions</a> <span>January 12, 2019</span></li>
+            
+            <li class="recent-item"><a href="/Future-of-F-Cross-platform-editor-tooling">Future of F# cross-platform editor tooling</a> <span>December 31, 2018</span></li>
+            
+            <li class="recent-item"><a href="/Introducing-F-Analyzers">Introducing F# Analyzers</a> <span>September 14, 2018</span></li>
+            
+        </ul><!-- .recent-posts -->
+    </section><!-- .widget-recent-posts -->
+
+    <!--Create a sorted array of tags-->
+    
+    
+    <section class="widget widget-tags">
+        <h2 class="widget-title">Tags</h2>
+        <div class="tagcloud">
+            
+            <a href="/tags/#Azure">Azure</a>
+            
+            <a href="/tags/#Azure+Functions">Azure Functions</a>
+            
+            <a href="/tags/#Community">Community</a>
+            
+            <a href="/tags/#F%23">F#</a>
+            
+            <a href="/tags/#FAKE">FAKE</a>
+            
+            <a href="/tags/#FSharp.Compiler.Services">FSharp.Compiler.Services</a>
+            
+            <a href="/tags/#Fable">Fable</a>
+            
+            <a href="/tags/#JS">JS</a>
+            
+            <a href="/tags/#MVP">MVP</a>
+            
+            <a href="/tags/#OAuth">OAuth</a>
+            
+            <a href="/tags/#Open+Source">Open Source</a>
+            
+            <a href="/tags/#Paket">Paket</a>
+            
+            <a href="/tags/#PureScript">PureScript</a>
+            
+            <a href="/tags/#Saturn">Saturn</a>
+            
+            <a href="/tags/#Serverless">Serverless</a>
+            
+            <a href="/tags/#Tooling">Tooling</a>
+            
+            <a href="/tags/#VS+Code">VS Code</a>
+            
+            <a href="/tags/#Web">Web</a>
+            
+            <a href="/tags/#Webpack">Webpack</a>
+            
+        </div><!-- .tagcloud -->
+    </section><!-- .widget -->
+
+    <section class="widget widget-text">
+        <h2 class="widget-title">Contact me</h2>
+        
+        <a href="https://twitter.com/k_cieslak" class="fa-twitter square fill-horizontal"><span class="screen-reader-text">Twitter</span></a>
+        
+        
+        
+        
+        <a href="https://github.com/Krzysztof-Cieslak" class="fa-github-alt square fill-horizontal"><span class="screen-reader-text">GitHub</span></a>
+        
+        
+        <a href="https://gitlab.com/Krzysztof-Cieslak" class="fa-gitlab square fill-horizontal"><span class="screen-reader-text">GitHub</span></a>
+        
+        
+        
+        
+        
+        
+        
+        
+        <a href="mailto:krzysztof_cieslak@windowslive.com" class="fa-envelope square fill-horizontal"><span class="screen-reader-text">E-Mail</span></a>
+        
+    </section><!-- .widget-text -->
+
+
+</aside><!-- .sidebar -->
+
+    </div><!-- .inner -->
+</div><!-- .site-content -->
+
+    <footer class="site-footer">
+    <div class="inner">
+        <div class="social-links">
+            
+            <a href="https://twitter.com/k_cieslak" class="fa-twitter square fill-horizontal"><span class="screen-reader-text">Twitter</span></a>
+            
+            
+            
+            
+            <a href="https://github.com/Krzysztof-Cieslak" class="fa-github-alt square fill-horizontal"><span class="screen-reader-text">GitHub</span></a>
+            
+            
+            <a href="https://gitlab.com/Krzysztof-Cieslak" class="fa-gitlab square fill-horizontal"><span class="screen-reader-text">GitHub</span></a>
+            
+            
+            
+            
+            
+            
+            
+            
+            <a href="mailto:krzysztof_cieslak@windowslive.com" class="fa-envelope square fill-horizontal"><span class="screen-reader-text">E-Mail</span></a>
+            
+            <a class="fa-feed square fill-horizontal" href="/feed.xml"><span class="screen-reader-text">RSS</span></a>
+        </div><!-- .social-links -->
+        <div class="site-info">
+            &copy; <a href="/">Krzysztof Cieslak</a> all rights reserved. <br />Powered by <a target="_blank" href="https://jekyllrb.com/">Jekyll</a>. BlogInn theme by <a target="_blank" href="http://justgoodthemes.com/">JustGoodThemes</a>
+            <a href="#top" id="top-link" class="fa-chevron-up top-link square fill-horizontal"><span class="screen-reader-text">Back to the top</span></a>
+        </div><!-- .site-info -->
+    </div><!-- .inner -->
+</footer><!-- .site-footer -->
+
+
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/highlight.min.js"></script>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/languages/fsharp.min.js"></script>
+    <script type="text/javascript" src="/js/plugins.js"></script>
+    <script type="text/javascript" src="/js/custom.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
+    
+    <!-- Asynchronous Google Analytics snippet -->
+    <script>
+    (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+    })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+    ga('create', 'UA-74514389-1', 'auto');
+    ga('require', 'linkid', 'linkid.js');
+    ga('send', 'pageview');
+    </script>
+    
+</body>
+</html>

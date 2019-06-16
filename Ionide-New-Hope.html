@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Using Paket with Azure Functions</title>
-    <meta name="description" content="Using Paket to manage dependencies in Azure Functions">
+    <title>Ionide — A New Hope</title>
+    <meta name="description" content="Ionide — A New Hope">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="/favicon/favicon.ico">
     <link rel="apple-touch-icon-precomposed" href="/favicon/lattice-optic-illusion-152-204321.png" >
@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/styles/default.min.css">
     <link rel="stylesheet" href="/css/main.css" />
     <link rel="stylesheet" href="/css/font-awesome.min.css" />
-    <link rel="canonical" href="http://kcieslak.io/Using-Paket-with-Azure-Functions">
+    <link rel="canonical" href="http://kcieslak.io/Ionide-New-Hope">
     <link rel="alternate" type="application/rss+xml" title="F# Reflections Feed" href="http://kcieslak.io/feed.xml">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
 </head>
@@ -69,78 +69,129 @@
                     <div class="entry-header-wrap">
                         
                         <div class="post-thumbnail">
-                            <img src="/images/posts/landscape_7.jpg" alt="Using Paket with Azure Functions">
+                            <img src="/images/posts/landscape_7.jpg" alt="Ionide — A New Hope">
                         </div><!-- .post-thumbnail -->
                         
-                        <h1 class="entry-title">Using Paket with Azure Functions</h1>
+                        <h1 class="entry-title">Ionide — A New Hope</h1>
                     </div><!-- .entry-header-wrap -->
                     <div class="entry-meta">
-                        by <span class="post-author">Krzysztof Cieslak</span> on <time class="published" datetime="2016-11-22">November 22, 2016</time>
+                        by <span class="post-author">Krzysztof Cieslak</span> on <time class="published" datetime="2019-03-24">March 24, 2019</time>
                     </div><!-- .entry-meta -->
                 </header><!-- .entry-header -->
                 <div class="entry-content">
-                    <h1>Introduction</h1>
+                    <h1>Ionide — A New Hope</h1>
 
-<p><a href="https://azure.microsoft.com/en-us/services/functions/">Azure Functions</a> is Microsoft’s implementation of serverless architecture hosted on Azure. It is a solution for easily running small pieces of code, or “functions,” in the cloud. You can write just the code you need for the problem at hand, without worrying about a whole application or the infrastructure to run it. Functions can be written in many different languages, including F#.</p>
+<p>You probably know that one of my <a href="http://kcieslak.io/Future-of-F-Cross-platform-editor-tooling">biggest
+problems</a>
+with the F# ecosystem and OSS work I’ve been doing has been lack of any
+sustainability strategy. I’ve attempted to change that by creating <a href="https://opencollective.com/ionide">Open
+Collective page for the Ionide</a>,
+and at the same time, I’ve started talking with existing partners about possible
+ways of making work on this crucial parts of the ecosystem more sustainable.</p>
+
+<p>Today, I’m really happy to announce that for the next few months I’ll be working
+full time on the F# open source, cross-platform tooling focusing mainly on
+<a href="https://github.com/ionide">Ionide</a> and
+<a href="https://github.com/fsharp/FsAutoComplete">FsAutoComplete</a>. This is possible
+thanks to the partnership between my company — <a href="https://lambdafactory.io/">Lambda
+Factory</a> — and Microsoft.</p>
 
 <!--more-->
 
-<h1>Workflow problem</h1>
+<h3>Scope of the work</h3>
 
-<p>Azure Functions can be developed using online editor avaliable on Azure Portal - unfortunetlly it doesn’t provides any rich editing features (autocomplete, tooltips etc) we all like in our normal editors. Luckily, Azure Functions can be also created (and tested) locally, and configured to use GitHub repository (or couple other sources) as source of code, creating very nice Continues Deployment process (coding on local machine -&gt; pushing code to GitHub -&gt; deployment to Azure is automatically triggered). This way we should be able to use our rich editor tooling to develop Functions.</p>
+<p>The contract with Microsoft will enable me to work on certain strategic goals of
+the Ionide and FsAutoComplete that are important for both the F# community and
+Microsoft. Our initial goals for the next few months are:</p>
 
-<p>However, there is small problem. For sake of simplicity, dependency menagment in Azure Functions is using quite a lot of <em>magic</em>. Essensially, all you need to do is create <code>project.json</code>, put there your dependency… and then you can just put <code>#r dependency_name</code> in your deployed <code>.fsx</code> file to reference it. But as we know, that’s not exactly how things work in normal F# scripting - usually we need to add relative path to <code>.dll</code>, not just a name of reference. What’s more I haven’t found a way to restore dependencies using Azure Functions CLI tool (which follows Microsoft’s tradition of calling totally unusable software <code>beta</code>).</p>
+<ul>
+  <li>Finishing <a href="https://microsoft.github.io/language-server-protocol/">Language Server
+Protocol</a> (<a href="https://medium.com/lambda-factory/future-of-f-cross-platform-editor-tooling-a8cf62a50053">read more
+about
+LSP</a>)
+implementation in FSAC and plugging it into Ionide</li>
+  <li>Fix performance reliability issues after triage and full performance
+rebaselining after LSP support is in</li>
+  <li>Work on porting all components to .Net Core/Standard and using .Net Core version
+of FSAC by default in Ionide to improve the getting started experience</li>
+  <li>A potential stretch goal is working on improvements to the scripting experience
+in Ionide</li>
+</ul>
 
-<h1>Paket Strikes Back</h1>
+<p>These goals are trying to tackle some of the most important issues of the F#
+cross-platform tooling ecosystem, and will benefit not only Ionide but will have
+an impact on other tools that F# developers use every day.</p>
 
-<p>Instead of fighting with bad workflow suggested by Microsoft, I’ve decided to do what F# developers usually do - use created by Community tool. And our solution to dependency management problem is <a href="https://fsprojects.github.io/Paket/">Paket</a>
-We normally initialize Paket, put <code>paket.bootstraper.exe</code> in <code>.paket</code> folder, create <code>paket.dependencies</code> file, install dependency. Thanks to that we can use <code>#r</code> reference with relative path to our dependency (which is downloaded to packages folder). For example: <code>#r "../packages/Tesseract/lib/net45/Tesseract.dll"</code>. This let us to use full power of our editors to develop Azure Functions locally.</p>
+<h3>Relationship with Open Collective</h3>
 
-<h1>Deployment to Azure</h1>
+<p>I’ve been asked by some people who heard the news a few days ago if this affects
+the Ionide OpenCollective effort. In short, no, but I’ll clarify some specifics.</p>
 
-<p>Now we need to force Azure to run Paket after deploying code from our repository to cloud. Doing it is fairly simple, but not documented too well.</p>
+<p>From my point of view, this doesn’t change anything with respect to
+OpenCollective. One of the reasons why we’ve decided to choose Open Collective
+(over Patreon or PayPal donations) is the fact that it’s about supporting the
+project, not any particular creator. Open Collective is a fund for the Ionide
+project itself, with a transparent invoice system that ensures any withdrawals
+are public. This allows any Ionide contributor, not just me, to spend dedicated
+time on the project in the future. It is a long-term sustainability plan for
+Ionide.</p>
 
-<p>First of all, in root of our repository we create <code>build.cmd</code> file running Paket.</p>
+<p>Contract with Microsoft is task-based — hopefully, it will result in fixing some
+of the biggest issues with the Ionide and FSAC that we have right now but is not
+creating long term sustainable environment — something I want to create with
+Ionide as an organization and with Open Collective.</p>
 
-<pre><code class="language-bash">@echo off
-cls
+<p>I hope that F# community will continue supporting Ionide on Open Collective as
+generously as right now — and I hope that soon, I’ll be able to do some
+announcements about how we will spend those funds on the project related goals
+such as promotion, documentation and more. But that will come later, as I’ll be
+quite busy in the coming months improving Ionide by working with Microsoft.</p>
 
-.paket\paket.bootstrapper.exe
-if errorlevel 1 (
-  exit /b %errorlevel%
-)
+<h3>But Embrace, Extend, and Extinguish…</h3>
 
-.paket\paket.exe restore --force
-if errorlevel 1 (
-  exit /b %errorlevel%
-)
-</code></pre>
+<p>Ionide is still and always will be MIT licensed project owned by F# community,
+and FsAutoComplete is and will always be Apache 2.0 licensed project owned by F#
+Software Foundation.</p>
 
-<p>Second step is using deployment configuration file to run our <code>build.cmd</code>. We create <code>.deployment</code> file and add there following entry:</p>
+<p>Microsoft is not acquiring Ionide, nor is there any additional stipulations or
+attempts to re-prioritize the direction of the Ionide project. In fact, I was
+asked to help define the scope of the work and I’ll be helping decide what the
+most important issues are to fix. To be clear, Microsoft is not gaining control
+on Ionide, and they don’t gain any decision making power different than regular
+F# users. Ionide is still a community project and the maintainers continue to
+decide what gets added or removed.</p>
 
-<pre><code class="language-toml">[config]
-SCM_POST_DEPLOYMENT_ACTIONS_PATH = ../wwwroot
-</code></pre>
+<h3>Next few months will be fun…</h3>
 
-<p>It configures where deployment utility will look for any post deployment scripts (and <code>.cmd</code> file) after cloning and coping our repository. <code>wwwroot</code> is root folder which will contain our Function after deployment.</p>
+<p>I need to say that I’m really really happy to have this opportunity — for last
+few years I’ve been saying that it would be really good for an ecosystem if
+someone was working full time on F# cross-platform tooling. <br /> My goal for the
+last few years has been pointing out that there is huge potential in F#
+cross-platform tooling, in VSCode as an IDE platform, in F# Compiler Services
+that’s the common infrastructure used by all F# tooling, and that’s been fairly
+unique project among Functional Programming languages. I really believe that we
+can make F# tooling best-in-class (of FP languages), and I hope that the
+partnership with Microsoft is a step in this direction. However, we still need
+to remember that F# tooling is owned by the F# community and only together we
+can make it better so… contributions are welcomed!</p>
 
-<p>Having those 2 files, we can push code to GitHub, go to Azure Portal, check deployments of our Function App. If everything is OK we should see Paket output in post deployment actions log.</p>
-
-<h1>Summary</h1>
-
-<p>In this post, I’ve presented how to use Paket together with Azure Functions to create nice workflow for developing applications using this modern platform. The sample code can be found on GitHub - https://github.com/Krzysztof-Cieslak/AzureFunctionsSamples</p>
+<blockquote>
+  <p>Additionally, I need to thank Phillip Carter (F# PM @ Microsoft), without his
+help, and his advocating for F# inside Microsoft things like that would never be
+possible. Thanks!</p>
+</blockquote>
 
                 </div><!-- .entry-content -->
                 <footer class="entry-footer">
                     <div class="share-post">
                         <span>Share</span>
-                        <a class="fa-twitter" target="_blank" href="https://twitter.com/intent/tweet?text=Using%20Paket%20with%20Azure%20Functions&amp;url=http://kcieslak.io/Using-Paket-with-Azure-Functions"><span class="screen-reader-text">Twitter</span></a>
-                        <a class="fa-facebook" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://kcieslak.io/Using-Paket-with-Azure-Functions&amp;t=Using%20Paket%20with%20Azure%20Functions"><span class="screen-reader-text">Facebook</span></a>
-                        <a class="fa-google-plus" target="_blank" href="http://plus.google.com/share?url=http://kcieslak.io/Using-Paket-with-Azure-Functions"><span class="screen-reader-text">Google+</span></a>
+                        <a class="fa-twitter" target="_blank" href="https://twitter.com/intent/tweet?text=Ionide%20%E2%80%94%20A%20New%20Hope&amp;url=http://kcieslak.io/Ionide-New-Hope"><span class="screen-reader-text">Twitter</span></a>
+                        <a class="fa-facebook" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://kcieslak.io/Ionide-New-Hope&amp;t=Ionide%20%E2%80%94%20A%20New%20Hope"><span class="screen-reader-text">Facebook</span></a>
+                        <a class="fa-google-plus" target="_blank" href="http://plus.google.com/share?url=http://kcieslak.io/Ionide-New-Hope"><span class="screen-reader-text">Google+</span></a>
                     </div><!-- .share-post -->
                     
                     <div class="tag-links">
-                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#Paket" title="Pages tagged Paket" rel="tag">Paket</a><a href="/tags/index.html#Azure+Functions" title="Pages tagged Azure Functions" rel="tag">Azure Functions</a>
+                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#VS+Code" title="Pages tagged VS Code" rel="tag">VS Code</a><a href="/tags/index.html#Tooling" title="Pages tagged Tooling" rel="tag">Tooling</a>
                     </div>
                     
                 </footer><!-- .entry-footer -->
@@ -162,11 +213,11 @@ SCM_POST_DEPLOYMENT_ACTIONS_PATH = ../wwwroot
                 <div class="nav-previous">
                     <div class="nav-inside">
                         
-                        <a href="/Dynamically-extending-F-applications" class="nav-thumb" style="background-image: url(/images/posts/landscape_6.jpg)"></a>
+                        <a href="/PureScript-on-Azure-Functions" class="nav-thumb" style="background-image: url(/images/posts/landscape_3.jpg)"></a>
                         
                         <div class="nav-before">Previous</div>
-                        <div class="nav-title"><a href="/Dynamically-extending-F-applications">Dynamically extending F# applications</a></div>
-                        <div class="nav-date">October 3, 2016</div>
+                        <div class="nav-title"><a href="/PureScript-on-Azure-Functions">PureScript on Azure Functions</a></div>
+                        <div class="nav-date">January 12, 2019</div>
                     </div><!-- .nav-inside -->
                 </div><!-- .nav-previous -->
                 
@@ -174,11 +225,11 @@ SCM_POST_DEPLOYMENT_ACTIONS_PATH = ../wwwroot
                 <div class="nav-next">
                     <div class="nav-inside">
                         
-                        <a href="/Path-to-community-based-OSS" class="nav-thumb" style="background-image: url(/images/posts/landscape_8.jpg)"></a>
+                        <a href="/Ionide-Introducing-Info-Panel" class="nav-thumb" style="background-image: url(/images/posts/landscape_8.jpg)"></a>
                         
                         <div class="nav-before">Next</div>
-                        <div class="nav-title"><a href="/Path-to-community-based-OSS">Path to Community based Open Source Software</a></div>
-                        <div class="nav-date">June 12, 2017</div>
+                        <div class="nav-title"><a href="/Ionide-Introducing-Info-Panel">Ionide — Introducing Info Panel</a></div>
+                        <div class="nav-date">May 6, 2019</div>
                     </div><!-- .nav-inside -->
                 </div><!-- .nav-next -->
                 

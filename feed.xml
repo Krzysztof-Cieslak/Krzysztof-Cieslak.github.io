@@ -5,9 +5,616 @@
         <description>Blog about F# and FP Programming</description>
         <link>http://kcieslak.io/</link>
         <atom:link href="http://kcieslak.io/feed.xml" rel="self" type="application/rss+xml"/>
-        <pubDate>Fri, 14 Dec 2018 21:21:47 +0100</pubDate>
-        <lastBuildDate>Fri, 14 Dec 2018 21:21:47 +0100</lastBuildDate>
+        <pubDate>Sun, 16 Jun 2019 14:17:21 +0200</pubDate>
+        <lastBuildDate>Sun, 16 Jun 2019 14:17:21 +0200</lastBuildDate>
         <generator>Jekyll v3.3.1</generator>
+        
+            <item>
+                <title>Ionide — Introducing Info Panel</title>
+                <description>&lt;h1&gt;Ionide — Introducing Info Panel&lt;/h1&gt;
+
+&lt;p&gt;Today, I’d like to talk about a new feature called the Info Panel that has been
+released in Ionide 3.36. For me personally, it’s one of the most exciting
+features we’ve introduced in Ionide so far. Hopefully, it will help F#
+developers as nicely as placing function signatures in CodeLenses or fast
+cross-project navigation powered by background symbol caches.&lt;/p&gt;
+
+&lt;!--more--&gt;
+
+&lt;h4&gt;The problem of API exploration&lt;/h4&gt;
+
+&lt;p&gt;One of the biggest problems some software developers have is remembering all the
+functions, classes, and namespaces that are available in a vast set of
+dependencies they use, or even that are present in their code bases. Some IDEs
+try to help with that problem via tooltips or IntelliSense.&lt;/p&gt;
+
+&lt;p&gt;However, these solutions suffer from two problems. First, the visual help they
+have is temporary. Second, tooltips can sometimes feel intrusive. It’s sometimes
+quite common to have something pop up and hide code below it, and if you move
+your cursor the information changes are disappears.. Also, tooltips or
+additional IntelliSense popups are typically small — the IDE has to play a
+tricky game of tightrope where it needs to display useful information, but do so
+subtly enough not to feel intrusive.&lt;/p&gt;
+
+&lt;p&gt;One alternative to an Info Panel exists in Visual Studio today, called the
+Object Browser. It’s a separate window that presents a tree view of references
+to a project where you can dive into constructs as-represented in their compiled
+form. Although this is helpful for exploring references, it’s conceptually
+detached from your codebase. Imagine a situation when you’re reading your code
+and notice a function call that you don’t understand — it’s not as easy to use
+Object Browser as just hover over the symbol — you need to click through library
+content, to find appropriate class or function. And if you want to move to
+another function next line, you need to do the same.&lt;/p&gt;
+
+&lt;h4&gt;Rich API exploration&lt;/h4&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;The Info Panel is inspired by &lt;a href=&quot;https://developer.apple.com/library/archive/documentation/ToolsLanguages/Conceptual/Xcode_Overview/LookingupObjectDocumentation.html&quot;&gt;XCode’s Quick Info
+Inspector&lt;/a&gt;.
+Thanks a lot to Dave Thomas for familiarizing me with this feature. BTW, you can
+support Dave — one of the best F# OSS hackers — on his &lt;a href=&quot;https://www.patreon.com/7sharp9&quot;&gt;new Patron
+page&lt;/a&gt;!&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://cdn-images-1.medium.com/max/1000/1*G5A8JkkI0bIa4iK4M49CEA.gif&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Info Panel is an attempt to bridge those two ways of presenting information. It
+combines the interactivity of tooltips with the less intrusive UI of a separate
+display panel. The panel auto-updates as you navigate through your code, but you
+can also navigate information via the panel, independently of the code you’re
+looking at.&lt;/p&gt;
+
+&lt;p&gt;By opening the Info Panel in VSCode, you can display rich information about the
+current symbol under your caret, such as its signature, nicely formatted XML
+documentation, its members, properties or functions, used attributes,
+implemented interfaces. Because it’s a separate panel, the information is
+persisted and doesn’t overlap with your code window. There is enough space to
+provide quite a lot of nicely formatted information. It also supports link
+navigation. For example, if somewhere in the documentation &lt;code&gt;DateTime &lt;/code&gt;is
+present, you can click on it, and move to the documentation about the &lt;code&gt;DateTime
+&lt;/code&gt;type. The Info Panel uses a combination of data from the compiler service and
+XML documentation, so it works for both external dependencies and your own code.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://cdn-images-1.medium.com/max/1000/1*_R6bkfNHTGVXVqAK01lHbg.gif&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Info Panel may update its content on the cursor move or on the hover (it’s
+configurable) but also supports locking — the state in which the content won’t
+be updated by normal action but only by click link or forcing update with a
+command. This means that you can keep information that is interesting for you
+while moving through a code base.&lt;/p&gt;
+
+&lt;p&gt;One of the additional options is complete replacing tooltips — when it’s
+activated you won’t see normal tooltips when you put the mouse over the symbol,
+only Info Panel will be updated (feature &lt;a href=&quot;https://twitter.com/strmpnk/status/1123042142694383617&quot;&gt;suggested by Brian
+Mitchell&lt;/a&gt;).&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Check all possible options for Info Panel in VSCode — they all start with
+&lt;code&gt;FSharp.infoPanel&lt;/code&gt; prefix&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h4&gt;What’s next?&lt;/h4&gt;
+
+&lt;p&gt;Info Panel is in pretty good shape today however there are still a couple more
+features that I want to add in a future:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Handling namespaces — currently we don’t display any information for namespaces.&lt;/li&gt;
+  &lt;li&gt;Navigation history — I think it would be nice if go back/forward commands were
+implemented&lt;/li&gt;
+  &lt;li&gt;Navigation breadcrumb — breadcrumb UX in VSCode is pretty nice for navigating
+through the code base, I can imagine having something like that for the
+documentation exploration. (suggested by Nino Floris)&lt;/li&gt;
+  &lt;li&gt;More information for the symbols — we could potentially add even more
+information such as inheritance hierarchies, declaring entities etc.&lt;/li&gt;
+  &lt;li&gt;Investigate how Info Panel can be used for replacing/enhancing IntelliSense&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;If you’d be interested in helping there are two places where you can start:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;If you’d want to improve generated documentation take a look
+&lt;a href=&quot;https://github.com/fsharp/FsAutoComplete/blob/master/src/FsAutoComplete.Core/DocumentationFormatter.fs&quot;&gt;here&lt;/a&gt;&lt;/li&gt;
+  &lt;li&gt;If you’d want to improve UX around the feature take a look
+&lt;a href=&quot;https://github.com/ionide/ionide-vscode-fsharp/blob/master/src/Components/InfoPanel.fs&quot;&gt;here&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h4&gt;Summing up&lt;/h4&gt;
+
+&lt;p&gt;I really hope you will like this feature — from my point of view, it fits into
+Ionide design of finding good ways to provide as much useful information as
+possible to the users — such as Code Lenses or rich tooltips we have right now.
+Try it out, and let us know what you think!&lt;/p&gt;
+
+&lt;hr /&gt;
+
+&lt;p&gt;&lt;em&gt;You can support Ionide development on *&lt;a href=&quot;https://opencollective.com/ionide&quot;&gt;Open
+Collective&lt;/a&gt;&lt;/em&gt;.*&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://cdn-images-1.medium.com/max/1000/1*Qp7ewxpBdpWJjHVtRHEEPw@2x.png&quot; alt=&quot;https://opencollective.com/ionide&quot; /&gt;&lt;/p&gt;
+</description>
+                <pubDate>Mon, 06 May 2019 00:00:00 +0200</pubDate>
+                <link>http://kcieslak.io/Ionide-Introducing-Info-Panel</link>
+                <guid isPermaLink="true">http://kcieslak.io/Ionide-Introducing-Info-Panel</guid>
+                
+                <category>F#</category>
+                
+                <category>VS Code</category>
+                
+                <category>Tooling</category>
+                
+                
+            </item>
+        
+            <item>
+                <title>Ionide — A New Hope</title>
+                <description>&lt;h1&gt;Ionide — A New Hope&lt;/h1&gt;
+
+&lt;p&gt;You probably know that one of my &lt;a href=&quot;http://kcieslak.io/Future-of-F-Cross-platform-editor-tooling&quot;&gt;biggest
+problems&lt;/a&gt;
+with the F# ecosystem and OSS work I’ve been doing has been lack of any
+sustainability strategy. I’ve attempted to change that by creating &lt;a href=&quot;https://opencollective.com/ionide&quot;&gt;Open
+Collective page for the Ionide&lt;/a&gt;,
+and at the same time, I’ve started talking with existing partners about possible
+ways of making work on this crucial parts of the ecosystem more sustainable.&lt;/p&gt;
+
+&lt;p&gt;Today, I’m really happy to announce that for the next few months I’ll be working
+full time on the F# open source, cross-platform tooling focusing mainly on
+&lt;a href=&quot;https://github.com/ionide&quot;&gt;Ionide&lt;/a&gt; and
+&lt;a href=&quot;https://github.com/fsharp/FsAutoComplete&quot;&gt;FsAutoComplete&lt;/a&gt;. This is possible
+thanks to the partnership between my company — &lt;a href=&quot;https://lambdafactory.io/&quot;&gt;Lambda
+Factory&lt;/a&gt; — and Microsoft.&lt;/p&gt;
+
+&lt;!--more--&gt;
+
+&lt;h3&gt;Scope of the work&lt;/h3&gt;
+
+&lt;p&gt;The contract with Microsoft will enable me to work on certain strategic goals of
+the Ionide and FsAutoComplete that are important for both the F# community and
+Microsoft. Our initial goals for the next few months are:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Finishing &lt;a href=&quot;https://microsoft.github.io/language-server-protocol/&quot;&gt;Language Server
+Protocol&lt;/a&gt; (&lt;a href=&quot;https://medium.com/lambda-factory/future-of-f-cross-platform-editor-tooling-a8cf62a50053&quot;&gt;read more
+about
+LSP&lt;/a&gt;)
+implementation in FSAC and plugging it into Ionide&lt;/li&gt;
+  &lt;li&gt;Fix performance reliability issues after triage and full performance
+rebaselining after LSP support is in&lt;/li&gt;
+  &lt;li&gt;Work on porting all components to .Net Core/Standard and using .Net Core version
+of FSAC by default in Ionide to improve the getting started experience&lt;/li&gt;
+  &lt;li&gt;A potential stretch goal is working on improvements to the scripting experience
+in Ionide&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;These goals are trying to tackle some of the most important issues of the F#
+cross-platform tooling ecosystem, and will benefit not only Ionide but will have
+an impact on other tools that F# developers use every day.&lt;/p&gt;
+
+&lt;h3&gt;Relationship with Open Collective&lt;/h3&gt;
+
+&lt;p&gt;I’ve been asked by some people who heard the news a few days ago if this affects
+the Ionide OpenCollective effort. In short, no, but I’ll clarify some specifics.&lt;/p&gt;
+
+&lt;p&gt;From my point of view, this doesn’t change anything with respect to
+OpenCollective. One of the reasons why we’ve decided to choose Open Collective
+(over Patreon or PayPal donations) is the fact that it’s about supporting the
+project, not any particular creator. Open Collective is a fund for the Ionide
+project itself, with a transparent invoice system that ensures any withdrawals
+are public. This allows any Ionide contributor, not just me, to spend dedicated
+time on the project in the future. It is a long-term sustainability plan for
+Ionide.&lt;/p&gt;
+
+&lt;p&gt;Contract with Microsoft is task-based — hopefully, it will result in fixing some
+of the biggest issues with the Ionide and FSAC that we have right now but is not
+creating long term sustainable environment — something I want to create with
+Ionide as an organization and with Open Collective.&lt;/p&gt;
+
+&lt;p&gt;I hope that F# community will continue supporting Ionide on Open Collective as
+generously as right now — and I hope that soon, I’ll be able to do some
+announcements about how we will spend those funds on the project related goals
+such as promotion, documentation and more. But that will come later, as I’ll be
+quite busy in the coming months improving Ionide by working with Microsoft.&lt;/p&gt;
+
+&lt;h3&gt;But Embrace, Extend, and Extinguish…&lt;/h3&gt;
+
+&lt;p&gt;Ionide is still and always will be MIT licensed project owned by F# community,
+and FsAutoComplete is and will always be Apache 2.0 licensed project owned by F#
+Software Foundation.&lt;/p&gt;
+
+&lt;p&gt;Microsoft is not acquiring Ionide, nor is there any additional stipulations or
+attempts to re-prioritize the direction of the Ionide project. In fact, I was
+asked to help define the scope of the work and I’ll be helping decide what the
+most important issues are to fix. To be clear, Microsoft is not gaining control
+on Ionide, and they don’t gain any decision making power different than regular
+F# users. Ionide is still a community project and the maintainers continue to
+decide what gets added or removed.&lt;/p&gt;
+
+&lt;h3&gt;Next few months will be fun…&lt;/h3&gt;
+
+&lt;p&gt;I need to say that I’m really really happy to have this opportunity — for last
+few years I’ve been saying that it would be really good for an ecosystem if
+someone was working full time on F# cross-platform tooling. &lt;br /&gt; My goal for the
+last few years has been pointing out that there is huge potential in F#
+cross-platform tooling, in VSCode as an IDE platform, in F# Compiler Services
+that’s the common infrastructure used by all F# tooling, and that’s been fairly
+unique project among Functional Programming languages. I really believe that we
+can make F# tooling best-in-class (of FP languages), and I hope that the
+partnership with Microsoft is a step in this direction. However, we still need
+to remember that F# tooling is owned by the F# community and only together we
+can make it better so… contributions are welcomed!&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Additionally, I need to thank Phillip Carter (F# PM @ Microsoft), without his
+help, and his advocating for F# inside Microsoft things like that would never be
+possible. Thanks!&lt;/p&gt;
+&lt;/blockquote&gt;
+</description>
+                <pubDate>Sun, 24 Mar 2019 00:00:00 +0100</pubDate>
+                <link>http://kcieslak.io/Ionide-New-Hope</link>
+                <guid isPermaLink="true">http://kcieslak.io/Ionide-New-Hope</guid>
+                
+                <category>F#</category>
+                
+                <category>VS Code</category>
+                
+                <category>Tooling</category>
+                
+                
+            </item>
+        
+            <item>
+                <title>PureScript on Azure Functions</title>
+                <description>&lt;h1&gt;PureScript on Azure Functions&lt;/h1&gt;
+
+&lt;p&gt;Serverless architecture is one of the hottest topics in cloud computing,
+allowing developers to build and run applications and services without thinking
+about the servers actually running the code, providing a scalable model for
+building distributed, event-driven systems, as well as significantly reducing
+operational costs.&lt;/p&gt;
+
+&lt;p&gt;Microsoft’s take on the serverless problem is service called &lt;a href=&quot;https://docs.microsoft.com/en-us/azure/azure-functions/&quot;&gt;Azure
+Functions&lt;/a&gt;. Out of the
+box, it supports .Net languages (C# and &lt;a href=&quot;https://fsharp.org/&quot;&gt;F#&lt;/a&gt;), Python, Java
+and JavaScript. The last one is very important, as nowadays there exist a wide
+variety of languages that can compile down to JS. And today, I’ll talk about one
+of such languages — PureScript.&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&quot;http://www.purescript.org/&quot;&gt;PureScript&lt;/a&gt; is a strongly-typed, purely functional
+programming language heavily inspired by &lt;a href=&quot;https://www.haskell.org/&quot;&gt;Haskell&lt;/a&gt;. It
+supports a set of advanced language features such as higher kinded types, type
+classes, row polymorphism and many other features I don’t understand.&lt;/p&gt;
+
+&lt;!--more--&gt;
+
+&lt;h4&gt;Requirements&lt;/h4&gt;
+
+&lt;p&gt;To get started with Azure Functions and PureScript you need to install several
+dependencies. First of all, you need &lt;a href=&quot;http://nodejs.org/&quot;&gt;Node.JS and NPM&lt;/a&gt; as it
+is the runtime for Azure Functions, and is used by the PureScript toolchain.
+Secondly, you need PureScript itself — you can download and install it using npm
+with &lt;code&gt;npm install -g purescript&lt;/code&gt;. Next thing is some additional PureScript
+tooling, you can get it with &lt;code&gt;npm install -g bower pulp&lt;/code&gt;. In the end, you also
+need to install Azure Functions tooling that will enable you to build and test
+your serverless application locally. This tooling can be found on GitHub —
+&lt;a href=&quot;https://github.com/Azure/azure-functions-core-tools&quot;&gt;https://github.com/Azure/azure-functions-core-tools&lt;/a&gt;.&lt;/p&gt;
+
+&lt;h4&gt;Getting Started with Azure Functions&lt;/h4&gt;
+
+&lt;p&gt;We will start by creating a simple JS function. In the local folder run &lt;code&gt;func
+init MyFunctionProj&lt;/code&gt;. When prompted, use the arrow keys to select a &lt;code&gt;node&lt;/code&gt;
+worker runtime from the language choices. This will create a new folder and a
+new NodeJS Function Application inside. Inside the new folder initialize new NPM
+project in it with &lt;code&gt;npm init&lt;/code&gt;. After you’re done with answering all the prompts,
+we will create our first endpoint — &lt;code&gt;func new — name MyHttpTrigger — template
+“HttpTrigger”&lt;/code&gt;.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Without going into details, Azure Functions is an event-driven system that
+supports multiple different types of triggers and bindings. The template we’ve
+chosen will create simples possible function that is triggered by an HTTP
+request and returns an HTTP response. If you want to learn more about possible
+triggers and bindings visit Azure Function documentation —
+&lt;a href=&quot;https://docs.microsoft.com/en-us/azure/azure-functions/functions-triggers-bindings&quot;&gt;https://docs.microsoft.com/en-us/azure/azure-functions/functions-triggers-bindings&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;After all those operations are done you should have following folder structure:&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;MyFunctionProj
+ | — MyHttpTrigger
+ | | — index.js
+ | | — function.json
+ | — node_modules
+ | — host.json
+ | — package.json
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;You can now test your first Azure Function! Run in terminal &lt;code&gt;func host start&lt;/code&gt;
+and wait a moment. After everything is initialized you should see (among other
+things something like: &lt;code&gt;MyHttpTrigger: [GET,POST]
+http://localhost:7071/api/MyHttpTrigger&lt;/code&gt;. You can now visit this URL and see
+some output in the browser.&lt;/p&gt;
+
+&lt;h4&gt;Adding PureScript to the mix&lt;/h4&gt;
+
+&lt;p&gt;Adding PureScript to your project is fairly simple, and just requires some small
+changes to the project files. Firstly, still in the same directory, let’s create
+new PureScript project — &lt;code&gt;pulp init — force&lt;/code&gt;. (You need to use &lt;code&gt;— force&lt;/code&gt; flag as
+there already exists &lt;code&gt;.gitignore&lt;/code&gt; file in the folder). Your directory should now
+contain several additional elements:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;&lt;code&gt;bower.json&lt;/code&gt; — contains library dependency information&lt;br /&gt; *
+&lt;code&gt;bower_components/&lt;/code&gt; — a directory for installed dependencies&lt;br /&gt; *
+&lt;code&gt;src/Main.purs&lt;/code&gt; — Entry point module for your project&lt;br /&gt; * &lt;code&gt;test/Main.purs&lt;/code&gt; —
+An empty test suite.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;At this point, you should be able to build the project — &lt;code&gt;pulp build&lt;/code&gt;, by
+default the compiled JS code is put into &lt;code&gt;output&lt;/code&gt; folder. But it’s not yet
+plugged into our HTTP trigger. Before doing that, let’s make our PureScript code
+bit more interesting.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;This section is following &lt;a href=&quot;https://github.com/purescript/documentation/blob/master/guides/Getting-Started.md&quot;&gt;PureScript getting started
+guide&lt;/a&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;The first step will be installing external PureScript library — &lt;code&gt;bower install
+purescript-lists — save&lt;/code&gt;. Now, open the folder in your favourite editor (VSCode)
+and go the &lt;code&gt;src/Main.purs&lt;/code&gt; file. Let’s replace its content with solution to the
+&lt;a href=&quot;https://projecteuler.net/problem=1&quot;&gt;Project Euler #1&lt;/a&gt;&lt;/p&gt;
+
+&lt;p&gt;We can now build the code with &lt;code&gt;pulp build — skip-entry-point&lt;/code&gt; command. Now it’s
+high time to plug our PureScript code into Azure Functions. Open
+&lt;code&gt;MyHttpTrigger/index.js&lt;/code&gt; file and put there following code.&lt;/p&gt;
+
+&lt;p&gt;As you can see, it’s fairly straightforward. The most important thing is the
+&lt;code&gt;require&lt;/code&gt; call that will load compiled-to-JS PureScript code. After that, we can
+call any function defined in PureScript as normal JS function.&lt;/p&gt;
+
+&lt;p&gt;At this point, you can start your function again (&lt;code&gt;func host start&lt;/code&gt;) go to the
+given URL and check if the answer to the Project Euler problem is correct.&lt;/p&gt;
+
+&lt;h4&gt;Deployment&lt;/h4&gt;
+
+&lt;p&gt;There exist multiple different ways of deploying Azure Function applications —
+from Continues Deployment on every push to the repository, through complex build
+scripts to simple uploading &lt;code&gt;zip&lt;/code&gt; file. For starters, the last method is the
+simplest one. You need to zip all the necessary files — &lt;code&gt;MyHttpTrigger&lt;/code&gt; folder,
+&lt;code&gt;output&lt;/code&gt; folder, &lt;code&gt;host.json&lt;/code&gt; and &lt;code&gt;package.json&lt;/code&gt; files. After you have &lt;code&gt;zip&lt;/code&gt; file
+you can use Azure Portal, Azure CLI or simple calls to the REST API to upload
+the Function.&lt;/p&gt;
+
+&lt;p&gt;To learn more about deploying Azure Functions Applications visit official
+documentation —
+&lt;a href=&quot;https://docs.microsoft.com/en-us/azure/azure-functions/deployment-zip-push&quot;&gt;https://docs.microsoft.com/en-us/azure/azure-functions/deployment-zip-push&lt;/a&gt;&lt;/p&gt;
+
+&lt;h4&gt;Summary&lt;/h4&gt;
+
+&lt;p&gt;Finishing up, in this blog post I’ve shown how easy it is to use modern,
+advanced, purely functional programming language — PureScript — on the
+serverless platform — Azure Functions. The example repository containing all
+sample code can be found on GitHub —
+&lt;a href=&quot;https://github.com/Krzysztof-Cieslak/AzureFunctionsPureScript&quot;&gt;https://github.com/Krzysztof-Cieslak/AzureFunctionsPureScript&lt;/a&gt;&lt;/p&gt;
+</description>
+                <pubDate>Sat, 12 Jan 2019 00:00:00 +0100</pubDate>
+                <link>http://kcieslak.io/PureScript-on-Azure-Functions</link>
+                <guid isPermaLink="true">http://kcieslak.io/PureScript-on-Azure-Functions</guid>
+                
+                <category>PureScript</category>
+                
+                <category>Azure</category>
+                
+                <category>Serverless</category>
+                
+                <category>Azure Functions</category>
+                
+                
+            </item>
+        
+            <item>
+                <title>Future of F# cross-platform editor tooling</title>
+                <description>&lt;h1&gt;Future of F# cross-platform editor tooling&lt;/h1&gt;
+
+&lt;p&gt;Currently we have this beautiful moment in the year when everyone writes,
+tweets, and instagrams about their achievements in past year, and plans for the
+next one. I’ve also done &lt;a href=&quot;http://kcieslak.io/2016&quot;&gt;this&lt;/a&gt;
+&lt;a href=&quot;http://kcieslak.io/OSS-The-Story&quot;&gt;before&lt;/a&gt; (often being week…or month late),
+however this year I decided to write about something else. So let’s talk about
+F# cross-platform, community driven editor tooling.&lt;/p&gt;
+
+&lt;!--more--&gt;
+
+&lt;h3&gt;Language Server Protocol&lt;/h3&gt;
+
+&lt;p&gt;Before diving into F# specific things, I need to mention project that has
+changed how editor tooling is built over the past two years - &lt;a href=&quot;https://microsoft.github.io/language-server-protocol/&quot;&gt;Language Server
+Protocol&lt;/a&gt; (LSP). LSP is
+specification of the communication between a client (editor) and a server that
+provides language tooling capabilities such as autocomplete, tooltips, etc. It
+reduces the* m-times-n* problem to the &lt;em&gt;m-plus-n&lt;/em&gt; problem —similar to how
+Virtual Machines solve the same problem for deploying code to many platforms
+(great example here is&lt;a href=&quot;https://en.wikipedia.org/wiki/Z-machine&quot;&gt; Z-machine&lt;/a&gt;).&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://cdn-images-1.medium.com/max/1600/1*jzJVMrcgfqUJ8YTGDpE0ZA.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;For example, instead of creating a Python VSCode plugin, a Python vim plugin, a
+Python Atom plugin, and Python plugins for any other potential clients, it
+allows developers to focus on single implementation of language server, this
+will be automatically supported by all clients that implement LSP.&lt;/p&gt;
+
+&lt;p&gt;Of course idea of language server is not new — it’s been fairly common way to
+create language tooling. In fact, the F# language already has a language service
+called the &lt;a href=&quot;https://fsharp.github.io/FSharp.Compiler.Service/&quot;&gt;F# Compiler
+Service&lt;/a&gt;. It’s an F# API into
+the internals of the F# compiler, which does all of the heavy lifting in
+determining things that are useful for editor tooling. However, it is ultimately
+just an F# (i.e., .NET) API and cannot be consumed in every environment without
+an additional interface. An additional layer that can interface between the F#
+Compiler Service and any editor (i.e., not just Visual Studio) is needed to
+allow for F# tooling to be used everywhere.&lt;/p&gt;
+
+&lt;h3&gt;FsAutoComplete&lt;/h3&gt;
+
+&lt;p&gt;As I’ve mentioned — the idea of a language server is not new. And F# has been
+having one for years. Initially created in 2011 (as far as I know, that was way
+before I’ve joined F# community), &lt;a href=&quot;https://github.com/fsharp/FsAutoComplete&quot;&gt;FsAutoComplete (FSAC)
+&lt;/a&gt;has been used by all editors that
+aren’t Visual Studio, such as Atom, Emacs, Vim, and VSCode. The project provides
+a high level API over the F# Compiler Services, and communication layer
+(standard I/O, and HTTP web server) that enables using it from non -.Net
+platforms. It’s been long standing project, with many past iterations — in fact,
+prior to the F# Compiler Service API being made available, it used reflection
+over the F# compiler to access internal APIs! It has had many great maintainers
+and contributors over the years (I especially need to mention here &lt;a href=&quot;https://github.com/7sharp9&quot;&gt;Dave
+Thomas&lt;/a&gt;, &lt;a href=&quot;https://github.com/rneatherway&quot;&gt;Robin
+Neatherway,&lt;/a&gt; &lt;a href=&quot;https://github.com/tpetricek&quot;&gt;Tomas
+Petricek,&lt;/a&gt; and &lt;a href=&quot;https://github.com/enricosada&quot;&gt;Enrico
+Sada&lt;/a&gt;) and it has been the magic that powers
+&lt;a href=&quot;http://ionide.io/&quot;&gt;Ionide &lt;/a&gt;since day-0.&lt;/p&gt;
+
+&lt;h3&gt;Current status&lt;/h3&gt;
+
+&lt;p&gt;When I started &lt;a href=&quot;http://ionide.io/&quot;&gt;Ionide &lt;/a&gt;4 years ago, FSAC was in pretty good
+shape, providing many crucial APIs and one communication layer (stdio). Over the
+years, I started to contribute more and more to the project, and with help of
+all awesome people involved, new contributors and community support we’ve
+managed to transform FSAC into one of the best language servers I know
+(especially considering it is not a commercial language service, such as those
+authored by Microsoft or JetBrains), and I feel that it has been one of the most
+important tools created by the .NET OSS community.&lt;/p&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://cdn-images-1.medium.com/max/1600/1*g7fQGoPulhg0zk1oZQxHOw.png&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Also, what is important personally for me is the level of innovation that we’ve
+managed to achieve in FSAC and Ionide. Additional diagnostics such as unused
+opens or unused bindings, integration with a third party linter, features
+powering Ionide’s CodeLenses, background caching that enables very fast use of
+any feature that requires symbols (such as Find References, CodeLens showing
+number of references, etc.), and even custom &lt;a href=&quot;https://medium.com/lambda-factory/introducing-f-analyzers-772487889429&quot;&gt;F#
+Analyzers&lt;/a&gt;.
+These are not the features that you typically see in the editor tooling created
+by independent vendors, nor especially in editor tooling for FP languages (yes,
+some of those features have been present in powerful IDEs for particular
+languages — CodeLenses for C# in VS, or famous background caches in JetBrains
+IDEs — but never for FP languages, and never provided by community driven tools)&lt;/p&gt;
+
+&lt;h3&gt;Bright Future?&lt;/h3&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://cdn-images-1.medium.com/max/1600/0*8AbD6eEC3MzyHHVb&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;So the title of the post promised talking about the future… but the future is
+now. Today, I’d like to show you the thing I’ve been working on over the Xmas
+break for last 2 weeks — &lt;a href=&quot;https://github.com/fsharp/FsAutoComplete/pull/320&quot;&gt;the LSP communication layer for the
+FSAC&lt;/a&gt;.&lt;/p&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Huge thanks goes to &lt;a href=&quot;https://github.com/vbfox&quot;&gt;Julien Roncaglia&lt;/a&gt; for his initial
+work on LSP + FSAC proof of concept few months ago, and his F# LSP server
+abstraction implementation that has been used as a base for my current work.&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;p&gt;Being active maintainer for editor tooling for 2
+&lt;a href=&quot;https://marketplace.visualstudio.com/items?itemName=sbrink.elm&quot;&gt;different&lt;/a&gt;
+&lt;a href=&quot;https://marketplace.visualstudio.com/items?itemName=Ionide.Ionide-fsharp&quot;&gt;languages&lt;/a&gt;,
+a developer that created plugins for multiple editors, and someone that is
+generally interested in editor tooling, it has become obvious for me that LSP
+has won (at least in the niche of cross platform tooling provided by
+community/independent vendors). There are more and more client implementations
+(including really interesting online IDEs like
+&lt;a href=&quot;https://www.gitpod.io/&quot;&gt;GitPod&lt;/a&gt;), more and more server implementations (which
+means there are more and more investments into clients) and the protocol itself
+is becoming more powerful and feature-ful. I strongly believe that it is the
+future of the F# cross platform tooling. From the F# point of view there is
+couple of important advantages:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;It moves lot of code from Ionide code base to the FSAC code base — it means that
+other editors than VSCode can use some of the improvements that has been
+“hacked” in Ionide itself&lt;/li&gt;
+  &lt;li&gt;It makes the contribution process easier — Ionide is a VSCode plugin written in
+F# compiled to JS with &lt;a href=&quot;https://fable.io/&quot;&gt;Fable&lt;/a&gt; using FSAC (totally separate
+code base). This makes the process of contribution a bit awkward — if you want
+to contribute you need to know which code base to work in, if it’s Ionide you
+need to have the Fable toolchain set up. The idea behind using F# for Ionide was
+lowering the bar for contributors (“people interested in making F# tooling
+better are F# developers so the code should be F#”). As lot of Ionide code is
+moved to the FSAC, it makes contributions even easier by moving a lot of code to
+a normal F#/.NET Core project&lt;/li&gt;
+  &lt;li&gt;It’s good news for anyone wanting to use Atom or Vim or Emacs (or maybe ST3?) —
+some of those plugins have not been maintained very actively (or have been
+deprecated like Ionide-Atom), but moving to LSP will mean that getting all new
+fancy features should be way easier or “free”.&lt;/li&gt;
+  &lt;li&gt;I’ll soon start to work on Ionide 4.0 release that will be based on LSP. Lot of
+Ionide code will be removed, since Ionide provides more functionalities than
+just language features — things like solution explorer, creating new projects,
+right click -&amp;gt; debug, and many features focused on developer experience are
+implementations specific to VSCode (and that will probably never change).As FSAC
+will take over lot of responsibilities, I hope to focus more on the UX in Ionide
+itself, which is also a very interesting problem on its own.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;As a side note — we are looking for new maintainers for FSAC. &lt;a href=&quot;https://github.com/fsharp/FsAutoComplete/issues/321&quot;&gt;We would love
+your help&lt;/a&gt;!&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h3&gt;Grim Future?&lt;/h3&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://cdn-images-1.medium.com/max/1600/1*JLKpCZqiDfA80q3O7eH38w.jpeg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;Of course, every real life story have also bad parts. And there are couple of
+the dark clouds on the horizon. First of all, &lt;a href=&quot;https://github.com/ionide/ionide-vscode-fsharp/issues/948&quot;&gt;some
+&lt;/a&gt;&lt;a href=&quot;https://github.com/ionide/ionide-vscode-fsharp/issues/938&quot;&gt;of
+&lt;/a&gt;&lt;a href=&quot;https://github.com/ionide/ionide-vscode-fsharp/issues/914&quot;&gt;the
+&lt;/a&gt;&lt;a href=&quot;https://twitter.com/TeaDrivenDev/status/1077622983383007233&quot;&gt;problems
+&lt;/a&gt;with Ionide/FSAC
+won’t go away with moving to LSP— they are connected to the complexity of build
+and require more knowledge and time than I have (if someone from MSFT is reading
+it — I would love to get, for late Xmas gift, open source, cross platform
+language server for the .Net project system). But that’s just a technical
+problem. The bigger one is that nothing has changed for last year and I can
+repeat my words from last years’ post. While I believe that F# ecosystem is in
+its best shape ever, it’s still building a castle on the sand — not enough
+contributors, depending on same handful of people that overproduce, no
+commercial support for OSS projects, no companies interested in investing into
+F# OSS ecosystem. Ionide and FSAC are both in unsustainable state — crucial
+projects for F# community, with thousands of users, that are used by a huge part
+of the community every day — they get no commercial support and there are not
+enough contributors to make up for this.&lt;/p&gt;
+
+&lt;h3&gt;So… 2019?&lt;/h3&gt;
+
+&lt;p&gt;&lt;img src=&quot;https://cdn-images-1.medium.com/max/1600/1*8KAxxVKVlP_CDXvAXWkrRw.jpeg&quot; alt=&quot;&quot; /&gt;&lt;/p&gt;
+
+&lt;p&gt;So, how will 2019 will look like? Only time will tell. But in general I believe
+that there are more bright sides to the story than dark clouds. F# ecosystem is
+in fairly OK place — tooling is really OK, .NET Core adoption is rising which is
+a good sign, there are more and more interesting projects, community is active,
+and projects like the &lt;a href=&quot;https://safe-stack.github.io/&quot;&gt;SAFE&lt;/a&gt; stack are becoming
+mature and are getting decent adoption.&lt;/p&gt;
+
+&lt;p&gt;However, as a community we still haven’t solved the problem of OSS
+maintainability. One one hand, it’s nothing unusual — most communities struggle
+with those problems. On the other hand, it’s obvious that F# commercial adoption
+is very often driven by the few people building awesome OSS things, and maybe we
+should help them somehow?&lt;/p&gt;
+
+&lt;p&gt;Anyway, I hope &lt;strong&gt;you&lt;/strong&gt; will build great things with F# in 2019!&lt;/p&gt;
+</description>
+                <pubDate>Mon, 31 Dec 2018 00:00:00 +0100</pubDate>
+                <link>http://kcieslak.io/Future-of-F-Cross-platform-editor-tooling</link>
+                <guid isPermaLink="true">http://kcieslak.io/Future-of-F-Cross-platform-editor-tooling</guid>
+                
+                <category>F#</category>
+                
+                <category>VS Code</category>
+                
+                <category>Tooling</category>
+                
+                
+            </item>
         
             <item>
                 <title>Introducing F# Analyzers</title>
@@ -705,360 +1312,6 @@ let userControllerVersion1 = controller {
                 <category>Saturn</category>
                 
                 <category>Web</category>
-                
-                
-            </item>
-        
-            <item>
-                <title>OSS and Community. The Story</title>
-                <description>&lt;h1&gt;Disclaimer&lt;/h1&gt;
-
-&lt;p&gt;Before, we even start - this blog post will be different than others on the page. I usually write about some technical things, sometimes about open source and community based software, but I always try to be rather objective. And this post will be different. It’s totally subjective and personal… because it’s about me, and my story with F# Community.&lt;/p&gt;
-
-&lt;!--more--&gt;
-
-&lt;h1&gt;Now&lt;/h1&gt;
-
-&lt;p&gt;&lt;a href=&quot;http://www.lambdadays.org/lambdadays2018&quot;&gt;Lambda Days&lt;/a&gt; has ended yet again. It was my 4th times here and as always it delivered - great content, fantastic speakers, interesting conversations, perfect organization. It’s definitely my favorite conference in Europe. And as always I could hang out with some great friends from Community - Evelina and Tomas, Felienne, John, Tomasz, Bartosz and others from polish F# community. The contrast between meeting real people, building cool stuff with F# and fighting random Twitter haters couldn’t be bigger.&lt;/p&gt;
-
-&lt;p&gt;So, I guess you wonder now why I even mention that. “You speak at the many conferences, don’t you? Who cares about this particular one? And you wasn’t even a speaker on this.”. Fair enough. But Lambda Days is special for one small reason - it’s a place where this story has started.&lt;/p&gt;
-
-&lt;h1&gt;Beginning&lt;/h1&gt;
-
-&lt;p&gt;So yeah, it was 3 years ago. Second edition of Lambda Days, first one I’ve attended. I was super excited - it was first FP conference I’ve attended and what’s more there were lot of F# talks happening - Tomas and Evelina were there, as well as Andrea, Tomasz Jaskula and others. And back then I was pretty unknown - I’ve been doing F# for some time already but as a hobby - I’ve been working in some small C# shop, I haven’t been doing any open source stuff, and if anyone heard about me on Twitter… well, let’s just say that I was much harsher in my criticism of MSFT and C# than I’m now :)&lt;/p&gt;
-
-&lt;p&gt;So I was at this conference, ready to watch some talks of people I only knew from online world that were way better developers than me, and were way smarter then me, expecting not to understand too much and maybe learn something interesting… And yeah, they were all that, done great talks, that I totally didn’t understand (I still doesn’t understand their talks, but at least I learnt how to pretend). But it turned out that those F# heroes are not only great developers and super intelligent people, but they are also normal, cool, sometimes wierd people that you can do silly jokes with and you can spend time with them having lot of fun and interesting conversations… not only about F#. So we had lot of fun (as proved by &lt;a href=&quot;fhash.org&quot;&gt;fhash.org&lt;/a&gt;), drunk a lot… and that’s when I’ve fallen in love with F# Community.&lt;/p&gt;
-
-&lt;h1&gt;The Project&lt;/h1&gt;
-
-&lt;p&gt;Soo… 1 month later I’ve started the project, which is now known as Ionide. Of course, Tomas helped me a lot - he suggested to use F# to JS compiler (FunScript) [my initial hack was written in CoffeScript - as it was language suggested for Atom plugins], he’s done some magic to make sure that JS produced by FunScript was working in Atom (FunScript, unlike Fable, was not really producing good JS code). So I started to write this plugin on rather bad platform (Atom extension system sounds cool in theory… but well, it’s just a theory) and at some point of time wierd thing, I still don’t really understand happened - people started to use the project. What’s more shocking - they seemed to like it. A lot. In September I’ve released version 1.0, with new, nice name, webpage and some reddit announcements. What’s even more interesting - people were rather vocal about the fact they’re using Ionide, it got quite a lot of traction in the general F# community. And it resulted in MSFT noticing it. In October 2015 I was invited by VSCode Team to private preview of extension API, and for next month I’ve been working (well… “working”) on the new plugin - Ionide-VSCode - that was publicly released on day 0, during Connect(); conference in November.&lt;/p&gt;
-
-&lt;h1&gt;Side effects&lt;/h1&gt;
-
-&lt;p&gt;Interestingly enough there has been some side effects of making Ionide and getting some users. Firstly, I’ve started my company - &lt;a href=&quot;http://lambdafactory.io&quot;&gt;Lambda Factory&lt;/a&gt; in January 2016 and I’ve started to use F# for commercial work. I’ve also been invited to multiple conferences in 2016 - NDC London, F# eXchange, .Net Fringe (&amp;lt;3), F# Creators Workshop. I’ve been 2 times in Vancouver in 2016 for one of my clients. All those things has been great fun, and are clear result of Ionide - I got my first client thanks to it, my first, really terrible conference talks were about Ionide. In general 2016 was great year - Ionide was getting lot of new features, Fable was released, I’ve ported Ionide to Fable while flying over the Atlantic. And Ionide got lot of users, it was “Featured extension” for a while in VSCode marketplace, it was highest rated extension in VSCode marketplace for a while, and the userbase slowly moved from Atom version to VSCode.&lt;/p&gt;
-
-&lt;p&gt;But it was also a year of several failures in my OSS activity - I haven’t managed to create healthy community around the Ionide - it’s been basically one man show. Some my other OSS projects were not really successful. Forge, which was started in January 2016, has not become a go-to tool for the community. While in case of Forge I can still say about relative success of the project since it’s used to this day in Ionide, the other project I really cared about back then - FsToml - was total failure, and resulted in burnt out, crushed dreams, and broken heart. And well, I was called troll by some members of community for suggesting something like FsToml in one of the blog post.&lt;/p&gt;
-
-&lt;h1&gt;Stabilization&lt;/h1&gt;
-
-&lt;p&gt;My opinions about 2017 are really split - on the one hand it was clearly good year for Ionide - it has become one of the best way to develop F#, and best xplat way. It’s also probably one of the best editor tooling for FP languages in general, and one of the best VSCode extensions in the marketplace (which is decent achievement given that many important VSCode extensions are maintained by MSFT). It got more and more features, including innovating features like CodeLenses and LineLenses, the decently working project explorer, F# Code Outline and many more. And the user base has been constantly growing hitting couple of thousands users according to my estimate (which seems like really decent number given size of F# userbase). It’s also been used by nearly all F# speakers during their talks on various F# conferences and events. And what’s probably most important - thanks to amazing work by Enrico we’ve continuously had best support for .Net Core from any F# IDE - including support for .Net Core 2.0 on the release day.&lt;/p&gt;
-
-&lt;p&gt;For me it was also decent year - I’ve spoken at some great conferences - F# eXchange (again), nCrafts, FableConf, Remmidemi, Get.Net Conf, CodeMotion Milan. I’ve worked on some cool stuff, doing Azure Functions with F# for essentially whole year. I’ve started to move slowly into training market, and I’ve done couple of internal trainings what I’ve really enjoyed and is something I want to focus on in the future.&lt;/p&gt;
-
-&lt;p&gt;But I think it was also bad year in many areas. First of all - Fornax, the F# static site generator I’ve created, didn’t get any attention. Secondly, I didn’t manage to create any good way to sustain Ionide. General atmosphere in F# Twitter community was getting worse and worse due to some vocal minority that’s able only to complain about lack of MSFT investments and lack of quality in tools they get for free. There happened some dramas around F# web stack which was super sad to see. I was not invited to speak at .Net Fringe and Open F# which was really disappointing for me.&lt;/p&gt;
-
-&lt;h1&gt;Current state&lt;/h1&gt;
-
-&lt;p&gt;I really believe into what I’ve written couple of months ago on Twitter - F# ecosystem is in it’s best state in last couple of years (and probably ever). The usages numbers for all main editors are growing, we have some great xplat editor experience with Ionide, F# web stack (SAFE) is getting more and more mature, providing amazing development experience for end-to-end programming. MSFT actions clearly show that they are committed to F# - no one is rewriting language plugin to latest technologies that brings it up-to-date with C# integration, or includes support for Azure Functions, adds F# to &lt;code&gt;dotnet&lt;/code&gt; CLI out of the box, and hire new people to the Team just to stop supporting the language. And I think it’s not the statement I could do 2 years ago.&lt;/p&gt;
-
-&lt;p&gt;At the same time we build castle on the sand - looking at such important parts of F# ecosystem as Ionide, Paket, FAKE, FSAC, Fable, F#.Formatting - I can’t understand why any of those projects don’t have commercial sponsoring. There are tens of thousands of F# users, hundreds of companies using F# for their commercial products. EVERYONE is using those libraries and tools provided by F# community. And no one wants to support those projects. Even if only 1% of companies using F# provided financial support it would make huge difference for those projects. Even if only 1% of F# developers started regularly contribute to OSS libs it would create thriving ecosystem. But I guess doing nothing, using the tools and libraries you get for free, and complaining on social media about quality of ecosystem is what Real Developers creating Real Software do… what do I know, I’m just simple hipster doing OSS :)&lt;/p&gt;
-
-&lt;p&gt;Ionide is in the unsustainable state - over last 3 years I’ve spent thousands of hours working on it. Feel free to calculate how much it would costed if that was tool that your company developed internally. Feel free to calculate how much money you get if you think that Ionide gives you 5% productivity boost… and well, I guess that productivity boost was even higher when you wanted to do .Net Core 2.0 and no other editor supported it :)&lt;/p&gt;
-
-&lt;p&gt;And Ionide is way smaller project than Paket, or FAKE, or Fable… How many hours your developer saved thanks to having actually working dependency management system, reasonable build processes or being able to write front end code in sane, type safe, modern language?&lt;/p&gt;
-
-&lt;p&gt;I guess we all just need to hope that maintainers of those projects will never quit, get bored or decide that they have better things to do in their spare time…&lt;/p&gt;
-</description>
-                <pubDate>Fri, 23 Feb 2018 00:00:00 +0100</pubDate>
-                <link>http://kcieslak.io/OSS-The-Story</link>
-                <guid isPermaLink="true">http://kcieslak.io/OSS-The-Story</guid>
-                
-                <category>Open Source</category>
-                
-                <category>Community</category>
-                
-                <category>F#</category>
-                
-                
-            </item>
-        
-            <item>
-                <title>Reinventing MVC pattern for web programming with F#</title>
-                <description>&lt;h1&gt;Introduction&lt;/h1&gt;
-
-&lt;p&gt;A couple of weeks ago, I’ve posted &lt;a href=&quot;https://twitter.com/k_cieslak/status/944349420937793536&quot;&gt;yet-another-controversial-tweet&lt;/a&gt; - this time criticizing F# libraries for web programming and saying that “they focus on wrong problem”. In this post I’d like to expand this thought a bit, describe what is, in my opinion, problem with those libraries, and introduce a project that will try to fix those problems.&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;DISCLAIMER: In the original tweet I’ve mentioned three libraries - &lt;a href=&quot;https://suave.io/&quot;&gt;Suave&lt;/a&gt;, &lt;a href=&quot;https://github.com/giraffe-fsharp/Giraffe&quot;&gt;Giraffe&lt;/a&gt;, and &lt;a href=&quot;https://freya.io/&quot;&gt;Freya&lt;/a&gt;. First of all, if we were to talk about all major F# web solutions we should also mention &lt;a href=&quot;https://websharper.com/&quot;&gt;WebSharper&lt;/a&gt;. Secondly, my experience with Freya and WebSharper is fairly limited - I’ve never used any of them in commercial application - so in this post I won’t talk about them but focus on Suave and Giraffe&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;DISCLAIMER 2: I really like both Suave and Giraffe - I’ve been using Suave for years in multiple commercial applications and I think it’s really good project. Also I’ve been investigating and testing Giraffe for last couple of months and I also believe it’s good project with a bright future.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;!--more--&gt;
-
-&lt;h1&gt;The model&lt;/h1&gt;
-
-&lt;p&gt;So let’s start with describing a programming model that Suave and Giraffe use. Both libraries are using a really similar model of building applications from small functions that takes &lt;code&gt;HttpContext&lt;/code&gt; as an input and returns a modified &lt;code&gt;HttpContext&lt;/code&gt; and then they use combinators functions to combine those small functions and build application with them. This model is really powerful, it provides full control over the flow of the program, and follows some FP principles (building applications as a composition of functions).&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;There are some small differences between Suave and Giraffe implementation of this model, but going into such details is not in scope of this post.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h1&gt;The problem&lt;/h1&gt;
-
-&lt;p&gt;While I love the programming model I also believe that both Suave and Giraffe missed an opportunity to build on top of this model. Helper functions provided by both libraries that are the main building block of the applications are really “low level” - they mostly focus on the details of the HTTP protocol. And I think that while this is an useful level of abstraction for some use cases, my experience with building business applications with Suave / Giraffe suggests that this is not a level of abstraction that’s useful for typical, boring-line-of-business applications - and that’s most common use case for most software developers. If we compare Suave / Giraffe with other ecosystems it often feels like writing ASP.Net applications with just middleware - without using MVC / WebAPI abstractions, or writing Elixir web applications with just Plugs - without &lt;a href=&quot;http://phoenixframework.org/&quot;&gt;Phoenix Framework&lt;/a&gt;. Of course there are cases where this lower level of abstraction is a good choice, but success and popularity of such libraries like &lt;a href=&quot;http://rubyonrails.org/&quot;&gt;Rails&lt;/a&gt;, ASP.Net MVC, or Phoenix shows us that developers want to use some higher level of abstraction and focus on solving their business domain problems instead of worrying about the details of the HTTP protocol.&lt;/p&gt;
-
-&lt;h1&gt;Developer experience&lt;/h1&gt;
-
-&lt;p&gt;The previous paragraph was focused on technical issues but let’s now move to something a bit different. Working on OSS tooling for the last couple of years has thought me one important thing - good user experience is sometimes more valuable for project than technical superiority. I also strongly believe that tooling can be a great way to allow people ramp up faster and to teach users some new concepts. A great example of that is &lt;a href=&quot;https://www.jetbrains.com/resharper/&quot;&gt;ReSharper&lt;/a&gt; - while it’s not super popular in F# community ( ;-) ) and some of the features for C# are probably overkill, I strongly believe that ReSharper is one of the most impactful source of information about new language features for C# developers - not every developer is following all news, conferences and announcements but it’s hard to miss when tool starts to give warnings and shows automatic refactorings introducing new language features. In web space great example for such behavior is Phoenix - everything it does in regards of tooling, from new project template through opinionated structure of the project to generators that let users to scaffold some new controllers is designed to make the introduction of most important concepts used in Phoenix easier for new developer.&lt;/p&gt;
-
-&lt;p&gt;I strongly believe that lack of opinionated tooling and opinionated, commonly used way to build web applications is another important issue of Suave and Giraffe. Developers don’t want to focus on making decisions about structuring the project, or wonder how they need to combine things together, or what are best practices - they want to focus on problems of their business. Again, frameworks like Phoenix and Rails are great example of how having such an opinionated way of building web applications works great in practice.&lt;/p&gt;
-
-&lt;h1&gt;Introducing Saturn&lt;/h1&gt;
-
-&lt;p&gt;For the last couple of weeks I’ve been working on &lt;a href=&quot;https://github.com/SaturnFramework/Saturn&quot;&gt;Saturn&lt;/a&gt; - a new F# OSS project that will attempt to solve the problems mentioned above. It’s strongly inspired by some concepts from Phoenix. Before going into details of Saturn an important thing about it is that it builds on top of the existing ecosystem - and to be precise on top of Giraffe - in similar fashion that Phoenix builds on top of Plugs abstraction.&lt;/p&gt;
-
-&lt;h3&gt;Library&lt;/h3&gt;
-
-&lt;p&gt;A core part of Saturn is a library that can be put on top of any existing Giraffe application. This library contains a set of helper functions, tries to hide some complexity of Giraffe (for example manual passing of &lt;code&gt;next&lt;/code&gt; in every function), and what’s most important it introduces several higher level building blocks that can be used to model a web application. Those building blocks are using a nice high level, declarative DSL using computation expressions with custom keywords. Currently in Saturn there exists 4 such higher level building blocks:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;Pipelines&lt;/li&gt;
-  &lt;li&gt;Scopes&lt;/li&gt;
-  &lt;li&gt;Controllers&lt;/li&gt;
-  &lt;li&gt;Applications&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;and now I shall explain each with a code sample.&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;code&gt;pipeline&lt;/code&gt; - the simplest building block provided by Saturn. It can be used to combine multiple &lt;code&gt;HttpHandlers&lt;/code&gt; in a more declarative way without using custom operators. It also provides custom operations that hide some of the Giraffe complexity.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Example:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;let browser = pipeline {
-    plug acceptHtml
-    plug putSecureBrowserHeaders
-    fetchSession
-    set_header &quot;x-pipeline-type&quot; &quot;Browser&quot;
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;code&gt;scope&lt;/code&gt; - it is a DSL that can be used to define routing and combining this routing together with the &lt;code&gt;pipelines&lt;/code&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Example:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;let defaultView = scope {
-    get &quot;/&quot; (renderHtml Index.layout)
-    get &quot;/index.html&quot; (redirectTo false &quot;/&quot;)
-    get &quot;/default.html&quot; (redirectTo false &quot;/&quot;)
-}
-
-let browserRouter = scope {
-    error_handler (renderHtml NotFound.layout) //Use the default 404 webpage
-    pipe_through browser //Use the default browser pipeline
-
-    forward &quot;&quot; defaultView //Use the default view
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;code&gt;controller&lt;/code&gt; - it is a DSL for building typical HTTP controllers. It’s using predefined routing inspired by Phoenix’s &lt;code&gt;resource&lt;/code&gt; macro.s&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Example:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;let resource = controller {
-    index indexAction
-    show showAction
-    add addAction
-    edit editAction
-    create createAction
-    update updateAction
-    delete deleteAction
-}
-&lt;/code&gt;&lt;/pre&gt;
-&lt;p&gt;Example:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;code&gt;application&lt;/code&gt; - it’s a DSL used for defining application settings and ASP.Net configuration. It aims to replace some cumbersome configuration of some ASP.Net features with declarative feature toggles.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;pre&gt;&lt;code&gt;let app = application {
-    pipe_through endpointPipe
-
-    error_handler (fun ex _ -&amp;gt; HttpHandlers.renderHtml (InternalError.layout ex))
-    router Router.router
-    url &quot;http://0.0.0.0:8085/&quot;
-    memory_cache
-    use_static &quot;static&quot;
-    use_gzip
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;The important thing about Saturn’s computation expression and those higher level building blocks - &lt;code&gt;pipeline&lt;/code&gt;, &lt;code&gt;scope&lt;/code&gt; and &lt;code&gt;controller&lt;/code&gt; is that they are not introducing any additional abstraction in terms of types - they are transformed to standard Giraffe &lt;code&gt;HttpHandler&lt;/code&gt; which means they are composable with each other and with other, existing &lt;code&gt;HttpHandlers&lt;/code&gt; that you may have.&lt;/p&gt;
-
-&lt;h3&gt;Tooling&lt;/h3&gt;
-
-&lt;p&gt;The other, as important as core library, part of Saturn is additional, opinionated tooling for scaffolding new projects, generating controllers, models, database layer and migration scripts, controlling database migrations etc.&lt;/p&gt;
-
-&lt;p&gt;This tooling comes in 2 parts - first one is a project template that creates default the project structure, and a set of helper files. This is a normal &lt;code&gt;dotnet&lt;/code&gt; project template distributed through NuGet which means you will be able to use &lt;code&gt;dotnet new saturn&lt;/code&gt; to create Saturn applications. The second part of the tooling is a &lt;code&gt;dotnet&lt;/code&gt; extension tool, again, distributed by NuGet. It’s automatically referenced when creating a new Saturn project. So after creating new project you will be able to go to the project folder and run, for example, the &lt;code&gt;dotnet saturn gen&lt;/code&gt; command to generate new controller, views, model and a database layer.&lt;/p&gt;
-
-&lt;h3&gt;Design choices&lt;/h3&gt;
-
-&lt;p&gt;Some parts of the Saturn library and the whole tooling is really opinionated - for example there is no choice to change the way the routing for &lt;code&gt;controller&lt;/code&gt; is created, you can just decide not to implement some of the actions. This may seem restrictive at first, but I strongly believe that it is a good design for the most common use cases. And since everything is based on the composable &lt;code&gt;HttpHandler&lt;/code&gt; model if the default implementation of &lt;code&gt;controller&lt;/code&gt; is not working for you, you can easily recreate it with lower level abstractions such as the &lt;code&gt;scope&lt;/code&gt; DSL.&lt;/p&gt;
-
-&lt;p&gt;Similarly the tooling is really opinionated - the default template out of the box uses &lt;a href=&quot;https://fsprojects.github.io/Paket/&quot;&gt;Paket&lt;/a&gt; for dependency management, &lt;a href=&quot;https://fake.build/&quot;&gt;FAKE&lt;/a&gt; for build script, &lt;a href=&quot;https://github.com/StackExchange/Dapper&quot;&gt;Dapper&lt;/a&gt; for data access, &lt;a href=&quot;https://github.com/canton7/Simple.Migrations&quot;&gt;Simple.Migrations&lt;/a&gt; to handle database migrations. The &lt;code&gt;dotnet saturn&lt;/code&gt; tool generates code assuming certain project structure was created as by the default template, and probably won’t work in other situation.&lt;/p&gt;
-
-&lt;h3&gt;Resources&lt;/h3&gt;
-
-&lt;p&gt;Both Saturn library and tooling are open-source projects that can be found on GitHub and NuGet:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;
-    &lt;p&gt;Saturn library - &lt;a href=&quot;https://github.com/SaturnFramework/Saturn&quot;&gt;https://github.com/SaturnFramework/Saturn&lt;/a&gt; and &lt;a href=&quot;https://www.nuget.org/packages/Saturn/&quot;&gt;https://www.nuget.org/packages/Saturn/&lt;/a&gt;&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;Saturn template - &lt;a href=&quot;https://github.com/SaturnFramework/Saturn.Template&quot;&gt;https://github.com/SaturnFramework/Saturn.Template&lt;/a&gt; and &lt;a href=&quot;https://www.nuget.org/packages/Saturn.Template/&quot;&gt;https://www.nuget.org/packages/Saturn.Template/&lt;/a&gt;&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;Saturn &lt;code&gt;dotnet&lt;/code&gt; tool - &lt;a href=&quot;https://github.com/SaturnFramework/Saturn.Dotnet&quot;&gt;https://github.com/SaturnFramework/Saturn.Dotnet&lt;/a&gt; and &lt;a href=&quot;https://www.nuget.org/packages/Saturn.Dotnet/&quot;&gt;https://www.nuget.org/packages/Saturn.Dotnet/&lt;/a&gt;&lt;/p&gt;
-  &lt;/li&gt;
-  &lt;li&gt;
-    &lt;p&gt;Saturn sample project created using template and generator tool - &lt;a href=&quot;https://github.com/SaturnFramework/Saturn.Sample&quot;&gt;https://github.com/SaturnFramework/Saturn.Sample&lt;/a&gt;&lt;/p&gt;
-  &lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h1&gt;Summary&lt;/h1&gt;
-
-&lt;p&gt;In this post I’ve tried to point out some problems of Suave and Giraffe and explain why I’ve decided to create new library for web programming with F#.&lt;/p&gt;
-</description>
-                <pubDate>Thu, 25 Jan 2018 00:00:00 +0100</pubDate>
-                <link>http://kcieslak.io/Reinventing-MVC-for-web-programming-with-F</link>
-                <guid isPermaLink="true">http://kcieslak.io/Reinventing-MVC-for-web-programming-with-F</guid>
-                
-                <category>F#</category>
-                
-                <category>Saturn</category>
-                
-                <category>Web</category>
-                
-                
-            </item>
-        
-            <item>
-                <title>Path to Community based Open Source Software</title>
-                <description>&lt;h1&gt;Introduction&lt;/h1&gt;
-
-&lt;p&gt;Open Source movement has changed the software development world as much as only few things before. Nowadays, it’s almost impossible to develop any project without using OSS - we can be sure that some parts of our stack are developed in the open - from the libraries we download from the package managers, through runtime, to compilers that we are using. Even most conservative, and not-so-long-time-ago actively hostile to OSS companies are now trying to embrace Open Source development.&lt;/p&gt;
-
-&lt;p&gt;But putting code in open by uploading to GitHub, using one of the licenses formally accepted by the &lt;a href=&quot;https://opensource.org/&quot;&gt;Open Source Initiative&lt;/a&gt; is just first step. In my opinion, the real value of the Open Source is not just license, and publicly available code (although, those things are also valuable on their own) but rather possible change in governance model, collaboration with Community and embracing “OSS Culture”.&lt;/p&gt;
-
-&lt;p&gt;In this post I’ll describe different “stages of enlightenment” that company can go through in its path to the Open Source development model that will bring most value to both company and community.&lt;/p&gt;
-
-&lt;!--more--&gt;
-
-&lt;h1&gt;Open Source License&lt;/h1&gt;
-
-&lt;p&gt;Even though, as I’ve mentioned I believe that embracing OSS goes much beyond just having OSS license we can’t really forgot about importance and impact of it. Having OSS license is necessary condition for any project that wants to be called OSS projects. There exist formal definition created by Open Source Initiative called &lt;a href=&quot;https://opensource.org/docs/osd&quot;&gt;Open Source Definition&lt;/a&gt; that sets strict rules that license must follow to be called OSS license.&lt;/p&gt;
-
-&lt;h1&gt;Stage 1 - Code dump&lt;/h1&gt;
-
-&lt;p&gt;At this level, company publishes online projects that its no longer going to invest into or maintain. Probably project failed, was deprecated, or is not profitable. Usually it means that company is no longer interested in the code base - there will be no maintainers, no merged PRs, no responses to issues, and no updates. Rarely, it’s desperation step and company is trying to save project… more often company is trying to save itself from outrage of existing community and userbase after cancelling product. The only way it can end well is when there already exist active project community that will fork project, and continue to maintain project. And usually that’s not a case - since product was developed as a closed sourced project it usually don’t have huge community of developers that are engaged enough to pick up dropped ball.&lt;/p&gt;
-
-&lt;h1&gt;Stage 2 - Open facade&lt;/h1&gt;
-
-&lt;p&gt;In this model company still actively develops the application. Publicly available code is updated regularly, some people from the company are responding to the issues (it’s often used only as a public bug tracker). But all decisions, discussions about new features, bug fixes are done internally in company using private communications channels - community has no impact on the direction of the product, communication is often only one-way - community tries to give it feedback, and suggest way forward but usually there is no respond from the company (even if some of those suggestions are taken into account by some members of the development team), PRs are ignored or actively discouraged. In terms of building community this level is often even worse than previous stage - at least fact that no one cares about project forces the community to step up (if there is need for the project), in this stage community is discouraged to do anything - it has no impact, and someone else is developing the project. In longer term it’s really bad - it creates community that is 100% reliant on the company building the product, and that is unable to step up when needed (for example to extend ecosystem of the project).&lt;/p&gt;
-
-&lt;h1&gt;Stage 3 - Development in the open&lt;/h1&gt;
-
-&lt;p&gt;That’s the level when company can see first real advantages of the Open Source methodologies, it’s also level where most companies trying to embrace OSS are at. In this stage company develops product in the open - code development is done directly on GitHub (or other provider), discussions about product future (or at least some of them) are done using public channels such as issues. Bug reports are treated seriously, feature requests are discussed in with the community in the public, PRs are getting accepted as long as they follow the direction of the project set by company. This level creates decently engaged community - even though community and external developers can’t dictate future of the project, and direction it’s going to be developed in they still can at least quickly fix the bugs and problems they encounter. They also feels that company is taking their feedback seriously - as long as the communication works decently, most external developers can understand why some features are not going to be implemented, or they are not priority. Company can expect decent feedback focused on the technical level - the implementation details, as that’s something that’s focus point of the community. However, communication is still mostly “initialized” by the community - they report bugs, or suggest feature requests and then development team from the company responds to that. Also the company goals are still focal point of the development - they dictate development plans and what feature requests are accepted.&lt;/p&gt;
-
-&lt;h1&gt;Stage 4 - Enlightened despot&lt;/h1&gt;
-
-&lt;p&gt;At this level company starts to understand that short term business goals are less important for the success than long term growth of the community. In terms of development practices it’s really similar to previous level - development is done in the open, things are discussed in public channels, PRs are getting accepted. The difference is really subtle but important - the company is actively trying to look for the feedback about product future (and not only particular features), communication is often initialized by development team, the short term road maps (for example monthly iteration plans) are published so the community knows what the development team is going to focus on. The project is still in the formal control of the company (only members of the company have write access to the repository) but the product is developed with community being focal point of the process. This model creates really engaged community as it puts lot of weight on communication with community. It also makes community feel that it has real impact on the project and that company cares not only about business goals but also abut growth of ecosystem. In this model company can expect lot of really good feedback (both positive and negative), which increases chances of making right decisions about everything… from general decisions about project future to implementation details.&lt;/p&gt;
-
-&lt;h1&gt;Stage 5 - Community based Open Source&lt;/h1&gt;
-
-&lt;p&gt;At this stage company not only focuses on the community, it becomes part of the community equals to all other contributors. Decisions are made by consensus between all parts of the community. The write access to repository is given to the external developers that are not hired by the company, developers that are hired by the company are not getting automatically write access just because they are hired - they need to follow same path as any other member of the community, proof to be a good actor in the community. Community starts to self govern itself - there no longer exist one entity that’s formally more important than other parts of the community. There are no private communication channels as every member of the community has access to information. Really often general project roadmaps stops existing - there is no way of forcing everyone in the community to work on some particular set of features, people tend to work on features they want to have implemented (of course, as long as they are in the scope of the projects and community generally agrees that it’s needed feature). This model brings to the project not only great discussions, great developers (that you wouldn’t necessarily be able to hire) but also great leaders, maintainers and evangelists - people that really care about your project, that will be willing to spend lot of time and effort to develop product and its ecosystem.&lt;/p&gt;
-
-&lt;h1&gt;Problems with embracing Community based OSS&lt;/h1&gt;
-
-&lt;p&gt;Companies are often really afraid of the governance model in which they give up parts of their privileges connected with absolute power over the project. They often state that they need to maintain control to make sure that the product will be developed in right direction (even if they are OK with putting community in the center of this direction, or at least consult it with community). I believe that there are two points that are often missed when this argument is raised. First of all - development team hired by the company still can focus on those features, and those parts of the project that are most important for your business - company still can have its roadmaps and plans that are important for hired development team. Secondly, if we assume that whole community will agree on given direction, community itself will be the best entity that will ensure that product is developed in direction that was agreed on by all parts. As long as the company understands that growth of the community and ecosystem is good for the business in long term, everything should be fine.&lt;/p&gt;
-
-&lt;h1&gt;Summary&lt;/h1&gt;
-
-&lt;p&gt;In this blog post I’ve described several different models for embracing Open Source development methodologies. I belive that it’s clear that even though putting code in public with OSS license is good move, the real power of the OSS is collaboration with the community - and more effort is put into this collaboration, more control is given over to communing, the better results will be - from creating really engaged user base that cares enough to report bugs and suggest new features on its own, through getting some technical feedback and small bug fixes, to creating real self governing community that will create its own leaders, and evangelists, that will include some people that you couldn’t bring to project otherwise.&lt;/p&gt;
-
-</description>
-                <pubDate>Mon, 12 Jun 2017 00:00:00 +0200</pubDate>
-                <link>http://kcieslak.io/Path-to-community-based-OSS</link>
-                <guid isPermaLink="true">http://kcieslak.io/Path-to-community-based-OSS</guid>
-                
-                <category>Open Source</category>
-                
-                <category>Community</category>
-                
-                
-            </item>
-        
-            <item>
-                <title>Using Paket with Azure Functions</title>
-                <description>&lt;h1&gt;Introduction&lt;/h1&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://azure.microsoft.com/en-us/services/functions/&quot;&gt;Azure Functions&lt;/a&gt; is Microsoft’s implementation of serverless architecture hosted on Azure. It is a solution for easily running small pieces of code, or “functions,” in the cloud. You can write just the code you need for the problem at hand, without worrying about a whole application or the infrastructure to run it. Functions can be written in many different languages, including F#.&lt;/p&gt;
-
-&lt;!--more--&gt;
-
-&lt;h1&gt;Workflow problem&lt;/h1&gt;
-
-&lt;p&gt;Azure Functions can be developed using online editor avaliable on Azure Portal - unfortunetlly it doesn’t provides any rich editing features (autocomplete, tooltips etc) we all like in our normal editors. Luckily, Azure Functions can be also created (and tested) locally, and configured to use GitHub repository (or couple other sources) as source of code, creating very nice Continues Deployment process (coding on local machine -&amp;gt; pushing code to GitHub -&amp;gt; deployment to Azure is automatically triggered). This way we should be able to use our rich editor tooling to develop Functions.&lt;/p&gt;
-
-&lt;p&gt;However, there is small problem. For sake of simplicity, dependency menagment in Azure Functions is using quite a lot of &lt;em&gt;magic&lt;/em&gt;. Essensially, all you need to do is create &lt;code&gt;project.json&lt;/code&gt;, put there your dependency… and then you can just put &lt;code&gt;#r dependency_name&lt;/code&gt; in your deployed &lt;code&gt;.fsx&lt;/code&gt; file to reference it. But as we know, that’s not exactly how things work in normal F# scripting - usually we need to add relative path to &lt;code&gt;.dll&lt;/code&gt;, not just a name of reference. What’s more I haven’t found a way to restore dependencies using Azure Functions CLI tool (which follows Microsoft’s tradition of calling totally unusable software &lt;code&gt;beta&lt;/code&gt;).&lt;/p&gt;
-
-&lt;h1&gt;Paket Strikes Back&lt;/h1&gt;
-
-&lt;p&gt;Instead of fighting with bad workflow suggested by Microsoft, I’ve decided to do what F# developers usually do - use created by Community tool. And our solution to dependency management problem is &lt;a href=&quot;https://fsprojects.github.io/Paket/&quot;&gt;Paket&lt;/a&gt;
-We normally initialize Paket, put &lt;code&gt;paket.bootstraper.exe&lt;/code&gt; in &lt;code&gt;.paket&lt;/code&gt; folder, create &lt;code&gt;paket.dependencies&lt;/code&gt; file, install dependency. Thanks to that we can use &lt;code&gt;#r&lt;/code&gt; reference with relative path to our dependency (which is downloaded to packages folder). For example: &lt;code&gt;#r &quot;../packages/Tesseract/lib/net45/Tesseract.dll&quot;&lt;/code&gt;. This let us to use full power of our editors to develop Azure Functions locally.&lt;/p&gt;
-
-&lt;h1&gt;Deployment to Azure&lt;/h1&gt;
-
-&lt;p&gt;Now we need to force Azure to run Paket after deploying code from our repository to cloud. Doing it is fairly simple, but not documented too well.&lt;/p&gt;
-
-&lt;p&gt;First of all, in root of our repository we create &lt;code&gt;build.cmd&lt;/code&gt; file running Paket.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-bash&quot;&gt;@echo off
-cls
-
-.paket\paket.bootstrapper.exe
-if errorlevel 1 (
-  exit /b %errorlevel%
-)
-
-.paket\paket.exe restore --force
-if errorlevel 1 (
-  exit /b %errorlevel%
-)
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Second step is using deployment configuration file to run our &lt;code&gt;build.cmd&lt;/code&gt;. We create &lt;code&gt;.deployment&lt;/code&gt; file and add there following entry:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&quot;language-toml&quot;&gt;[config]
-SCM_POST_DEPLOYMENT_ACTIONS_PATH = ../wwwroot
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;It configures where deployment utility will look for any post deployment scripts (and &lt;code&gt;.cmd&lt;/code&gt; file) after cloning and coping our repository. &lt;code&gt;wwwroot&lt;/code&gt; is root folder which will contain our Function after deployment.&lt;/p&gt;
-
-&lt;p&gt;Having those 2 files, we can push code to GitHub, go to Azure Portal, check deployments of our Function App. If everything is OK we should see Paket output in post deployment actions log.&lt;/p&gt;
-
-&lt;h1&gt;Summary&lt;/h1&gt;
-
-&lt;p&gt;In this post, I’ve presented how to use Paket together with Azure Functions to create nice workflow for developing applications using this modern platform. The sample code can be found on GitHub - https://github.com/Krzysztof-Cieslak/AzureFunctionsSamples&lt;/p&gt;
-</description>
-                <pubDate>Tue, 22 Nov 2016 00:00:00 +0100</pubDate>
-                <link>http://kcieslak.io/Using-Paket-with-Azure-Functions</link>
-                <guid isPermaLink="true">http://kcieslak.io/Using-Paket-with-Azure-Functions</guid>
-                
-                <category>F#</category>
-                
-                <category>Paket</category>
-                
-                <category>Azure Functions</category>
                 
                 
             </item>
