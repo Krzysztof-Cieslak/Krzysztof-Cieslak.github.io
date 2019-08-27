@@ -13,8 +13,8 @@
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/styles/default.min.css">
     <link rel="stylesheet" href="/css/main.css" />
     <link rel="stylesheet" href="/css/font-awesome.min.css" />
-    <link rel="canonical" href="http://kcieslak.io/blog/page2/">
-    <link rel="alternate" type="application/rss+xml" title="F# Reflections Feed" href="http://kcieslak.io/feed.xml">
+    <link rel="canonical" href="http://localhost:4000/blog/page2/">
+    <link rel="alternate" type="application/rss+xml" title="F# Reflections Feed" href="http://localhost:4000/feed.xml">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
 </head>
 <body>
@@ -64,6 +64,39 @@
     <div class="site-content">
     <div class="inner">
         <main class="site-main"> 
+            
+            <article class="post">
+                <header class="entry-header"> 
+                    <div class="entry-header-wrap">
+                        
+                        <a href="/Introducing-F-Analyzers" class="post-thumbnail"><img src="/images/posts/landscape_6.jpg" alt="Introducing F# Analyzers "></a>
+                        
+                        <h2 class="entry-title"><a href="/Introducing-F-Analyzers" rel="bookmark" title="Permanent Link to /Introducing-F-Analyzers">Introducing F# Analyzers</a></h2>
+                    </div><!-- .entry-header-wrap -->
+                    <div class="entry-meta">
+                        by <span class="post-author">Krzysztof Cieslak</span> on <time class="published" datetime="2018-09-14">September 14, 2018</time>
+                    </div><!-- .entry-meta -->
+                </header><!-- .entry-header -->
+                <div class="entry-content">
+                    
+                        <h1>Introducing F# Analyzers</h1>
+
+<p>One of the most exciting features of Roslyn (modern C# compiler) is ability to plug into it custom extensions called <a href="https://docs.microsoft.com/en-us/visualstudio/extensibility/getting-started-with-roslyn-analyzers?view=vs-2017">Roslyn Analyzers</a>. They are live, real-time, project based plugins that enables to diagnose source code and surface custom errors, warnings and code fixes into Visual Studio. What’s really important is fact that there are project based, and distributed through NuGet which means they are easy to install, and ensure that all developers working on the project have exactly same analyzers installed. This is really useful if you want to ensure common best practices, style etc while working on the project.</p>
+
+<p>Today I’d like to introduce preview of the project called F# Analyzers which adds similar capabilities to <a href="http://ionide.io">Ionide</a> (F# support in VS Code). Project is still in the early days, so design and technical details can change in time, but I’m really excited to share it with users even in its current state.</p>
+
+
+                    
+                    <p class="read-more"><a href="/Introducing-F-Analyzers" class="more-link" title="read more">read more</a></p>
+                </div><!-- .entry-content -->
+                
+                <footer class="entry-footer">
+                    <div class="tag-links">
+                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#VS+Code" title="Pages tagged VS Code" rel="tag">VS Code</a><a href="/tags/index.html#Tooling" title="Pages tagged Tooling" rel="tag">Tooling</a>
+                    </div>
+                </footer><!-- .entry-footer -->
+                
+            </article><!-- .post -->
             
             <article class="post">
                 <header class="entry-header"> 
@@ -197,48 +230,13 @@
                 
             </article><!-- .post -->
             
-            <article class="post">
-                <header class="entry-header"> 
-                    <div class="entry-header-wrap">
-                        
-                        <a href="/Magic-of-Saturn-controllers" class="post-thumbnail"><img src="/images/posts/landscape_10.jpg" alt="Magic of Saturn controllers "></a>
-                        
-                        <h2 class="entry-title"><a href="/Magic-of-Saturn-controllers" rel="bookmark" title="Permanent Link to /Magic-of-Saturn-controllers">Magic of Saturn controllers</a></h2>
-                    </div><!-- .entry-header-wrap -->
-                    <div class="entry-meta">
-                        by <span class="post-author">Krzysztof Cieslak</span> on <time class="published" datetime="2018-07-20">July 20, 2018</time>
-                    </div><!-- .entry-meta -->
-                </header><!-- .entry-header -->
-                <div class="entry-content">
-                    
-                        <h1>Introduction</h1>
-
-<p><a href="https://saturnframework.org">Saturn</a> is new F# web framework that implements well know design pattern - MVC - in more functional way. Despite Saturn being fairly young project it’s getting more and more popular among F# community and industrial users. One of the main Saturn’s goals is to create high level abstractions that will enable developers to focus on writing domain, business code instead of focusing on creating correct routing for your application or setting right response headers. One of such abstractions, that I want to talk about today, is <code>controller</code>.</p>
-
-<blockquote>
-  <p>This article was created for Saturn version 0.7.x</p>
-</blockquote>
-
-
-                    
-                    <p class="read-more"><a href="/Magic-of-Saturn-controllers" class="more-link" title="read more">read more</a></p>
-                </div><!-- .entry-content -->
-                
-                <footer class="entry-footer">
-                    <div class="tag-links">
-                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#Saturn" title="Pages tagged Saturn" rel="tag">Saturn</a><a href="/tags/index.html#Web" title="Pages tagged Web" rel="tag">Web</a>
-                    </div>
-                </footer><!-- .entry-footer -->
-                
-            </article><!-- .post -->
-            
             
             <nav class="pagination">
                 <h2 class="screen-reader-text">Posts navigation</h2>
                 
                 <a href="/" class="newer-posts fa-chevron-left square fill-horizontal"><span class="screen-reader-text">Newer Posts</span></a>
                 
-                <span class="page-number">Page 2 of 4</span>
+                <span class="page-number">Page 2 of 5</span>
                 
                 <a href="/blog/page3/" class="older-posts fa-chevron-right square fill-horizontal"><span class="screen-reader-text">Older Posts</span></a>
                 
@@ -267,6 +265,8 @@
         <h2 class="widget-title">Latest Posts</h2>
         <ul class="recent-posts">
             
+            <li class="recent-item"><a href="/F-Editor-Tooling-Part1">Behind the F# editor tootling. Part 1: introduction to compilers.</a> <span>August 27, 2019</span></li>
+            
             <li class="recent-item"><a href="/Ionide-Introducing-Info-Panel">Ionide — Introducing Info Panel</a> <span>May 6, 2019</span></li>
             
             <li class="recent-item"><a href="/Ionide-New-Hope">Ionide — A New Hope</a> <span>March 24, 2019</span></li>
@@ -274,8 +274,6 @@
             <li class="recent-item"><a href="/PureScript-on-Azure-Functions">PureScript on Azure Functions</a> <span>January 12, 2019</span></li>
             
             <li class="recent-item"><a href="/Future-of-F-Cross-platform-editor-tooling">Future of F# cross-platform editor tooling</a> <span>December 31, 2018</span></li>
-            
-            <li class="recent-item"><a href="/Introducing-F-Analyzers">Introducing F# Analyzers</a> <span>September 14, 2018</span></li>
             
         </ul><!-- .recent-posts -->
     </section><!-- .widget-recent-posts -->
@@ -292,6 +290,8 @@
             <a href="/tags/#Azure+Functions">Azure Functions</a>
             
             <a href="/tags/#Community">Community</a>
+            
+            <a href="/tags/#Compiler">Compiler</a>
             
             <a href="/tags/#F%23">F#</a>
             

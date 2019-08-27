@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Ionide — A New Hope</title>
-    <meta name="description" content="Ionide — A New Hope">
+    <title>Behind the F# editor tootling. Part 1: introduction to compilers.</title>
+    <meta name="description" content="Behind the F# editor tootling. Part 1: introduction to compilers.">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="/favicon/favicon.ico">
     <link rel="apple-touch-icon-precomposed" href="/favicon/lattice-optic-illusion-152-204321.png" >
@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/styles/default.min.css">
     <link rel="stylesheet" href="/css/main.css" />
     <link rel="stylesheet" href="/css/font-awesome.min.css" />
-    <link rel="canonical" href="http://localhost:4000/Ionide-New-Hope">
+    <link rel="canonical" href="http://localhost:4000/F-Editor-Tooling-Part1">
     <link rel="alternate" type="application/rss+xml" title="F# Reflections Feed" href="http://localhost:4000/feed.xml">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
 </head>
@@ -69,129 +69,85 @@
                     <div class="entry-header-wrap">
                         
                         <div class="post-thumbnail">
-                            <img src="/images/posts/landscape_7.jpg" alt="Ionide — A New Hope">
+                            <img src="/images/posts/landscape_4.jpg" alt="Behind the F# editor tootling. Part 1: introduction to compilers.">
                         </div><!-- .post-thumbnail -->
                         
-                        <h1 class="entry-title">Ionide — A New Hope</h1>
+                        <h1 class="entry-title">Behind the F# editor tootling. Part 1: introduction to compilers.</h1>
                     </div><!-- .entry-header-wrap -->
                     <div class="entry-meta">
-                        by <span class="post-author">Krzysztof Cieslak</span> on <time class="published" datetime="2019-03-24">March 24, 2019</time>
+                        by <span class="post-author">Krzysztof Cieslak</span> on <time class="published" datetime="2019-08-27">August 27, 2019</time>
                     </div><!-- .entry-meta -->
                 </header><!-- .entry-header -->
                 <div class="entry-content">
-                    <h1>Ionide — A New Hope</h1>
+                    <h1>Behind the F# editor tootling. Part 1: introduction to compilers.</h1>
 
-<p>You probably know that one of my <a href="http://kcieslak.io/Future-of-F-Cross-platform-editor-tooling">biggest
-problems</a>
-with the F# ecosystem and OSS work I’ve been doing has been lack of any
-sustainability strategy. I’ve attempted to change that by creating <a href="https://opencollective.com/ionide">Open
-Collective page for the Ionide</a>,
-and at the same time, I’ve started talking with existing partners about possible
-ways of making work on this crucial parts of the ecosystem more sustainable.</p>
+<p>F# editor tooling, while it’s not on the level of mainstream languages like C# or Java, has been in a unique spot among Functional Programming languages. F# tooling is available cross-platform, it’s feature-rich, stable, innovative and, what’s also essential, it’s commercially supported and actively developed. Moreover, all this is available while communities of some other FP languages are discussing whether displaying simple tooltip is not too expensive.</p>
 
-<p>Today, I’m really happy to announce that for the next few months I’ll be working
-full time on the F# open source, cross-platform tooling focusing mainly on
-<a href="https://github.com/ionide">Ionide</a> and
-<a href="https://github.com/fsharp/FsAutoComplete">FsAutoComplete</a>. This is possible
-thanks to the partnership between my company — <a href="https://lambdafactory.io/">Lambda
-Factory</a> — and Microsoft.</p>
+<p>In the series, I’d like to dive behind what we see in the editor and show some of the magic that lets us have this excellent developer tooling experience. In this post I’d like to do a gentle introduction to compiler design, introduce some concepts and vocabulary that will be useful later, and give a general description of the potential approaches to the editor tooling in context of compilers.</p>
 
 <!--more-->
 
-<h3>Scope of the work</h3>
+<blockquote>
+  <p>Please keep in mind that this post is a high-level introduction to the concepts with some simplifications and without too many details. If you’re one of a few people that work on compilers or editor tooling this post is probably not for you ;-)</p>
+</blockquote>
 
-<p>The contract with Microsoft will enable me to work on certain strategic goals of
-the Ionide and FsAutoComplete that are important for both the F# community and
-Microsoft. Our initial goals for the next few months are:</p>
+<h2>Compilers 101</h2>
+
+<p>If you ever took university course about compilers or read any introductory book to the topic you probably know that compilers are often treated as a black box - compiler takes a list of files, some options, do magic, and then it outputs some executable or library.</p>
+
+<p>Typically inside the compiler, several things are happening in order:</p>
 
 <ul>
-  <li>Finishing <a href="https://microsoft.github.io/language-server-protocol/">Language Server
-Protocol</a> (<a href="https://medium.com/lambda-factory/future-of-f-cross-platform-editor-tooling-a8cf62a50053">read more
-about
-LSP</a>)
-implementation in FSAC and plugging it into Ionide</li>
-  <li>Fix performance reliability issues after triage and full performance
-rebaselining after LSP support is in</li>
-  <li>Work on porting all components to .Net Core/Standard and using .Net Core version
-of FSAC by default in Ionide to improve the getting started experience</li>
-  <li>A potential stretch goal is working on improvements to the scripting experience
-in Ionide</li>
+  <li>Lexing - it’s the process that transforms text (source code) into a list of tokens that can be understood by the compiler</li>
+  <li>Parsing - it takes the list of tokens produced by lexing and transforms it into Abstract Syntax Tree (AST). AST is a tree that represents the structure of your code. Each node of the tree denotes a construct occurring in the source code. The syntax is “abstract” in the sense that it does not represent every detail appearing in the real syntax, but rather just the structural or content-related details. For example, construct like an if-condition-then expression may be denoted as a single node with three branches. Parsing can produce errors if your code contains structural errors (for example, missing parentheses, or wrong indentation)</li>
+  <li>Typechecking - In a statically typed language, it’s a process of verifying and enforcing the constraints of the types. Usually it takes as an input AST and any additional context (for example external references) and ensures that everything is fine with your code regarding type system - for example, it checks what types are variables you use, if they contain the members you use if your function returned declared type. A result of type checking is a different type of the syntax tree - in F# compiler we call it Typed Abstract Syntax Tree (TAST). TAST is built on a higher level of abstraction - it contains fewer details about the structure of the code, but more information about entities (variables, objects, functions, etc.) including full type information. Type checking can produce a lot of different types of errors and is one of the primary sources of them.</li>
+  <li>Optimisations - is a process where compiler perform a different type of optimisations on your code such as removing dead code or inlining. Every optimisation is taking TAST as an input and returns new TAST as an output, and the process is repeated as long as the output TAST is different from input one.</li>
+  <li>Code generation - it’s the final step of the process, in which compiler takes final TAST and generates output code from it (either in the form of the byte code of some form - IL in case of F# - or just native code)</li>
 </ul>
 
-<p>These goals are trying to tackle some of the most important issues of the F#
-cross-platform tooling ecosystem, and will benefit not only Ionide but will have
-an impact on other tools that F# developers use every day.</p>
+<h2>Compiler 101 vs editor tooling</h2>
 
-<h3>Relationship with Open Collective</h3>
+<p>Unfortunately, the naive, black-box approach to the building compilers is not enough. With such design, you can only start getting information about code only after code is built, inspecting the final result. It is problematic for multiple reasons:</p>
 
-<p>I’ve been asked by some people who heard the news a few days ago if this affects
-the Ionide OpenCollective effort. In short, no, but I’ll clarify some specifics.</p>
+<ul>
+  <li>You don’t have any information connected to the structure of code - you only have final results. It may be suitable enough to get some tooltip information or maybe a list of usages of the given Symbol, but it’s not enough in case of any editor features depending on code structure (refactorings,  autocomplete lists, formatters etc.)</li>
+  <li>You only have up-to-date information about your code after you’ve saved the file and built project - for example, you don’t get updated errors in your code while you’re typing and making changes in the file</li>
+  <li>Saving the file and building a project usually takes a while - if our compiler process is entirely stateless it needs to perform all phases. Also, everything has its costs. Especially optimisations and code generation is not interesting for us from editor tooling point of view - we want to provide tooling in a context of the source code we edit, not in the context of optimised, final artefact we get from the compiler.</li>
+</ul>
 
-<p>From my point of view, this doesn’t change anything with respect to
-OpenCollective. One of the reasons why we’ve decided to choose Open Collective
-(over Patreon or PayPal donations) is the fact that it’s about supporting the
-project, not any particular creator. Open Collective is a fund for the Ionide
-project itself, with a transparent invoice system that ensures any withdrawals
-are public. This allows any Ionide contributor, not just me, to spend dedicated
-time on the project in the future. It is a long-term sustainability plan for
-Ionide.</p>
+<p>Due to those problems editor tooling for languages using a black-box design of the compiler usually have huge problems - either they’re limited in what’s possible in such editor tooling, or attempt to work around those problems by re-inventing what compiler does by using technologies such as tree-sitter or just by writing “presentation compiler”.</p>
 
-<p>Contract with Microsoft is task-based — hopefully, it will result in fixing some
-of the biggest issues with the Ionide and FSAC that we have right now but is not
-creating long term sustainable environment — something I want to create with
-Ionide as an organization and with Open Collective.</p>
+<p>However, such workarounds are never as accurate and fully featured as systems based on the compiler directly. While building performant, accurate and productive editor tooling, we need to have direct access to the internal state of a compiler (such as AST, TAST, and Symbol information) and that’s why we need a different approach to building compilers.</p>
 
-<p>I hope that F# community will continue supporting Ionide on Open Collective as
-generously as right now — and I hope that soon, I’ll be able to do some
-announcements about how we will spend those funds on the project related goals
-such as promotion, documentation and more. But that will come later, as I’ll be
-quite busy in the coming months improving Ionide by working with Microsoft.</p>
+<h2>Modern compiler design</h2>
 
-<h3>But Embrace, Extend, and Extinguish…</h3>
+<p>In recent years many mainstream programming languages have moved towards compiler service approach to the editor tooling. In such approach, editor tooling is powered by internal capabilities of the compiler which ensures that editor functionality. Examples of such approach are [C# Roslyn API] or [F# Compiler Service] (on which we will focus more in the next parts of this series).</p>
 
-<p>Ionide is still and always will be MIT licensed project owned by F# community,
-and FsAutoComplete is and will always be Apache 2.0 licensed project owned by F#
-Software Foundation.</p>
+<p>The modern compiler needs to be:</p>
 
-<p>Microsoft is not acquiring Ionide, nor is there any additional stipulations or
-attempts to re-prioritize the direction of the Ionide project. In fact, I was
-asked to help define the scope of the work and I’ll be helping decide what the
-most important issues are to fix. To be clear, Microsoft is not gaining control
-on Ionide, and they don’t gain any decision making power different than regular
-F# users. Ionide is still a community project and the maintainers continue to
-decide what gets added or removed.</p>
+<ul>
+  <li>API - compiler needs to be accessible as a normal library or some other kind of API. We need to be able to run it inside another process, and we need to be able to communicate with different layers of a compiler (usually lexer, parser and type-checker)</li>
+  <li>Server - it needs to be ready to run as a long-running, stateful application that gives us the ability to do partial operations (for example single file parsing) in the context of a whole compilation unit. The fact it’s the stateful, long-running and asynchronous process has vast implications on the design of compiler and the performance optimisations.</li>
+  <li>Database - as mentioned above compiler is a long-running stateful process. Additionally, we need to have a way of getting what is usually internal information of the compiler - Tokens, AST, TAST, list of known by the compiler symbols and more.</li>
+</ul>
 
-<h3>Next few months will be fun…</h3>
+<p>With such compiler capabilities, we can host it directly in editor process (for example F# or C# tools in VS) or in another application providing higher-level API that is also communication layer which can be used from editors (for example language server using Language Server Protocol)</p>
 
-<p>I need to say that I’m really really happy to have this opportunity — for last
-few years I’ve been saying that it would be really good for an ecosystem if
-someone was working full time on F# cross-platform tooling. <br /> My goal for the
-last few years has been pointing out that there is huge potential in F#
-cross-platform tooling, in VSCode as an IDE platform, in F# Compiler Services
-that’s the common infrastructure used by all F# tooling, and that’s been fairly
-unique project among Functional Programming languages. I really believe that we
-can make F# tooling best-in-class (of FP languages), and I hope that the
-partnership with Microsoft is a step in this direction. However, we still need
-to remember that F# tooling is owned by the F# community and only together we
-can make it better so… contributions are welcomed!</p>
+<h2>Summary</h2>
 
-<blockquote>
-  <p>Additionally, I need to thank Phillip Carter (F# PM @ Microsoft), without his
-help, and his advocating for F# inside Microsoft things like that would never be
-possible. Thanks!</p>
-</blockquote>
+<p>I hope this blog post is good enough, the high-level introduction of compiler design, concepts and vocabulary that you’ll need to know in the future posts from this series.</p>
 
                 </div><!-- .entry-content -->
                 <footer class="entry-footer">
                     <div class="share-post">
                         <span>Share</span>
-                        <a class="fa-twitter" target="_blank" href="https://twitter.com/intent/tweet?text=Ionide%20%E2%80%94%20A%20New%20Hope&amp;url=http://localhost:4000/Ionide-New-Hope"><span class="screen-reader-text">Twitter</span></a>
-                        <a class="fa-facebook" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://localhost:4000/Ionide-New-Hope&amp;t=Ionide%20%E2%80%94%20A%20New%20Hope"><span class="screen-reader-text">Facebook</span></a>
-                        <a class="fa-google-plus" target="_blank" href="http://plus.google.com/share?url=http://localhost:4000/Ionide-New-Hope"><span class="screen-reader-text">Google+</span></a>
+                        <a class="fa-twitter" target="_blank" href="https://twitter.com/intent/tweet?text=Behind%20the%20F#%20editor%20tootling.%20Part%201:%20introduction%20to%20compilers.&amp;url=http://localhost:4000/F-Editor-Tooling-Part1"><span class="screen-reader-text">Twitter</span></a>
+                        <a class="fa-facebook" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://localhost:4000/F-Editor-Tooling-Part1&amp;t=Behind%20the%20F#%20editor%20tootling.%20Part%201:%20introduction%20to%20compilers."><span class="screen-reader-text">Facebook</span></a>
+                        <a class="fa-google-plus" target="_blank" href="http://plus.google.com/share?url=http://localhost:4000/F-Editor-Tooling-Part1"><span class="screen-reader-text">Google+</span></a>
                     </div><!-- .share-post -->
                     
                     <div class="tag-links">
-                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#VS+Code" title="Pages tagged VS Code" rel="tag">VS Code</a><a href="/tags/index.html#Tooling" title="Pages tagged Tooling" rel="tag">Tooling</a>
+                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#Tooling" title="Pages tagged Tooling" rel="tag">Tooling</a><a href="/tags/index.html#Compiler" title="Pages tagged Compiler" rel="tag">Compiler</a><a href="/tags/index.html#FSharp.Compiler.Services" title="Pages tagged FSharp.Compiler.Services" rel="tag">FSharp.Compiler.Services</a>
                     </div>
                     
                 </footer><!-- .entry-footer -->
@@ -213,25 +169,14 @@ possible. Thanks!</p>
                 <div class="nav-previous">
                     <div class="nav-inside">
                         
-                        <a href="/PureScript-on-Azure-Functions" class="nav-thumb" style="background-image: url(/images/posts/landscape_3.jpg)"></a>
-                        
-                        <div class="nav-before">Previous</div>
-                        <div class="nav-title"><a href="/PureScript-on-Azure-Functions">PureScript on Azure Functions</a></div>
-                        <div class="nav-date">January 12, 2019</div>
-                    </div><!-- .nav-inside -->
-                </div><!-- .nav-previous -->
-                
-                
-                <div class="nav-next">
-                    <div class="nav-inside">
-                        
                         <a href="/Ionide-Introducing-Info-Panel" class="nav-thumb" style="background-image: url(/images/posts/landscape_8.jpg)"></a>
                         
-                        <div class="nav-before">Next</div>
+                        <div class="nav-before">Previous</div>
                         <div class="nav-title"><a href="/Ionide-Introducing-Info-Panel">Ionide — Introducing Info Panel</a></div>
                         <div class="nav-date">May 6, 2019</div>
                     </div><!-- .nav-inside -->
-                </div><!-- .nav-next -->
+                </div><!-- .nav-previous -->
+                
                 
             </nav><!-- .post-navigation -->
             

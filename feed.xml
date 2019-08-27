@@ -3,11 +3,86 @@
     <channel>
         <title>F# Reflections</title>
         <description>Blog about F# and FP Programming</description>
-        <link>http://kcieslak.io/</link>
-        <atom:link href="http://kcieslak.io/feed.xml" rel="self" type="application/rss+xml"/>
-        <pubDate>Sun, 16 Jun 2019 14:17:21 +0200</pubDate>
-        <lastBuildDate>Sun, 16 Jun 2019 14:17:21 +0200</lastBuildDate>
-        <generator>Jekyll v3.3.1</generator>
+        <link>http://localhost:4000/</link>
+        <atom:link href="http://localhost:4000/feed.xml" rel="self" type="application/rss+xml"/>
+        <pubDate>Tue, 27 Aug 2019 23:25:18 +0200</pubDate>
+        <lastBuildDate>Tue, 27 Aug 2019 23:25:18 +0200</lastBuildDate>
+        <generator>Jekyll v3.8.3</generator>
+        
+            <item>
+                <title>Behind the F# editor tootling. Part 1: introduction to compilers.</title>
+                <description>&lt;h1&gt;Behind the F# editor tootling. Part 1: introduction to compilers.&lt;/h1&gt;
+
+&lt;p&gt;F# editor tooling, while it’s not on the level of mainstream languages like C# or Java, has been in a unique spot among Functional Programming languages. F# tooling is available cross-platform, it’s feature-rich, stable, innovative and, what’s also essential, it’s commercially supported and actively developed. Moreover, all this is available while communities of some other FP languages are discussing whether displaying simple tooltip is not too expensive.&lt;/p&gt;
+
+&lt;p&gt;In the series, I’d like to dive behind what we see in the editor and show some of the magic that lets us have this excellent developer tooling experience. In this post I’d like to do a gentle introduction to compiler design, introduce some concepts and vocabulary that will be useful later, and give a general description of the potential approaches to the editor tooling in context of compilers.&lt;/p&gt;
+
+&lt;!--more--&gt;
+
+&lt;blockquote&gt;
+  &lt;p&gt;Please keep in mind that this post is a high-level introduction to the concepts with some simplifications and without too many details. If you’re one of a few people that work on compilers or editor tooling this post is probably not for you ;-)&lt;/p&gt;
+&lt;/blockquote&gt;
+
+&lt;h2&gt;Compilers 101&lt;/h2&gt;
+
+&lt;p&gt;If you ever took university course about compilers or read any introductory book to the topic you probably know that compilers are often treated as a black box - compiler takes a list of files, some options, do magic, and then it outputs some executable or library.&lt;/p&gt;
+
+&lt;p&gt;Typically inside the compiler, several things are happening in order:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;Lexing - it’s the process that transforms text (source code) into a list of tokens that can be understood by the compiler&lt;/li&gt;
+  &lt;li&gt;Parsing - it takes the list of tokens produced by lexing and transforms it into Abstract Syntax Tree (AST). AST is a tree that represents the structure of your code. Each node of the tree denotes a construct occurring in the source code. The syntax is “abstract” in the sense that it does not represent every detail appearing in the real syntax, but rather just the structural or content-related details. For example, construct like an if-condition-then expression may be denoted as a single node with three branches. Parsing can produce errors if your code contains structural errors (for example, missing parentheses, or wrong indentation)&lt;/li&gt;
+  &lt;li&gt;Typechecking - In a statically typed language, it’s a process of verifying and enforcing the constraints of the types. Usually it takes as an input AST and any additional context (for example external references) and ensures that everything is fine with your code regarding type system - for example, it checks what types are variables you use, if they contain the members you use if your function returned declared type. A result of type checking is a different type of the syntax tree - in F# compiler we call it Typed Abstract Syntax Tree (TAST). TAST is built on a higher level of abstraction - it contains fewer details about the structure of the code, but more information about entities (variables, objects, functions, etc.) including full type information. Type checking can produce a lot of different types of errors and is one of the primary sources of them.&lt;/li&gt;
+  &lt;li&gt;Optimisations - is a process where compiler perform a different type of optimisations on your code such as removing dead code or inlining. Every optimisation is taking TAST as an input and returns new TAST as an output, and the process is repeated as long as the output TAST is different from input one.&lt;/li&gt;
+  &lt;li&gt;Code generation - it’s the final step of the process, in which compiler takes final TAST and generates output code from it (either in the form of the byte code of some form - IL in case of F# - or just native code)&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2&gt;Compiler 101 vs editor tooling&lt;/h2&gt;
+
+&lt;p&gt;Unfortunately, the naive, black-box approach to the building compilers is not enough. With such design, you can only start getting information about code only after code is built, inspecting the final result. It is problematic for multiple reasons:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;You don’t have any information connected to the structure of code - you only have final results. It may be suitable enough to get some tooltip information or maybe a list of usages of the given Symbol, but it’s not enough in case of any editor features depending on code structure (refactorings,  autocomplete lists, formatters etc.)&lt;/li&gt;
+  &lt;li&gt;You only have up-to-date information about your code after you’ve saved the file and built project - for example, you don’t get updated errors in your code while you’re typing and making changes in the file&lt;/li&gt;
+  &lt;li&gt;Saving the file and building a project usually takes a while - if our compiler process is entirely stateless it needs to perform all phases. Also, everything has its costs. Especially optimisations and code generation is not interesting for us from editor tooling point of view - we want to provide tooling in a context of the source code we edit, not in the context of optimised, final artefact we get from the compiler.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;Due to those problems editor tooling for languages using a black-box design of the compiler usually have huge problems - either they’re limited in what’s possible in such editor tooling, or attempt to work around those problems by re-inventing what compiler does by using technologies such as tree-sitter or just by writing “presentation compiler”.&lt;/p&gt;
+
+&lt;p&gt;However, such workarounds are never as accurate and fully featured as systems based on the compiler directly. While building performant, accurate and productive editor tooling, we need to have direct access to the internal state of a compiler (such as AST, TAST, and Symbol information) and that’s why we need a different approach to building compilers.&lt;/p&gt;
+
+&lt;h2&gt;Modern compiler design&lt;/h2&gt;
+
+&lt;p&gt;In recent years many mainstream programming languages have moved towards compiler service approach to the editor tooling. In such approach, editor tooling is powered by internal capabilities of the compiler which ensures that editor functionality. Examples of such approach are [C# Roslyn API] or [F# Compiler Service] (on which we will focus more in the next parts of this series).&lt;/p&gt;
+
+&lt;p&gt;The modern compiler needs to be:&lt;/p&gt;
+
+&lt;ul&gt;
+  &lt;li&gt;API - compiler needs to be accessible as a normal library or some other kind of API. We need to be able to run it inside another process, and we need to be able to communicate with different layers of a compiler (usually lexer, parser and type-checker)&lt;/li&gt;
+  &lt;li&gt;Server - it needs to be ready to run as a long-running, stateful application that gives us the ability to do partial operations (for example single file parsing) in the context of a whole compilation unit. The fact it’s the stateful, long-running and asynchronous process has vast implications on the design of compiler and the performance optimisations.&lt;/li&gt;
+  &lt;li&gt;Database - as mentioned above compiler is a long-running stateful process. Additionally, we need to have a way of getting what is usually internal information of the compiler - Tokens, AST, TAST, list of known by the compiler symbols and more.&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;With such compiler capabilities, we can host it directly in editor process (for example F# or C# tools in VS) or in another application providing higher-level API that is also communication layer which can be used from editors (for example language server using Language Server Protocol)&lt;/p&gt;
+
+&lt;h2&gt;Summary&lt;/h2&gt;
+
+&lt;p&gt;I hope this blog post is good enough, the high-level introduction of compiler design, concepts and vocabulary that you’ll need to know in the future posts from this series.&lt;/p&gt;
+</description>
+                <pubDate>Tue, 27 Aug 2019 00:00:00 +0200</pubDate>
+                <link>http://localhost:4000/F-Editor-Tooling-Part1</link>
+                <guid isPermaLink="true">http://localhost:4000/F-Editor-Tooling-Part1</guid>
+                
+                <category>F#</category>
+                
+                <category>Tooling</category>
+                
+                <category>Compiler</category>
+                
+                <category>FSharp.Compiler.Services</category>
+                
+                
+            </item>
         
             <item>
                 <title>Ionide — Introducing Info Panel</title>
@@ -134,8 +209,8 @@ Collective&lt;/a&gt;&lt;/em&gt;.*&lt;/p&gt;
 &lt;p&gt;&lt;img src=&quot;https://cdn-images-1.medium.com/max/1000/1*Qp7ewxpBdpWJjHVtRHEEPw@2x.png&quot; alt=&quot;https://opencollective.com/ionide&quot; /&gt;&lt;/p&gt;
 </description>
                 <pubDate>Mon, 06 May 2019 00:00:00 +0200</pubDate>
-                <link>http://kcieslak.io/Ionide-Introducing-Info-Panel</link>
-                <guid isPermaLink="true">http://kcieslak.io/Ionide-Introducing-Info-Panel</guid>
+                <link>http://localhost:4000/Ionide-Introducing-Info-Panel</link>
+                <guid isPermaLink="true">http://localhost:4000/Ionide-Introducing-Info-Panel</guid>
                 
                 <category>F#</category>
                 
@@ -251,8 +326,8 @@ possible. Thanks!&lt;/p&gt;
 &lt;/blockquote&gt;
 </description>
                 <pubDate>Sun, 24 Mar 2019 00:00:00 +0100</pubDate>
-                <link>http://kcieslak.io/Ionide-New-Hope</link>
-                <guid isPermaLink="true">http://kcieslak.io/Ionide-New-Hope</guid>
+                <link>http://localhost:4000/Ionide-New-Hope</link>
+                <guid isPermaLink="true">http://localhost:4000/Ionide-New-Hope</guid>
                 
                 <category>F#</category>
                 
@@ -399,8 +474,8 @@ sample code can be found on GitHub —
 &lt;a href=&quot;https://github.com/Krzysztof-Cieslak/AzureFunctionsPureScript&quot;&gt;https://github.com/Krzysztof-Cieslak/AzureFunctionsPureScript&lt;/a&gt;&lt;/p&gt;
 </description>
                 <pubDate>Sat, 12 Jan 2019 00:00:00 +0100</pubDate>
-                <link>http://kcieslak.io/PureScript-on-Azure-Functions</link>
-                <guid isPermaLink="true">http://kcieslak.io/PureScript-on-Azure-Functions</guid>
+                <link>http://localhost:4000/PureScript-on-Azure-Functions</link>
+                <guid isPermaLink="true">http://localhost:4000/PureScript-on-Azure-Functions</guid>
                 
                 <category>PureScript</category>
                 
@@ -604,8 +679,8 @@ should help them somehow?&lt;/p&gt;
 &lt;p&gt;Anyway, I hope &lt;strong&gt;you&lt;/strong&gt; will build great things with F# in 2019!&lt;/p&gt;
 </description>
                 <pubDate>Mon, 31 Dec 2018 00:00:00 +0100</pubDate>
-                <link>http://kcieslak.io/Future-of-F-Cross-platform-editor-tooling</link>
-                <guid isPermaLink="true">http://kcieslak.io/Future-of-F-Cross-platform-editor-tooling</guid>
+                <link>http://localhost:4000/Future-of-F-Cross-platform-editor-tooling</link>
+                <guid isPermaLink="true">http://localhost:4000/Future-of-F-Cross-platform-editor-tooling</guid>
                 
                 <category>F#</category>
                 
@@ -703,8 +778,8 @@ should help them somehow?&lt;/p&gt;
 &lt;p&gt;In this post I’ve introduced preview of new tooling related project that enables users to add custom analyzers to your editor, bringing functionality similar to Roslyn Analyzers. While this is only experiment, and proof-of-concept I’m looking forward to seeing all innovative things it can enable. Analyzers support has been released in new Ionide version - &lt;code&gt;3.27.0&lt;/code&gt; - so it’s out there and ready for experimenting!&lt;/p&gt;
 </description>
                 <pubDate>Fri, 14 Sep 2018 00:00:00 +0200</pubDate>
-                <link>http://kcieslak.io/Introducing-F-Analyzers</link>
-                <guid isPermaLink="true">http://kcieslak.io/Introducing-F-Analyzers</guid>
+                <link>http://localhost:4000/Introducing-F-Analyzers</link>
+                <guid isPermaLink="true">http://localhost:4000/Introducing-F-Analyzers</guid>
                 
                 <category>F#</category>
                 
@@ -746,7 +821,7 @@ should help them somehow?&lt;/p&gt;
 
 &lt;p&gt;What’s important - MVP development is not only the strategy for startups. When you already have well-established company and customers, you also need to have some way to experiment with new potential products or features. In a lot of cases, the minimum viable product really is just a way to do that.&lt;/p&gt;
 
-&lt;h3&gt;Few words about F&lt;/h3&gt;
+&lt;h3&gt;Few words about F#&lt;/h3&gt;
 
 &lt;p&gt;&lt;a href=&quot;https://fsharp.org&quot;&gt;F# is a functional-first programming language&lt;/a&gt; running on the .Net platform. Paired with &lt;a href=&quot;https://www.microsoft.com/net&quot;&gt;.Net Core&lt;/a&gt; - modern, cross platform implementation of the .Net Framework - it is fantastic tool for writing modern applications. .Net Core provides industrial level of the performance, security, huge ecosystem of the libraries, and always growing open source community. F#, itself an open source language with fantastic community , thanks to expressiveness, functional-first approach, great developers tooling and advanced language features provides unmatched developer experience and fast development speed, so important for building MVPs. It can also be your secret weapon that makes you stand out from many different companies, and that let you hire more talented people that just want to work with more niche technology.&lt;/p&gt;
 
@@ -781,8 +856,8 @@ should help them somehow?&lt;/p&gt;
 &lt;p&gt;The last important factor in choosing right technology is having an ability to hire someone to develop the product, or just get help. F# ecosystem is including wide range of the options for getting commercial support - starting from the established companies providing support for &lt;a href=&quot;https://safe-stack.github.io&quot;&gt;SAFE Stack&lt;/a&gt; through multiple independent consultants to &lt;a href=&quot;https://lambdafactory.io&quot;&gt;Lambda Factory&lt;/a&gt;. Lambda Factory specialises in creating web applications, F# training and consulting, MVP development, and developer relationships. We provide everything you need to transform your startup into prospecting business - help with creating MVP, iterating over the feedback loop, hiring talented developers, and DevRel marketing.&lt;/p&gt;
 </description>
                 <pubDate>Thu, 16 Aug 2018 00:00:00 +0200</pubDate>
-                <link>http://kcieslak.io/Building-an-MVP-with-F-and-Saturn</link>
-                <guid isPermaLink="true">http://kcieslak.io/Building-an-MVP-with-F-and-Saturn</guid>
+                <link>http://localhost:4000/Building-an-MVP-with-F-and-Saturn</link>
+                <guid isPermaLink="true">http://localhost:4000/Building-an-MVP-with-F-and-Saturn</guid>
                 
                 <category>F#</category>
                 
@@ -905,8 +980,8 @@ should help them somehow?&lt;/p&gt;
 &lt;/blockquote&gt;
 </description>
                 <pubDate>Sat, 11 Aug 2018 00:00:00 +0200</pubDate>
-                <link>http://kcieslak.io/Challenges-of-post-OSS-world</link>
-                <guid isPermaLink="true">http://kcieslak.io/Challenges-of-post-OSS-world</guid>
+                <link>http://localhost:4000/Challenges-of-post-OSS-world</link>
+                <guid isPermaLink="true">http://localhost:4000/Challenges-of-post-OSS-world</guid>
                 
                 <category>Open Source</category>
                 
@@ -1015,8 +1090,8 @@ dotnet new saturn
 &lt;p&gt;In this post I’ve shown how to introduce OAuth authorization to your Saturn application. As you could see Saturn is using high level, declarative syntax that enables you to plug features like that easily into your application. Currently Saturn.Extensions.Authorization provides predefined authorization providers for Google and GitHub, but more will come to it soon. Feel free to PR your favorite OAuth provider!&lt;/p&gt;
 </description>
                 <pubDate>Fri, 03 Aug 2018 00:00:00 +0200</pubDate>
-                <link>http://kcieslak.io/Using-OAuth-with-Saturn</link>
-                <guid isPermaLink="true">http://kcieslak.io/Using-OAuth-with-Saturn</guid>
+                <link>http://localhost:4000/Using-OAuth-with-Saturn</link>
+                <guid isPermaLink="true">http://localhost:4000/Using-OAuth-with-Saturn</guid>
                 
                 <category>F#</category>
                 
@@ -1089,8 +1164,8 @@ let helloWorld ([&amp;lt;HttpTrigger(Extensions.Http.AuthorizationLevel.Anonymou
 &lt;p&gt;&lt;code&gt;Saturn.AzureFunctions&lt;/code&gt; is currently still developed - if you’d like to check out current implementation, test it, or provide some feedback feel free to check this PR -  https://github.com/SaturnFramework/Saturn/pull/121&lt;/p&gt;
 </description>
                 <pubDate>Sat, 21 Jul 2018 00:00:00 +0200</pubDate>
-                <link>http://kcieslak.io/Introducing-Saturn-on-Functions</link>
-                <guid isPermaLink="true">http://kcieslak.io/Introducing-Saturn-on-Functions</guid>
+                <link>http://localhost:4000/Introducing-Saturn-on-Functions</link>
+                <guid isPermaLink="true">http://localhost:4000/Introducing-Saturn-on-Functions</guid>
                 
                 <category>F#</category>
                 
@@ -1099,219 +1174,6 @@ let helloWorld ([&amp;lt;HttpTrigger(Extensions.Http.AuthorizationLevel.Anonymou
                 <category>Web</category>
                 
                 <category>Azure Functions</category>
-                
-                
-            </item>
-        
-            <item>
-                <title>Magic of Saturn controllers</title>
-                <description>&lt;h1&gt;Introduction&lt;/h1&gt;
-
-&lt;p&gt;&lt;a href=&quot;https://saturnframework.org&quot;&gt;Saturn&lt;/a&gt; is new F# web framework that implements well know design pattern - MVC - in more functional way. Despite Saturn being fairly young project it’s getting more and more popular among F# community and industrial users. One of the main Saturn’s goals is to create high level abstractions that will enable developers to focus on writing domain, business code instead of focusing on creating correct routing for your application or setting right response headers. One of such abstractions, that I want to talk about today, is &lt;code&gt;controller&lt;/code&gt;.&lt;/p&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;This article was created for Saturn version 0.7.x&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;!--more--&gt;
-
-&lt;h1&gt;Basic usage&lt;/h1&gt;
-
-&lt;p&gt;&lt;code&gt;controller&lt;/code&gt; is simple computation expression (CE) that enables you to easily implement application endpoint following REST-ish conventions. It can be used for implementing endpoints that renders views if you’re building application using server side rendering, or just return serialized data if you’re building API or your application is using client side rendering. Just like all other CEs used in Saturn, &lt;code&gt;controller&lt;/code&gt; provides set of custom operations that you can use. And, what’s important, all operations in &lt;code&gt;controller&lt;/code&gt; CE are optional, which means you can easily choose which subset of functionality you need. Example, basic implementation looks like this:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;let resource = controller {
-    index indexAction
-    show showAction
-    add addAction
-    edit editAction
-    create createAction
-    update updateAction
-    patch patchAction
-    delete deleteAction
-    deleteAll deleteAllAction
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;Let’s now go one by one, and describe each operation:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;code&gt;index&lt;/code&gt; - mapped into &lt;code&gt;GET&lt;/code&gt; request at &lt;code&gt;/&lt;/code&gt; endpoint. Usually used to render a view displaying list of items, or return whole list of items.&lt;/li&gt;
-  &lt;li&gt;&lt;code&gt;show&lt;/code&gt; - mapped into &lt;code&gt;GET&lt;/code&gt; request at &lt;code&gt;/:id&lt;/code&gt; endpoint. Usually used to render a view displaying details of particular item, or return single item with given id.&lt;/li&gt;
-  &lt;li&gt;&lt;code&gt;add&lt;/code&gt; - mapped into &lt;code&gt;GET&lt;/code&gt; request at &lt;code&gt;/add&lt;/code&gt; endpoint. Used to render a form for adding new item. Usually not used in API controllers.&lt;/li&gt;
-  &lt;li&gt;&lt;code&gt;edit&lt;/code&gt; - mapped into &lt;code&gt;GET&lt;/code&gt; request at &lt;code&gt;/:id/edit&lt;/code&gt;. Used to render a form for editing existing item. Usually not used in API controllers.&lt;/li&gt;
-  &lt;li&gt;&lt;code&gt;create&lt;/code&gt; - mapped into &lt;code&gt;POST&lt;/code&gt; request at &lt;code&gt;/&lt;/code&gt; endpoint. Used to create and save new item.&lt;/li&gt;
-  &lt;li&gt;&lt;code&gt;update&lt;/code&gt; - mapped into &lt;code&gt;POST&lt;/code&gt; and &lt;code&gt;PUT&lt;/code&gt; requests at &lt;code&gt;/:id&lt;/code&gt; endpoint. Used to update existing item. Usually replaces original item (keeping id), and requires are fields to be filled in the incoming item.&lt;/li&gt;
-  &lt;li&gt;&lt;code&gt;patch&lt;/code&gt; - mapped into &lt;code&gt;PATCH&lt;/code&gt; request at &lt;code&gt;/:id&lt;/code&gt; endpoint. Used to update existing item. Usually only changes some fields of original item, request body contains only changed fields or JSON Patch object.&lt;/li&gt;
-  &lt;li&gt;&lt;code&gt;delete&lt;/code&gt; - mapped into &lt;code&gt;DELETE&lt;/code&gt; request at &lt;code&gt;/:id&lt;/code&gt; endpoint. Used to delete or deactivate existing item.&lt;/li&gt;
-  &lt;li&gt;&lt;code&gt;deleteAll&lt;/code&gt; - mapped into &lt;code&gt;DELETE&lt;/code&gt; request at &lt;code&gt;/&lt;/code&gt; endpoint. Used to delete or deactivate all items.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;Please remember that Saturn is not enforcing behaviour or inputs of actions any way, so above descriptions are suggestions and best practices, not something that’s encoded in framework. The only thing that controller provides is set in stone routing structure.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h1&gt;Actions implementation&lt;/h1&gt;
-
-&lt;p&gt;All actions &lt;code&gt;indexAction&lt;/code&gt;, &lt;code&gt;showAction&lt;/code&gt; … are simple F# functions. All of them as first parameter accepts &lt;code&gt;HttpContext&lt;/code&gt; object - it’s an ASP.NET class that contains all information about incoming request, response, server, environment and other data that was injected into it by framework. Actions that are using ID of the item, such as &lt;code&gt;showAction&lt;/code&gt; or &lt;code&gt;editAction&lt;/code&gt; are functions that get &lt;code&gt;id&lt;/code&gt; as a second parameter. The &lt;code&gt;id&lt;/code&gt; may be generic but we currently supports limited set of the possible types to which we can decode ID from URL.&lt;/p&gt;
-
-&lt;p&gt;Supported types:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;&lt;code&gt;string&lt;/code&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;code&gt;char&lt;/code&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;code&gt;int&lt;/code&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;code&gt;int64&lt;/code&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;code&gt;float&lt;/code&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;code&gt;bool&lt;/code&gt;&lt;/li&gt;
-  &lt;li&gt;&lt;code&gt;System.Guid&lt;/code&gt;&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;In case you’d need some custom ID type, I’d recommend using &lt;code&gt;string&lt;/code&gt; and deserializing it manually. Another important limitation of current controllers is fact that all actions needs to use same ID type in one controller instance. Again, if you’d need different ID types - use &lt;code&gt;string&lt;/code&gt; and deserialize it manually.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;p&gt;Example action implementation may look like this:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;let myIndex (ctx: HttpContext) = Controller.text ctx &quot;Hello world&quot;
-
-let myShow (ctx: HttpContext) (id: string) =
-    id
-    |&amp;gt; sprintf &quot;Hello world, %s&quot;
-    |&amp;gt; Controller.text ctx
-
-let myController = controller {
-    index myIndex
-    show myShow
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h1&gt;Action output type&lt;/h1&gt;
-
-&lt;p&gt;If you’ll hover over &lt;code&gt;myIndex&lt;/code&gt; or &lt;code&gt;myShow&lt;/code&gt; you’ll notice that return type of those functions is &lt;code&gt;Task&amp;lt;HttpContext option&amp;gt;&lt;/code&gt;. First thing - all actions in Saturn’s controllers are asynchronous by design, and they are using standard .Net Task to model it. However, they’re generic over what type is actually returned by the task. If you return &lt;code&gt;HttpContext option&lt;/code&gt; you’re following standard path of integration with Giraffe (web library on top of which Saturn is built). This gives you not only full control over what’s going on and how your response is modified, but also provides ability to integrate with existing Giraffe ecosystem. Additionally Saturn itself provides rich set of helpers that return &lt;code&gt;Task&amp;lt;HttpContext option&amp;gt;&lt;/code&gt; in &lt;code&gt;Controller&lt;/code&gt; module (example of this is &lt;code&gt;Controller.text&lt;/code&gt; function used in example, that sets content of the response to given string, and also sets appropriate response header).&lt;/p&gt;
-
-&lt;p&gt;But returning &lt;code&gt;Task&amp;lt;HttpContext option&amp;gt;&lt;/code&gt; is not only option. You can also return &lt;code&gt;Task&amp;lt;'a&amp;gt;&lt;/code&gt; (where &lt;code&gt;'a&lt;/code&gt; is any type) and Saturn will perform automatic output content negotiation. In such case Saturn will check output type of your action, check what’s the client preference based on the &lt;code&gt;Accept&lt;/code&gt; header (if &lt;code&gt;Accept&lt;/code&gt; header is not present, &lt;code&gt;Content-Type&lt;/code&gt; header will be used instead) and decide what’s the best way to handle response object:&lt;/p&gt;
-
-&lt;ul&gt;
-  &lt;li&gt;If you return &lt;code&gt;string&lt;/code&gt; Saturn will return string with &lt;code&gt;text/plain&lt;/code&gt; or &lt;code&gt;text/html&lt;/code&gt;&lt;code&gt;Content-Type&lt;/code&gt; depending on &lt;code&gt;Accept&lt;/code&gt; header&lt;/li&gt;
-  &lt;li&gt;If you return &lt;code&gt;GiraffeViewEngine.XmlNode&lt;/code&gt; (Giraffe’s view object) and client accepts &lt;code&gt;text/html&lt;/code&gt; responses Saturn will render the view and return to client&lt;/li&gt;
-  &lt;li&gt;If you return any other type it will be deserialized to JSON (with &lt;code&gt;application/json&lt;/code&gt; &lt;code&gt;Content-Type&lt;/code&gt;) unless client doesn’t accept JSON response - in such case XML will be tried.&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;Same output content negotiation algorithm is provided by &lt;code&gt;Controller.response&lt;/code&gt; helper.&lt;/p&gt;
-
-&lt;p&gt;Example action implementation using output content negotiation:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;let myIndex (ctx: HttpContext) =
-   task { return &quot;Hello world&quot; }
-
-let myShow (ctx: HttpContext) (id: string) =
-    task {
-        return sprintf &quot;Hello world, %s&quot; id
-    }
-
-let myAdd (ctx: HttpContext) =
-    task { return DateTime.Now }
-
-let myController = controller {
-    index myIndex
-    show myShow
-    add myAdd
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;blockquote&gt;
-
-&lt;/blockquote&gt;
-
-&lt;h1&gt;Versioning&lt;/h1&gt;
-
-&lt;p&gt;Versioning of the endpoints is one of the most important cross cutting concernes in web applications… and most of the web frameworks don’t provide any built-in ways to handle it easily. Saturn provides opinionated way to easily version your controllers. Saturn is using &lt;a href=&quot;https://www.troyhunt.com/your-api-versioning-is-wrong-which-is/&quot;&gt;1 of 3 wrong ways&lt;/a&gt; - custom header &lt;code&gt;x-controller-version&lt;/code&gt; to decide which version of the control should be called. Of course, if you don’t like this strategy, Saturn makes it easy to fallback to bit lower level of abstraction, so you can create differently wrong versioning strategy.&lt;/p&gt;
-
-&lt;p&gt;The implementation of versioning in your controllers is trivial - it’s just adding one additional operation to your controllers - &lt;code&gt;version&lt;/code&gt;. Here’s an example:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;
-let myController = controller {
-    index myIndex
-    show myShow
-    add myAdd
-}
-
-let myControllerV1 = controller {
-    version &quot;1&quot;
-
-    index myIndex
-    show myShow
-    add myAdd
-}
-
-let appRouter = router {
-    forward &quot;/endpoint&quot; myControllerV1
-    forward &quot;/endpoint&quot; myController
-}
-
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;Since controller without version is not performing any checks it’s important to plug controllers in correct order in your router - the controller without any version should go lowest.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h1&gt;Plugs&lt;/h1&gt;
-
-&lt;p&gt;Another important feature of any web framework is ability of (declaratively) plugging some additional actions/modifications for particular actions in controllers. For example, in ASP .NET MVC this is done with attributes and enables features like authorization and authentication for particular actions in controller (and many, many more other features and cross cutting concerns). Saturn provides flexible mechanism to provide such functionalities using controller plugs, using one simple CE operation - &lt;code&gt;plug&lt;/code&gt; - that accepts list of the actions to which it should apply and the plug function. Plug implementation is any &lt;code&gt;HttpHandler&lt;/code&gt; which means that it integrates well if existing ecosystem and helpers, and plug implementation is decoupled from the controller itself, which means you can easily create plugs for cross cutting concerns such as logging or authorization and reuse them across many controllers in your application.&lt;/p&gt;
-
-&lt;p&gt;Example implementation:&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;
-let myControllerV1 = controller {
-    plug [All] (setHttpHeader &quot;user-controller-all&quot; &quot;123&quot;)
-    plug [Index; Show] (setHttpHeader &quot;user-controller-some&quot; &quot;456&quot;)
-    plug (except Index) (setHttpHeader &quot;user-controller-except&quot; &quot;789&quot;)
-
-    index myIndex
-    show myShow
-    add myAdd
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h1&gt;Subcontrollers&lt;/h1&gt;
-
-&lt;p&gt;Last important feature of the &lt;code&gt;controller&lt;/code&gt; is ability to embed controllers. This, again, is fairly opinionated feature that follows REST-ish conventions. Subcontroller should be used in case when one particular item (represented in controller by &lt;code&gt;/:id&lt;/code&gt;) has some child items - for example &lt;code&gt;blog&lt;/code&gt; item contains list of &lt;code&gt;post&lt;/code&gt; items. Or &lt;code&gt;post&lt;/code&gt; item contains list of &lt;code&gt;comment&lt;/code&gt; items. Subcontroller is subrouted into &lt;code&gt;/:id/:subcontrollerPath&lt;/code&gt; route of original controller (so for example &lt;code&gt;/:id/:subcontrollerPath/:id2&lt;/code&gt; shows the particular comment, or &lt;code&gt;/:id/:subcontrollerPath/add&lt;/code&gt; will show form for adding new child item to the parent item with given ID). Adding subcontroller to your controller is done by using yet another custom operation in CE - &lt;code&gt;subController&lt;/code&gt; that takes path of the subcontroller and child controller as inputs (passing ID to this subcontroller).&lt;/p&gt;
-
-&lt;p&gt;Example implementation:&lt;/p&gt;
-&lt;pre&gt;&lt;code&gt;let commentController userId = controller {
-    index (fun ctx -&amp;gt; (sprintf &quot;Comment Index handler for user %i&quot; userId ) |&amp;gt; Controller.text ctx)
-    add (fun ctx -&amp;gt; (sprintf &quot;Comment Add handler for user %i&quot; userId ) |&amp;gt; Controller.text ctx)
-    show (fun ctx id -&amp;gt; (sprintf &quot;Show comment %s handler for user %i&quot; id userId ) |&amp;gt; Controller.text ctx)
-    edit (fun ctx id -&amp;gt; (sprintf &quot;Edit comment %s handler for user %i&quot; id userId )  |&amp;gt; Controller.text ctx)
-}
-
-let userControllerVersion1 = controller {
-    subController &quot;/comments&quot; commentController
-
-    index (fun ctx -&amp;gt; &quot;Index handler&quot; |&amp;gt; Controller.text ctx)
-    add (fun ctx -&amp;gt; &quot;Add handler&quot; |&amp;gt; Controller.text ctx)
-    show (fun ctx id -&amp;gt; (sprintf &quot;Show handler - %i&quot; id) |&amp;gt; Controller.text ctx)
-    edit (fun ctx id -&amp;gt; (sprintf &quot;Edit handler - %i&quot; id) |&amp;gt; Controller.text ctx)
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;blockquote&gt;
-  &lt;p&gt;&lt;code&gt;subController&lt;/code&gt; operation actually accepts any &lt;code&gt;HttpHandler&lt;/code&gt; not only controllers, which means you anything in there. Also, you can add multiple subcontrollers to one controller which may be useful… for example in combination with controller versioning feature.&lt;/p&gt;
-&lt;/blockquote&gt;
-
-&lt;h1&gt;Summary&lt;/h1&gt;
-
-&lt;p&gt;In this post I’ve tried to present all features and power of Saturn’s high level abstraction - &lt;code&gt;controller&lt;/code&gt;, and flexible design they allow.&lt;/p&gt;
-</description>
-                <pubDate>Fri, 20 Jul 2018 00:00:00 +0200</pubDate>
-                <link>http://kcieslak.io/Magic-of-Saturn-controllers</link>
-                <guid isPermaLink="true">http://kcieslak.io/Magic-of-Saturn-controllers</guid>
-                
-                <category>F#</category>
-                
-                <category>Saturn</category>
-                
-                <category>Web</category>
                 
                 
             </item>

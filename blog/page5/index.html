@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="utf-8">
-    <title>Ionide — A New Hope</title>
-    <meta name="description" content="Ionide — A New Hope">
+    <title>F# Reflections</title>
+    <meta name="description" content="Blog about F# and FP Programming">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="shortcut icon" href="/favicon/favicon.ico">
     <link rel="apple-touch-icon-precomposed" href="/favicon/lattice-optic-illusion-152-204321.png" >
@@ -13,7 +13,7 @@
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/styles/default.min.css">
     <link rel="stylesheet" href="/css/main.css" />
     <link rel="stylesheet" href="/css/font-awesome.min.css" />
-    <link rel="canonical" href="http://localhost:4000/Ionide-New-Hope">
+    <link rel="canonical" href="http://localhost:4000/blog/page5/">
     <link rel="alternate" type="application/rss+xml" title="F# Reflections Feed" href="http://localhost:4000/feed.xml">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
 </head>
@@ -63,177 +63,52 @@
     </header>
     <div class="site-content">
     <div class="inner">
-        <main class="site-main">
+        <main class="site-main"> 
+            
             <article class="post">
-                <header class="entry-header">
+                <header class="entry-header"> 
                     <div class="entry-header-wrap">
                         
-                        <div class="post-thumbnail">
-                            <img src="/images/posts/landscape_7.jpg" alt="Ionide — A New Hope">
-                        </div><!-- .post-thumbnail -->
+                        <a href="/Using-Node-with-Paket-and-Fake" class="post-thumbnail"><img src="/images/posts/landscape_2.jpg" alt="Using Node.js and NPM with Paket and FAKE "></a>
                         
-                        <h1 class="entry-title">Ionide — A New Hope</h1>
+                        <h2 class="entry-title"><a href="/Using-Node-with-Paket-and-Fake" rel="bookmark" title="Permanent Link to /Using-Node-with-Paket-and-Fake">Using Node.js and NPM with Paket and FAKE</a></h2>
                     </div><!-- .entry-header-wrap -->
                     <div class="entry-meta">
-                        by <span class="post-author">Krzysztof Cieslak</span> on <time class="published" datetime="2019-03-24">March 24, 2019</time>
+                        by <span class="post-author">Krzysztof Cieslak</span> on <time class="published" datetime="2016-03-01">March 1, 2016</time>
                     </div><!-- .entry-meta -->
                 </header><!-- .entry-header -->
                 <div class="entry-content">
-                    <h1>Ionide — A New Hope</h1>
+                    
+                        <h1>Introduction</h1>
 
-<p>You probably know that one of my <a href="http://kcieslak.io/Future-of-F-Cross-platform-editor-tooling">biggest
-problems</a>
-with the F# ecosystem and OSS work I’ve been doing has been lack of any
-sustainability strategy. I’ve attempted to change that by creating <a href="https://opencollective.com/ionide">Open
-Collective page for the Ionide</a>,
-and at the same time, I’ve started talking with existing partners about possible
-ways of making work on this crucial parts of the ecosystem more sustainable.</p>
+<p>Web development is great fit for F# and Functional Programming . Libraries like <a href="http://suave.io">Suave</a> or <a href="http://docs.freya.io/en/latest/">Freya</a> makes it easy to create well-architectures, composable web applications. But that’s backend part of story. Nowadays most web applications are required to have lot of user interactions and logic on the front-end side - in the browser.</p>
 
-<p>Today, I’m really happy to announce that for the next few months I’ll be working
-full time on the F# open source, cross-platform tooling focusing mainly on
-<a href="https://github.com/ionide">Ionide</a> and
-<a href="https://github.com/fsharp/FsAutoComplete">FsAutoComplete</a>. This is possible
-thanks to the partnership between my company — <a href="https://lambdafactory.io/">Lambda
-Factory</a> — and Microsoft.</p>
+<p>Two important tools for front-end JavaScript development are <a href="https://nodejs.org/en/">Node.js</a> (JS backend server, used for running many JS development tools) and <a href="npmjs.com">npm</a> - package manager for Node.js. Those 2 tools are often installed globally on developer PC, are used to define dependencies for front-end application, and define build pipeline for it.</p>
 
-<!--more-->
+<p>But, using different build tools for backend and front-end development in one application can get annoying and tiresome for developer, so it would be nice to use one build pipeline for all tasks. And it is possible with Paket and FAKE.</p>
 
-<h3>Scope of the work</h3>
 
-<p>The contract with Microsoft will enable me to work on certain strategic goals of
-the Ionide and FsAutoComplete that are important for both the F# community and
-Microsoft. Our initial goals for the next few months are:</p>
-
-<ul>
-  <li>Finishing <a href="https://microsoft.github.io/language-server-protocol/">Language Server
-Protocol</a> (<a href="https://medium.com/lambda-factory/future-of-f-cross-platform-editor-tooling-a8cf62a50053">read more
-about
-LSP</a>)
-implementation in FSAC and plugging it into Ionide</li>
-  <li>Fix performance reliability issues after triage and full performance
-rebaselining after LSP support is in</li>
-  <li>Work on porting all components to .Net Core/Standard and using .Net Core version
-of FSAC by default in Ionide to improve the getting started experience</li>
-  <li>A potential stretch goal is working on improvements to the scripting experience
-in Ionide</li>
-</ul>
-
-<p>These goals are trying to tackle some of the most important issues of the F#
-cross-platform tooling ecosystem, and will benefit not only Ionide but will have
-an impact on other tools that F# developers use every day.</p>
-
-<h3>Relationship with Open Collective</h3>
-
-<p>I’ve been asked by some people who heard the news a few days ago if this affects
-the Ionide OpenCollective effort. In short, no, but I’ll clarify some specifics.</p>
-
-<p>From my point of view, this doesn’t change anything with respect to
-OpenCollective. One of the reasons why we’ve decided to choose Open Collective
-(over Patreon or PayPal donations) is the fact that it’s about supporting the
-project, not any particular creator. Open Collective is a fund for the Ionide
-project itself, with a transparent invoice system that ensures any withdrawals
-are public. This allows any Ionide contributor, not just me, to spend dedicated
-time on the project in the future. It is a long-term sustainability plan for
-Ionide.</p>
-
-<p>Contract with Microsoft is task-based — hopefully, it will result in fixing some
-of the biggest issues with the Ionide and FSAC that we have right now but is not
-creating long term sustainable environment — something I want to create with
-Ionide as an organization and with Open Collective.</p>
-
-<p>I hope that F# community will continue supporting Ionide on Open Collective as
-generously as right now — and I hope that soon, I’ll be able to do some
-announcements about how we will spend those funds on the project related goals
-such as promotion, documentation and more. But that will come later, as I’ll be
-quite busy in the coming months improving Ionide by working with Microsoft.</p>
-
-<h3>But Embrace, Extend, and Extinguish…</h3>
-
-<p>Ionide is still and always will be MIT licensed project owned by F# community,
-and FsAutoComplete is and will always be Apache 2.0 licensed project owned by F#
-Software Foundation.</p>
-
-<p>Microsoft is not acquiring Ionide, nor is there any additional stipulations or
-attempts to re-prioritize the direction of the Ionide project. In fact, I was
-asked to help define the scope of the work and I’ll be helping decide what the
-most important issues are to fix. To be clear, Microsoft is not gaining control
-on Ionide, and they don’t gain any decision making power different than regular
-F# users. Ionide is still a community project and the maintainers continue to
-decide what gets added or removed.</p>
-
-<h3>Next few months will be fun…</h3>
-
-<p>I need to say that I’m really really happy to have this opportunity — for last
-few years I’ve been saying that it would be really good for an ecosystem if
-someone was working full time on F# cross-platform tooling. <br /> My goal for the
-last few years has been pointing out that there is huge potential in F#
-cross-platform tooling, in VSCode as an IDE platform, in F# Compiler Services
-that’s the common infrastructure used by all F# tooling, and that’s been fairly
-unique project among Functional Programming languages. I really believe that we
-can make F# tooling best-in-class (of FP languages), and I hope that the
-partnership with Microsoft is a step in this direction. However, we still need
-to remember that F# tooling is owned by the F# community and only together we
-can make it better so… contributions are welcomed!</p>
-
-<blockquote>
-  <p>Additionally, I need to thank Phillip Carter (F# PM @ Microsoft), without his
-help, and his advocating for F# inside Microsoft things like that would never be
-possible. Thanks!</p>
-</blockquote>
-
+                    
+                    <p class="read-more"><a href="/Using-Node-with-Paket-and-Fake" class="more-link" title="read more">read more</a></p>
                 </div><!-- .entry-content -->
+                
                 <footer class="entry-footer">
-                    <div class="share-post">
-                        <span>Share</span>
-                        <a class="fa-twitter" target="_blank" href="https://twitter.com/intent/tweet?text=Ionide%20%E2%80%94%20A%20New%20Hope&amp;url=http://localhost:4000/Ionide-New-Hope"><span class="screen-reader-text">Twitter</span></a>
-                        <a class="fa-facebook" target="_blank" href="https://www.facebook.com/sharer/sharer.php?u=http://localhost:4000/Ionide-New-Hope&amp;t=Ionide%20%E2%80%94%20A%20New%20Hope"><span class="screen-reader-text">Facebook</span></a>
-                        <a class="fa-google-plus" target="_blank" href="http://plus.google.com/share?url=http://localhost:4000/Ionide-New-Hope"><span class="screen-reader-text">Google+</span></a>
-                    </div><!-- .share-post -->
-                    
                     <div class="tag-links">
-                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#VS+Code" title="Pages tagged VS Code" rel="tag">VS Code</a><a href="/tags/index.html#Tooling" title="Pages tagged Tooling" rel="tag">Tooling</a>
+                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#Paket" title="Pages tagged Paket" rel="tag">Paket</a><a href="/tags/index.html#FAKE" title="Pages tagged FAKE" rel="tag">FAKE</a>
                     </div>
-                    
                 </footer><!-- .entry-footer -->
+                
             </article><!-- .post -->
-            <div class="author-box">
-                <div class="author-info">
-                    <a href="http://kcieslak.io/about" target="_blank"> <div class="author-avatar" style="background-image: url(/images/authorimage.jpg)"><span class="screen-reader-text">Krzysztof Cieslak's Picture</span></div> </a>
-                    <div class="author-details">
-                        <h2 class="author-title">About Krzysztof Cieslak</h2>
-                        <p class="author-bio">Krzysztof is a F# developer and consultant, open source contributor, conference speaker</p>
-                        <span class="author-location"><i class="fa-map-marker" aria-hidden="true"></i> Lodz, Poland</span>
-                        <span class="author-website"><i class="fa-chain" aria-hidden="true"></i> <a href="http://kcieslak.io" target="_blank"> http://kcieslak.io</a></span>
-                    </div><!-- .author-details -->
-                </div><!-- .author-info -->
-            </div><!-- .author-box -->
-            <nav class="post-navigation">
-                <h2 class="screen-reader-text">Post navigation</h2>
+            
+            
+            <nav class="pagination">
+                <h2 class="screen-reader-text">Posts navigation</h2>
                 
-                <div class="nav-previous">
-                    <div class="nav-inside">
-                        
-                        <a href="/PureScript-on-Azure-Functions" class="nav-thumb" style="background-image: url(/images/posts/landscape_3.jpg)"></a>
-                        
-                        <div class="nav-before">Previous</div>
-                        <div class="nav-title"><a href="/PureScript-on-Azure-Functions">PureScript on Azure Functions</a></div>
-                        <div class="nav-date">January 12, 2019</div>
-                    </div><!-- .nav-inside -->
-                </div><!-- .nav-previous -->
+                <a href="/blog/page4/" class="newer-posts fa-chevron-left square fill-horizontal"><span class="screen-reader-text">Newer Posts</span></a>
                 
+                <span class="page-number">Page 5 of 5</span>
                 
-                <div class="nav-next">
-                    <div class="nav-inside">
-                        
-                        <a href="/Ionide-Introducing-Info-Panel" class="nav-thumb" style="background-image: url(/images/posts/landscape_8.jpg)"></a>
-                        
-                        <div class="nav-before">Next</div>
-                        <div class="nav-title"><a href="/Ionide-Introducing-Info-Panel">Ionide — Introducing Info Panel</a></div>
-                        <div class="nav-date">May 6, 2019</div>
-                    </div><!-- .nav-inside -->
-                </div><!-- .nav-next -->
-                
-            </nav><!-- .post-navigation -->
+            </nav><!-- .pagination -->
             
         </main><!-- .site-main -->
         <aside class="sidebar">

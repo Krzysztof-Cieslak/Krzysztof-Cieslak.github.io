@@ -13,8 +13,8 @@
     <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.4.0/styles/default.min.css">
     <link rel="stylesheet" href="/css/main.css" />
     <link rel="stylesheet" href="/css/font-awesome.min.css" />
-    <link rel="canonical" href="http://kcieslak.io/">
-    <link rel="alternate" type="application/rss+xml" title="F# Reflections Feed" href="http://kcieslak.io/feed.xml">
+    <link rel="canonical" href="http://localhost:4000/">
+    <link rel="alternate" type="application/rss+xml" title="F# Reflections Feed" href="http://localhost:4000/feed.xml">
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.12.2/jquery.min.js"></script>
 </head>
 <body>
@@ -64,6 +64,39 @@
     <div class="site-content">
     <div class="inner">
         <main class="site-main"> 
+            
+            <article class="post">
+                <header class="entry-header"> 
+                    <div class="entry-header-wrap">
+                        
+                        <a href="/F-Editor-Tooling-Part1" class="post-thumbnail"><img src="/images/posts/landscape_4.jpg" alt="Behind the F# editor tootling. Part 1: introduction to compilers. "></a>
+                        
+                        <h2 class="entry-title"><a href="/F-Editor-Tooling-Part1" rel="bookmark" title="Permanent Link to /F-Editor-Tooling-Part1">Behind the F# editor tootling. Part 1: introduction to compilers.</a></h2>
+                    </div><!-- .entry-header-wrap -->
+                    <div class="entry-meta">
+                        by <span class="post-author">Krzysztof Cieslak</span> on <time class="published" datetime="2019-08-27">August 27, 2019</time>
+                    </div><!-- .entry-meta -->
+                </header><!-- .entry-header -->
+                <div class="entry-content">
+                    
+                        <h1>Behind the F# editor tootling. Part 1: introduction to compilers.</h1>
+
+<p>F# editor tooling, while it’s not on the level of mainstream languages like C# or Java, has been in a unique spot among Functional Programming languages. F# tooling is available cross-platform, it’s feature-rich, stable, innovative and, what’s also essential, it’s commercially supported and actively developed. Moreover, all this is available while communities of some other FP languages are discussing whether displaying simple tooltip is not too expensive.</p>
+
+<p>In the series, I’d like to dive behind what we see in the editor and show some of the magic that lets us have this excellent developer tooling experience. In this post I’d like to do a gentle introduction to compiler design, introduce some concepts and vocabulary that will be useful later, and give a general description of the potential approaches to the editor tooling in context of compilers.</p>
+
+
+                    
+                    <p class="read-more"><a href="/F-Editor-Tooling-Part1" class="more-link" title="read more">read more</a></p>
+                </div><!-- .entry-content -->
+                
+                <footer class="entry-footer">
+                    <div class="tag-links">
+                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#Tooling" title="Pages tagged Tooling" rel="tag">Tooling</a><a href="/tags/index.html#Compiler" title="Pages tagged Compiler" rel="tag">Compiler</a><a href="/tags/index.html#FSharp.Compiler.Services" title="Pages tagged FSharp.Compiler.Services" rel="tag">FSharp.Compiler.Services</a>
+                    </div>
+                </footer><!-- .entry-footer -->
+                
+            </article><!-- .post -->
             
             <article class="post">
                 <header class="entry-header"> 
@@ -227,44 +260,11 @@ F# cross-platform, community driven editor tooling.</p>
                 
             </article><!-- .post -->
             
-            <article class="post">
-                <header class="entry-header"> 
-                    <div class="entry-header-wrap">
-                        
-                        <a href="/Introducing-F-Analyzers" class="post-thumbnail"><img src="/images/posts/landscape_6.jpg" alt="Introducing F# Analyzers "></a>
-                        
-                        <h2 class="entry-title"><a href="/Introducing-F-Analyzers" rel="bookmark" title="Permanent Link to /Introducing-F-Analyzers">Introducing F# Analyzers</a></h2>
-                    </div><!-- .entry-header-wrap -->
-                    <div class="entry-meta">
-                        by <span class="post-author">Krzysztof Cieslak</span> on <time class="published" datetime="2018-09-14">September 14, 2018</time>
-                    </div><!-- .entry-meta -->
-                </header><!-- .entry-header -->
-                <div class="entry-content">
-                    
-                        <h1>Introducing F# Analyzers</h1>
-
-<p>One of the most exciting features of Roslyn (modern C# compiler) is ability to plug into it custom extensions called <a href="https://docs.microsoft.com/en-us/visualstudio/extensibility/getting-started-with-roslyn-analyzers?view=vs-2017">Roslyn Analyzers</a>. They are live, real-time, project based plugins that enables to diagnose source code and surface custom errors, warnings and code fixes into Visual Studio. What’s really important is fact that there are project based, and distributed through NuGet which means they are easy to install, and ensure that all developers working on the project have exactly same analyzers installed. This is really useful if you want to ensure common best practices, style etc while working on the project.</p>
-
-<p>Today I’d like to introduce preview of the project called F# Analyzers which adds similar capabilities to <a href="http://ionide.io">Ionide</a> (F# support in VS Code). Project is still in the early days, so design and technical details can change in time, but I’m really excited to share it with users even in its current state.</p>
-
-
-                    
-                    <p class="read-more"><a href="/Introducing-F-Analyzers" class="more-link" title="read more">read more</a></p>
-                </div><!-- .entry-content -->
-                
-                <footer class="entry-footer">
-                    <div class="tag-links">
-                        Tags: <a href="/tags/index.html#F%23" title="Pages tagged F#" rel="tag">F#</a><a href="/tags/index.html#VS+Code" title="Pages tagged VS Code" rel="tag">VS Code</a><a href="/tags/index.html#Tooling" title="Pages tagged Tooling" rel="tag">Tooling</a>
-                    </div>
-                </footer><!-- .entry-footer -->
-                
-            </article><!-- .post -->
-            
             
             <nav class="pagination">
                 <h2 class="screen-reader-text">Posts navigation</h2>
                 
-                <span class="page-number">Page 1 of 4</span>
+                <span class="page-number">Page 1 of 5</span>
                 
                 <a href="/blog/page2/" class="older-posts fa-chevron-right square fill-horizontal"><span class="screen-reader-text">Older Posts</span></a>
                 
@@ -293,6 +293,8 @@ F# cross-platform, community driven editor tooling.</p>
         <h2 class="widget-title">Latest Posts</h2>
         <ul class="recent-posts">
             
+            <li class="recent-item"><a href="/F-Editor-Tooling-Part1">Behind the F# editor tootling. Part 1: introduction to compilers.</a> <span>August 27, 2019</span></li>
+            
             <li class="recent-item"><a href="/Ionide-Introducing-Info-Panel">Ionide — Introducing Info Panel</a> <span>May 6, 2019</span></li>
             
             <li class="recent-item"><a href="/Ionide-New-Hope">Ionide — A New Hope</a> <span>March 24, 2019</span></li>
@@ -300,8 +302,6 @@ F# cross-platform, community driven editor tooling.</p>
             <li class="recent-item"><a href="/PureScript-on-Azure-Functions">PureScript on Azure Functions</a> <span>January 12, 2019</span></li>
             
             <li class="recent-item"><a href="/Future-of-F-Cross-platform-editor-tooling">Future of F# cross-platform editor tooling</a> <span>December 31, 2018</span></li>
-            
-            <li class="recent-item"><a href="/Introducing-F-Analyzers">Introducing F# Analyzers</a> <span>September 14, 2018</span></li>
             
         </ul><!-- .recent-posts -->
     </section><!-- .widget-recent-posts -->
@@ -318,6 +318,8 @@ F# cross-platform, community driven editor tooling.</p>
             <a href="/tags/#Azure+Functions">Azure Functions</a>
             
             <a href="/tags/#Community">Community</a>
+            
+            <a href="/tags/#Compiler">Compiler</a>
             
             <a href="/tags/#F%23">F#</a>
             
